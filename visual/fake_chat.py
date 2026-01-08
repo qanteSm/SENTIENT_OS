@@ -74,6 +74,52 @@ class FakeChat(QWidget):
         
         # Visual State
         self._shake_animation = None
+        self._current_mood = "NORMAL"
+
+    def set_mood(self, mood="NORMAL"):
+        """
+        Changes the visual theme based on AI mood.
+        mood: "NORMAL" (Green), "ANGRY" (Red), "GLITCH" (Random)
+        """
+        self._current_mood = mood
+        
+        if mood == "ANGRY":
+            color = "#FF0000"
+            bg = "#220000"
+        elif mood == "GLITCH":
+            color = "#FF00FF"
+            bg = "#110011"
+        else:
+            color = "#00FF00"
+            bg = "black"
+            
+        style = f"""
+            QLineEdit {{
+                background-color: {bg};
+                color: {color};
+                border: 2px solid {color};
+                border-radius: 5px;
+                font-family: 'Consolas', 'Courier New';
+                font-size: 16px;
+                padding: 12px;
+            }}
+        """
+        self.input_field.setStyleSheet(style)
+        
+        # Scroll area border
+        self.scroll.setStyleSheet(f"""
+            QScrollArea {{
+                background-color: rgba(0, 0, 0, 220);
+                border: 2px solid {color};
+                border-radius: 8px;
+            }}
+            QScrollBar:vertical {{ border: none; background: black; width: 8px; }}
+            QScrollBar::handle:vertical {{ background: {color}; min-height: 20px; }}
+        """)
+        
+        # Shake if angry
+        if mood == "ANGRY":
+            self.shake_window(5, 500)
 
     def on_submit(self):
         text = self.input_field.text().strip()

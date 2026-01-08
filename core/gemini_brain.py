@@ -245,8 +245,8 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
         print(f"[BRAIN] generate_response called with: {user_input[:50]}...")
         
         if self.mock_mode:
-            print("[BRAIN] Using mock mode")
-            return self._mock_response(user_input)
+            print("[BRAIN] Using mock mode (Backup Brain)")
+            return self._backup_response(context)
         
         try:
             full_prompt = self._build_dynamic_prompt(user_input)
@@ -256,10 +256,8 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
             print(f"[BRAIN] Received response from Gemini")
             
             clean_text = response.text.strip().replace("```json", "").replace("```", "")
-            print(f"[BRAIN] Cleaned response: {clean_text[:100]}...")
             
             result = json.loads(clean_text)
-            print(f"[BRAIN] Parsed JSON successfully")
             
             # Konuşmayı kaydet
             if self.memory:
@@ -268,12 +266,16 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
             
             return result
             
-        except json.JSONDecodeError as e:
-            print(f"[BRAIN] JSON Parse Error: {e}")
-            return self._mock_response(user_input)
         except Exception as e:
-            print(f"[BRAIN] Generation Error: {e}")
-            return self._mock_response(user_input)
+            print(f"[BRAIN] Generation Error/Offline: {e}")
+            print("[BRAIN] Switching to Backup Brain...")
+            return self._backup_response(context)
+
+    def _backup_response(self, context=None) -> dict:
+        """New: Use the BackupBrain class for smarter fallbacks."""
+        from core.backup_brain import BackupBrain
+        return BackupBrain.get_response(self.current_persona, context)
+
 
     def generate_async(self, user_input: str, callback, context: dict = None):
         """Async generation with full context."""

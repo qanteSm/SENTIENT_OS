@@ -257,6 +257,17 @@ class FunctionDispatcher(QObject):
             persona = params.get("persona")
             if self.brain and persona:
                 self.brain.switch_persona(persona)
+                # Automatically update UI mood based on persona
+                if persona == "ENTITY":
+                    if self.fake_ui.chat: self.fake_ui.chat.set_mood("ANGRY")
+                elif persona == "SUPPORT":
+                    if self.fake_ui.chat: self.fake_ui.chat.set_mood("NORMAL")
+
+        elif action == "SET_MOOD":
+            # Direct mood control
+            mood = params.get("mood", "NORMAL")
+            if self.fake_ui.chat:
+                self.fake_ui.chat.set_mood(mood)
 
         elif action == "RESTORE_SYSTEM":
             # Safety cleanup

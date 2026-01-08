@@ -47,26 +47,42 @@ class Heartbeat(QThread):
 
     def _calculate_sleep_time(self) -> float:
         """
-        SMART TIMING: Kullanıcı aktif değilse daha sık event.
+        SMART TIMING: Adapts to user stress & activity levels.
         """
+        import time 
+        import math
+        
         idle_time = time.time() - self.last_activity
         multiplier = self.anger_engine.get_chaos_multiplier()
         
-        # Idle durumuna göre base sleep ayarla
-        if idle_time > 120:    # 2 dk sessizlik
+        # Calculate stress based on activity
+        # If user is moving mouse A LOT or typing fast, they are likely agitated/panicked
+        # We want to increase pressure then.
+        
+        # This is a mock stress metric since we can't easily hook keystroke speed globally in Python without invasive hooks
+        # But we can infer from frequent activity updates
+        stress_level = 1.0
+        if idle_time < 2.0: # Very active
+            stress_level = 1.5
+        elif idle_time > 60:
+            stress_level = 0.5 # Passive
+            
+        # Base timings
+        if idle_time > 120:    # 2 mins silence
             base_sleep = 6.0
-        elif idle_time > 60:   # 1 dk sessizlik
+        elif idle_time > 60:   # 1 min silence
             base_sleep = 10.0
         else:
-            base_sleep = 15.0  # Aktif kullanıcıyı çok sıkma
+            # Active user: Use stress to modulate
+            # High stress -> Faster events (Keep the pressure on)
+            # Low stress -> Slow burn
+            base_sleep = 15.0 / stress_level
             
         actual_sleep = base_sleep / multiplier
+        
+        # Add jitter
         sleep_time = max(2.0, random.gauss(actual_sleep, 1.5))
         
-        # Bazen "sessizlik" efekti
-        if random.random() < 0.08:
-            sleep_time += random.uniform(10, 20)
-            
         return sleep_time
 
     def run(self):
