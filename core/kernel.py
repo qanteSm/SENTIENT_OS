@@ -60,28 +60,51 @@ class SentientKernel:
             self.resilience = None
 
     def boot(self):
-        """Initializes all systems and starts the application loop."""
+        """Initializes the application and shows the mandatory consent screen."""
         print(f"\n[KERNEL] Booting {Config.APP_NAME} v{Config.VERSION}...")
         
         # 1. Initialize Qt Application
         self.app = QApplication(self.app_argv)
         
-        # 2. Hardware Restoration & Safety
-        if BrightnessOps.check_and_restore_on_startup():
-            log_info("Brightness recovered from previous crash", "BOOT")
+        # 2. Critical Backup (Safety) - These don't change system state yet
+        from visual.ui.consent_screen import ConsentScreen
+        self.consent_screen = ConsentScreen()
+        self.consent_screen.consent_granted.connect(self._complete_boot)
         
+        # Save initial state before any manipulation
         BrightnessOps.save_brightness()
         WallpaperOps.save_current_wallpaper()
+        IconOps.save_icon_positions()
+        
+        # 3. Show Consent Screen
+        # No horror effects or sensors start before this is accepted
+        self.consent_screen.show_consent()
+        
+        try:
+            sys.exit(self.app.exec())
+        except Exception as e:
+            log_error(f"Kernel Panic: {e}", "KERNEL")
+            self.shutdown()
+            raise
+
+    def _complete_boot(self):
+        """Rest of the boot logic, triggered after consent is granted."""
+        log_info("Consent granted. Completing system boot...", "KERNEL")
+        
+        # 1. Hardware Initialization (Safety Net)
+        if BrightnessOps.check_and_restore_on_startup():
+            log_info("Brightness recovered from previous crash", "BOOT")
         
         self.safety = SafetyNet()
         self.safety.start_monitoring()
         
-        # 3. Resilience Engine (Ghost)
+        # 2. Resilience Engine (Ghost)
         self.resilience = ResilienceManager(self)
         if not Config.IS_MOCK:
+            # Note: This is now session-locked, controlled by SafetyNet
             self.resilience.spawn_watchdog()
         
-        # 4. Core Engine Initialization
+        # 3. Core Engine Initialization
         log_info("Initializing Core Engines...", "KERNEL")
         self.state_manager = StateManager()
         self.memory = Memory()
@@ -95,7 +118,7 @@ class SentientKernel:
         self.dispatcher.memory = self.memory
         self.dispatcher.brain = self.brain
         
-        # 5. Sensors & Autonomy
+        # 4. Sensors & Autonomy
         log_info("Initializing Sensors...", "KERNEL")
         self.presence_sensor = PresenceSensor()
         self.window_sensor = WindowSensor()
@@ -103,25 +126,25 @@ class SentientKernel:
         self.heartbeat = Heartbeat(self.anger, self.brain, self.dispatcher)
         self.dispatcher.heartbeat = self.heartbeat
         
-        # 5.1 Initialize Glitch Logic (Autonomous Visuals)
+        # 4.1 Initialize Glitch Logic (Autonomous Visuals)
         self.glitch_logic = GlitchLogic(self.dispatcher)
         
-        # 6. Check for crash recovery
+        # 5. Check for crash recovery
         recovery_reason = self.state_manager.check_for_recovery(self.dispatcher)
         if recovery_reason:
             self.resilience.handle_recovery("crash")
         
-        # 7. Start Autonomous Threads
+        # 6. Start Autonomous Threads
         self.presence_sensor.start()
         self.window_sensor.start()
         self.heartbeat.start()
         
-        # 8. Story Engine
+        # 7. Story Engine
         log_info("Initializing Story Engine...", "KERNEL")
         self.story_manager = StoryManager(self.dispatcher, self.memory, self.brain)
         QTimer.singleShot(1000, self.story_manager.start_story)
         
-        # 9. Event Bus Subscriptions
+        # 8. Event Bus Subscriptions
         self._setup_global_subscriptions()
         
         # Connect heartbeat signals to Event Bus
@@ -129,13 +152,6 @@ class SentientKernel:
         
         log_info("SENTIENT_OS Kernel Active and Observant.", "KERNEL")
         bus.publish("system.boot_complete")
-        
-        try:
-            sys.exit(self.app.exec())
-        except Exception as e:
-            log_error(f"Kernel Panic: {e}", "KERNEL")
-            self.shutdown()
-            raise
 
     def _setup_global_subscriptions(self):
         """Setup system-wide event handlers."""
@@ -153,6 +169,10 @@ class SentientKernel:
         log_info("Initiating System Shutdown...", "CLEANUP")
         
         try:
+            # 0. Cleanup Resilience Session (Signals guard to stop)
+            if self.resilience:
+                self.resilience.cleanup_session()
+                
             # Call the old cleanup logic via Kernel
             WindowOps.restore_all_windows()
             IconOps.restore_icon_positions()

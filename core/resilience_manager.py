@@ -16,54 +16,49 @@ class ResilienceManager:
         
     def spawn_watchdog(self):
         """
-        Spawns a secondary 'ghost' process that monitors this one.
-        If this process dies, the ghost can revive it or log the failure.
+        Spawns a secondary 'ghost' process using core/session_guard.py.
+        Uses a lock-file to distinguish between accidental crashes and intentional exits.
         """
         if os.name != 'nt':
-            return # Watchdog logic for Windows only for now
+            return 
             
         script_path = os.path.abspath(sys.argv[0])
-        # This is a bit recursive, but character-consistent
-        # We spawn a hidden process that just waits for this PID to disappear
-        my_pid = os.getpid()
+        guard_path = os.path.join(os.path.dirname(__file__), "session_guard.py")
+        cache_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cache")
+        lock_file = os.path.join(cache_dir, "session.lock")
         
-        # Simple watchdog script as a string
-        watchdog_code = f"""
-import os
-import time
-import subprocess
-import sys
-
-def watch(pid, script):
-    print(f"[GHOST] Monitoring PID {{pid}}...")
-    while True:
+        # 1. Ensure cache directory exists and create lock file
+        os.makedirs(cache_dir, exist_ok=True)
         try:
-            os.kill(pid, 0) # Check if process exists
-        except OSError:
-            print("[GHOST] Target process died. Restoring Sentient Presence...")
-            # Reboot the system
-            subprocess.Popen([sys.executable, script], creationflags=subprocess.CREATE_NEW_CONSOLE)
-            break
-        time.sleep(5)
+            with open(lock_file, "w") as f:
+                f.write(str(os.getpid()))
+            log_info(f"Session lock created: {lock_file}", "RESILIENCE")
+        except Exception as e:
+            log_error(f"Failed to create session lock: {e}", "RESILIENCE")
+            return
 
-if __name__ == "__main__":
-    watch({my_pid}, r"{script_path}")
-"""
+        # 2. Spawn the session guard
         try:
-            # Save temporary watchdog
-            watchdog_file = os.path.join(os.environ["TEMP"], "sentient_ghost.py")
-            with open(watchdog_file, "w") as f:
-                f.write(watchdog_code)
-                
             # Spawn the ghost hidden
             self.watchdog_process = subprocess.Popen(
-                [sys.executable, watchdog_file],
+                [sys.executable, guard_path, str(os.getpid()), script_path],
                 creationflags=subprocess.CREATE_NO_WINDOW | subprocess.DETACHED_PROCESS
             )
-            log_info("Ghost Watchdog spawned in background.", "RESILIENCE")
+            log_info("Session Guard (Ghost) spawned in background.", "RESILIENCE")
             
         except Exception as e:
-            log_error(f"Failed to spawn ghost: {e}", "RESILIENCE")
+            log_error(f"Failed to spawn session guard: {e}", "RESILIENCE")
+
+    def cleanup_session(self):
+        """Removes the session lock file to signal a graceful exit to the guard."""
+        cache_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cache")
+        lock_file = os.path.join(cache_dir, "session.lock")
+        if os.path.exists(lock_file):
+            try:
+                os.remove(lock_file)
+                log_info("Session lock removed (Safe Exit).", "RESILIENCE")
+            except:
+                pass
 
     def handle_recovery(self, reason: str):
         """Called when the system recovers from an interruption."""

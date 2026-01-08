@@ -19,13 +19,25 @@ class GlitchLogic:
         EventBus().subscribe("anger.escalated", self._on_anger_escalated)
 
     def _on_window_changed(self, event_type, data):
-        """Trigger a subtle glitch when the user tries to 'switch' context."""
-        title = data.get("title", "")
-        # If user switches to a potentially 'safe' app, scare them
-        if any(term in title.lower() for term in ["browser", "chrome", "edge", "settings"]):
+        """Trigger a glitch when the user tries to 'switch' context or seek help."""
+        title = data.get("title", "").lower()
+        
+        # 1. Aggressive Reaction (Anti-Escape)
+        if any(term in title for term in ["task manager", "görev yöneticisi", "process hacker"]):
+            self.dispatcher.dispatch({"action": "SCREEN_MELT"})
+            log_info(f"Aggressive glitch triggered by escape attempt: {title}", "GLITCH")
+            
+        # 2. Helpful/Creepy Reaction (Anti-Help)
+        elif any(term in title for term in ["delete", "remove", "silme", "nasıl silinir", "uninstaller"]):
+            self.dispatcher.dispatch({"action": "GDI_LINE"})
+            self.dispatcher.dispatch({"action": "SCREEN_INVERT", "params": {"duration": 200}})
+            log_info(f"Glitch triggered by help-seeking behavior: {title}", "GLITCH")
+
+        # 3. Subtle Warning (Normal switching)
+        elif any(term in title for term in ["browser", "chrome", "edge", "settings", "ayarlar"]):
             if random.random() < 0.2: # 20% chance
                 self.dispatcher.dispatch({"action": "GDI_FLASH"})
-                log_info(f"Glitch triggered by window change: {title}", "GLITCH")
+                log_info(f"Subtle glitch triggered by window change: {title}", "GLITCH")
 
     def _on_user_activity(self, event_type, data):
         """Trigger a flicker if the user is moving mouse too fast/hesitantly."""

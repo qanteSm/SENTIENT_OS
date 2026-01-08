@@ -11,6 +11,7 @@ from hardware.keyboard_ops import KeyboardOps
 from hardware.mouse_ops import MouseOps
 from visual.fake_ui import FakeUI
 from config import Config
+from core.event_bus import bus
 
 # Try to import keyboard for hotkey listening
 try:
@@ -84,6 +85,9 @@ class SafetyNet:
         """Restores system to normal state (unlock mouse, clear screen)."""
         print("\n!!! EMERGENCY KILL SWITCH TRIGGERED !!!")
         
+        # 0. Broadcast Shutdown (So kernel can clean up)
+        bus.publish("system.shutdown", {"reason": "kill_switch"})
+        
         # Kaçışı kaydet
         if SafetyNet.memory:
             SafetyNet.memory.log_event("KILL_SWITCH_USED", {})
@@ -98,6 +102,8 @@ class SafetyNet:
         if app:
             app.quit()
         
-        # 3. Kill Process
+        # 3. Kill Process (Nuclear Option)
         print("System Exiting...")
+        import time
+        time.sleep(0.5) # Give kernel a moment to catch the shutdown signal
         os._exit(0)
