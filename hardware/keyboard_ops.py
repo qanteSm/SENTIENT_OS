@@ -49,15 +49,22 @@ class KeyboardOps:
             return
 
         try:
-            # 1. Get Active Window Title
-            window_handle = win32gui.GetForegroundWindow()
-            window_title = win32gui.GetWindowText(window_handle)
+            # 1. Get Detailed Window Info
+            from hardware.window_ops import WindowOps
+            info = WindowOps.get_active_window_info()
+            proc = info.get('process', '').lower()
             
-            # 2. Check Safety
+            # 2. Check Safety (Protected Processes)
             if process_guard:
-                # Need to map window title to process name roughly, or check title content
-                # Robust approach: define common keywords for streamer tools
-                protected_keywords = ["obs", "streamlabs", "discord", "twitch", "youtube", "chrome", "firefox"]
+                # Add Streamer apps to protected list
+                protected_procs = [
+                    "obs64.exe", "obs32.exe", "streamlabs.exe", 
+                    "discord.exe", "vlc.exe", "mpc-hc.exe"
+                ]
+                
+                if proc in protected_procs:
+                    print(f"[SAFETY] Ghost Type Blocked on Protected App: {proc}")
+                    return
                 
                 title_lower = window_title.lower()
                 for keyword in protected_keywords:

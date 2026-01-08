@@ -18,6 +18,12 @@
         "not_over": "It's not over...",
         "act2_start": "ACT 2 BEGINS..."
     },
+    "transitions": {
+        "decrypting": "DECRYPTING NEW MODULES...",
+        "synchronizing": "SYNCHRONIZING VOID...",
+        "preparing": "PREPARING PHASE {num}...",
+        "stability": "SUBJECT STABILITY: 42%"
+    },
     "notifications": {
         "title_info": "Information",
         "title_error": "Critical Error",

@@ -108,11 +108,13 @@ class StoryManager(QObject):
 
     def _show_transition_terminal(self, next_act_num):
         """Shows fake terminal loading messages during transition."""
+        from core.localization_manager import tr
+        
         messages = [
-            "DECRYPTING NEW MODULES...",
-            "SYNCHRONIZING VOID...",
-            f"PREPARING PHASE {next_act_num}...",
-            "SUBJECT STABILITY: 42%"
+            tr("transitions.decrypting"),
+            tr("transitions.synchronizing"),
+            tr("transitions.preparing").format(num=next_act_num),
+            tr("transitions.stability")
         ]
         
         def show_msg(idx):

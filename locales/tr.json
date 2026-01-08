@@ -18,6 +18,12 @@
         "not_over": "Henüz bitmedi...",
         "act2_start": "ACT 2 BAŞLIYOR..."
     },
+    "transitions": {
+        "decrypting": "YENİ MODÜLLER ÇÖZÜLÜYOR...",
+        "synchronizing": "BOŞLUK SENKRONİZE EDİLİYOR...",
+        "preparing": "AŞAMA {num} HAZIRLANIYOR...",
+        "stability": "KOBAY KARARLILIĞI: %42"
+    },
     "notifications": {
         "title_info": "Bilgi",
         "title_error": "Kritik Hata",
