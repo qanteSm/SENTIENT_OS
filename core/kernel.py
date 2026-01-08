@@ -243,5 +243,3 @@ sys.excepthook = handle_exception
 def boot_system():
     kernel = SentientKernel()
     kernel.boot()
-    kernel = SentientKernel()
-    kernel.boot()
