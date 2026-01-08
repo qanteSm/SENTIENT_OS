@@ -123,7 +123,9 @@ class FunctionDispatcher(QObject):
         if not command_data: return
         
         action = command_data.get("action", "").upper()
-        params = command_data.get("params", {})
+        # Ensure params is always a dict, even if JSON has "params": null or missing
+        raw_params = command_data.get("params")
+        params = raw_params if isinstance(raw_params, dict) else {}
         speech = command_data.get("speech", "")
 
         print(f"[DISPATCH] Processing Action: {action}")

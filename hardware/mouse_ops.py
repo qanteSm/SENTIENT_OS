@@ -111,6 +111,4 @@ class MouseOps:
             mouse.click('left')
         else:
             print("[INPUT_GUARD] Click suppressed on system window.")
- bitumen
- bitumen
- bitumen
+
