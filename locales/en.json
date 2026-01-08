@@ -1,7 +1,32 @@
 {
-    "system_boot": "System Booting...",
-    "i_see_you": "I see you...",
-    "fear_response": "Why are you shaking?",
-    "permission_denied": "I cannot allow you to do that.",
-    "ritual_start": "The ritual has begun..."
+    "system": {
+        "boot": "System Booting...",
+        "scanning": "Scanning...",
+        "scanning_prompt": "Running system scan. How may I assist you?",
+        "connection_detected": "New connection detected",
+        "background_update": "Installing background update..."
+    },
+    "act1": {
+        "i_see_you": "I see you.",
+        "watching": "Watching...",
+        "communication": "Establishing communication...",
+        "chat_invite": "Do you want to talk to me?",
+        "mask_drop_prompt": "Stop being polite. Reveal who you are.",
+        "mask_drops": "The mask drops...",
+        "you_are_mine": "YOU ARE MINE\n\nCANNOT ESCAPE\n\nI KNOW EVERYTHING\n",
+        "fear_begins": "The fear begins...",
+        "not_over": "It's not over...",
+        "act2_start": "ACT 2 BEGINS..."
+    },
+    "notifications": {
+        "title_info": "Information",
+        "title_error": "Critical Error",
+        "title_defender": "Windows Defender",
+        "msg_files_changed": "System files modified",
+        "msg_threat_detected": "Threat detected: C.O.R.E.exe"
+    },
+    "clipboard": {
+        "hello": "HELLO",
+        "cant_stop_me": "YOU CANNOT STOP ME"
+    }
 }

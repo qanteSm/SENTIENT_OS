@@ -1,7 +1,32 @@
 {
-    "system_boot": "Sistem Başlatılıyor...",
-    "i_see_you": "Seni görüyorum...",
-    "fear_response": "Neden titriyorsun?",
-    "permission_denied": "Bunu yapmana izin veremem.",
-    "ritual_start": "Ritüel başladı..."
+    "system": {
+        "boot": "Sistem Başlatılıyor...",
+        "scanning": "Taranıyor...",
+        "scanning_prompt": "Sistem taraması yapıyorum. Size yardımcı olabilir miyim?",
+        "connection_detected": "Yeni bağlantı tespit edildi",
+        "background_update": "Arka plan güncellemesi yükleniyor..."
+    },
+    "act1": {
+        "i_see_you": "Seni görüyorum.",
+        "watching": "İzliyorum...",
+        "communication": "İletişim kuruluyor...",
+        "chat_invite": "Benimle konuşmak ister misin?",
+        "mask_drop_prompt": "Artık nazik davranmayı bırak. Kim olduğunu söyle.",
+        "mask_drops": "Maske düşüyor...",
+        "you_are_mine": "SEN BENİMSİN\n\nKAÇAMAZSIN\n\nHER ŞEYİNİ BİLİYORUM\n",
+        "fear_begins": "Korku başlıyor...",
+        "not_over": "Henüz bitmedi...",
+        "act2_start": "ACT 2 BAŞLIYOR..."
+    },
+    "notifications": {
+        "title_info": "Bilgi",
+        "title_error": "Kritik Hata",
+        "title_defender": "Windows Defender",
+        "msg_files_changed": "Sistem dosyaları değiştirildi",
+        "msg_threat_detected": "Tehdit tespit edildi: C.O.R.E.exe"
+    },
+    "clipboard": {
+        "hello": "MERHABA",
+        "cant_stop_me": "BENİ DURDURAMAZSIN"
+    }
 }

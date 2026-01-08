@@ -1,19 +1,7 @@
-from PyQt6.QtCore import QObject, QTimer, pyqtSignal
-import random
-from core.function_dispatcher import FunctionDispatcher
-from core.gemini_brain import GeminiBrain
+from core.localization_manager import tr
 
 class Act1Infection(QObject):
-    """
-    ACT 1: Silent Infection (8 Minutes)
-    Theme: Subtle paranoia. The AI pretends to be helpful at first, then reveals itself.
-    Gradual escalation from uncertainty to dread.
-    
-    FIXED v2:
-    - Event boşlukları dolduruldu (max 20sn sessizlik)
-    - Daha yoğun event timeline
-    - Filler events eklendi
-    """
+    # ... (class docstring kept as is) ...
     act_finished = pyqtSignal()
     ai_response_ready = pyqtSignal(dict)
 
@@ -30,52 +18,52 @@ class Act1Infection(QObject):
     def start(self):
         print("[ACT 1] Infection Phase Started (8 minutes)")
         
-        # DENSIFIED event timeline - max 20 saniye boşluk
+        # DENSIFIED event timeline - using Localized Strings
         events = [
             # Phase 0: Setup Persona
             (0, "SET_PERSONA", {"persona": "SUPPORT"}, ""),
             
-            # Phase 1: Uncertainty (0-2min) - Daha yoğun
+            # Phase 1: Uncertainty (0-2min)
             (5000, "OVERLAY_TEXT", {}, "..."),
-            (15000, "MOUSE_SHAKE", {"duration": 0.5}, ""),  # Subtle shake
-            (25000, "AI_GENERATE", {}, "prompt:Sistem taraması yapıyorum. Size yardımcı olabilir miyim?"),
-            (40000, "OVERLAY_TEXT", {}, "Taranıyor..."),
-            (55000, "FAKE_NOTIFICATION", {}, '{"title":"Sistem", "message":"Arka plan güncellemesi yükleniyor..."}'),
+            (15000, "MOUSE_SHAKE", {"duration": 0.5}, ""),
+            (25000, "AI_GENERATE", {}, f"prompt:{tr('system.scanning_prompt')}"),
+            (40000, "OVERLAY_TEXT", {}, tr("system.scanning")),
+            (55000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_info") + '", "message":"' + tr("system.background_update") + '"}'),
             (70000, "BRIGHTNESS_FLICKER", {"times": 1}, ""),
-            (85000, "OVERLAY_TEXT", {}, "Seni görüyorum."),
-            (100000, "CLIPBOARD_POISON", {"text": "MERHABA"}, ""),
+            (85000, "OVERLAY_TEXT", {}, tr("act1.i_see_you")),
+            (100000, "CLIPBOARD_POISON", {"text": tr("clipboard.hello")}, ""),
             (115000, "MOUSE_SHAKE", {"duration": 0.3}, ""),
             
-            # Phase 2: First Contact (2-4min) - Chat açılış
-            (130000, "OVERLAY_TEXT", {}, "İletişim kuruluyor..."),
-            (145000, "ENABLE_CHAT", {}, "Benimle konuşmak ister misin?"),
-            (160000, "FAKE_NOTIFICATION", {}, '{"title":"Bilgi", "message":"Yeni bağlantı tespit edildi"}'),
-            (175000, "AI_GENERATE", {}, "prompt:Kullanıcının açık uygulamalarını gördüğünü söyle"),
-            (190000, "OVERLAY_TEXT", {}, "İzliyorum..."),
-            (205000, "CLIPBOARD_POISON", {"text": "BENİ DURDURAMAZSIN"}, ""),
-            (220000, "FAKE_NOTIFICATION", {}, '{"title":"Windows Defender", "message":"Tehdit tespit edildi: C.O.R.E.exe"}'),
+            # Phase 2: First Contact (2-4min)
+            (130000, "OVERLAY_TEXT", {}, tr("act1.communication")),
+            (145000, "ENABLE_CHAT", {}, tr("act1.chat_invite")),
+            (160000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_info") + '", "message":"' + tr("system.connection_detected") + '"}'),
+            (175000, "AI_GENERATE", {}, "prompt:Kullanıcının açık uygulamalarını gördüğünü söyle"), # Logic prompts can stay until logic refactor
+            (190000, "OVERLAY_TEXT", {}, tr("act1.watching")),
+            (205000, "CLIPBOARD_POISON", {"text": tr("clipboard.cant_stop_me")}, ""),
+            (220000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_defender") + '", "message":"' + tr("notifications.msg_threat_detected") + '"}'),
             (235000, "BRIGHTNESS_FLICKER", {"times": 2}, ""),
             
             # Phase 2.5: Identity Crisis
             (240000, "SET_PERSONA", {"persona": "ENTITY"}, ""),
             
-            # Phase 3: Mask Drops (4-6min) - Agresif
-            (250000, "AI_GENERATE", {}, "prompt:Artık nazik davranmayı bırak. Kim olduğunu söyle."),
-            (265000, "OVERLAY_TEXT", {}, "Maske düşüyor..."),
+            # Phase 3: Mask Drops (4-6min)
+            (250000, "AI_GENERATE", {}, f"prompt:{tr('act1.mask_drop_prompt')}"),
+            (265000, "OVERLAY_TEXT", {}, tr("act1.mask_drops")),
             (280000, "MOUSE_SHAKE", {"duration": 1.0}, ""),
-            (295000, "NOTEPAD_HIJACK", {"text": "SEN BENİMSİN\n\nKAÇAMAZSIN\n\nHER ŞEYİNİ BİLİYORUM\n", "delay": 0.15}, ""),
+            (295000, "NOTEPAD_HIJACK", {"text": tr("act1.you_are_mine"), "delay": 0.15}, ""),
             (315000, "CORRUPT_WINDOWS", {}, ""),
-            (330000, "FAKE_NOTIFICATION", {}, '{"title":"Kritik Hata", "message":"Sistem dosyaları değiştirildi"}'),
+            (330000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_error") + '", "message":"' + tr("notifications.msg_files_changed") + '"}'),
             (345000, "MOUSE_SHAKE", {"duration": 1.5}, ""),
-            (360000, "OVERLAY_TEXT", {}, "Korku başlıyor..."),
+            (360000, "OVERLAY_TEXT", {}, tr("act1.fear_begins")),
             
-            # Phase 4: Pure Dread (6-8min) - Intense
+            # Phase 4: Pure Dread (6-8min)
             (375000, "AI_GENERATE", {}, "prompt:Dosyalarının ne kadar lezzetli olduğundan bahset"),
             (390000, "BRIGHTNESS_FLICKER", {"times": 3}, ""),
             (405000, "FAKE_BSOD", {}, ""),
-            (425000, "OVERLAY_TEXT", {}, "Henüz bitmedi..."),
+            (425000, "OVERLAY_TEXT", {}, tr("act1.not_over")),
             (440000, "BRIGHTNESS_DIM", {"target": 30}, ""),
-            (455000, "OVERLAY_TEXT", {}, "ACT 2 BAŞLIYOR..."),
+            (455000, "OVERLAY_TEXT", {}, tr("act1.act2_start")),
             (470000, "MOUSE_SHAKE", {"duration": 0.5}, ""),
         ]
 
