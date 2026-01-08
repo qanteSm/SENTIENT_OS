@@ -1,0 +1,20 @@
+PyQt6==6.5.0
+PyQt6-WebEngine
+pygame
+google-generativeai
+pyttsx3
+win10toast
+pygetwindow
+screen-brightness-control
+pyperclip
+pywin32; sys_platform == 'win32'
+keyboard; sys_platform == 'win32'
+mouse; sys_platform == 'win32'
+pycaw; sys_platform == 'win32'
+sounddevice
+numpy
+opencv-python
+psutil
+requests
+pillow
+cryptography
