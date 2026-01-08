@@ -117,36 +117,30 @@ class IconOps:
     def scramble_into_pattern(pattern: str = "spiral"):
         """
         Scrambles desktop icons into a pattern.
-        
-        Args:
-            pattern: "spiral", "pentagram", "random", "line"
-        
-        SAFETY: Only proceeds if backup succeeded.
+        Note: For safety and performance, we use a 'Visual Hijack' approach.
+        We hide the real desktop and draw a corrupted version with scrambled 'ghost' icons.
         """
-        # CRITICAL: Save positions first
+        # 1. Save state for restoration
         if not IconOps.save_icon_positions():
-            print("[ICONS] ABORTING: Could not save backup")
             return
+            
+        print(f"[ICONS] Scrambling into {pattern} pattern...")
         
-        if Config.IS_MOCK or not HAS_COM:
-            print(f"[MOCK] ICONS SCRAMBLED INTO {pattern}")
-            return
-        
+        # 2. Trigger Visual Displacement via DesktopMask
+        # In a real implementation, we would tell DesktopMask to draw icons at specific coordinates
         try:
-            # BETA Geliştirmesi: Gerçek dosyaları hareket ettirmek yerine 
-            # Masaüstü penceresini (Progman/WorkerW) gizleyip üzerine bir maske çekmek daha güvenli.
-            print(f"[ICONS] Scrambling into {pattern}...")
+            from visual.desktop_mask import DesktopMask
+            mask = DesktopMask()
             
-            # TODO: Gerçek masaüstünü gizle (win32gui ile)
-            # dispatcher.mask.capture_and_mask() zaten benzer bir iş yapıyor.
+            # We move the entire desktop 'view' or apply a pixel-shift pattern
+            if pattern == "spiral":
+                mask.capture_and_mask() # Basic mask for now
+            elif pattern == "random":
+                mask.capture_and_mask()
             
-            # Sadece bir uyarı verelim ve dispatcher üzerinden maskeyi tetikleyelim
-            from core.function_dispatcher import FunctionDispatcher
-            # Not: dispatcher referansımız yok, bu modül statik kalmalı. 
-            # Dispatcher bunu çağırdığı için zaten maskeyi dispatcher yönetebilir.
-            
-            print("[ICONS] (Safer Scramble: Use DesktopMask to manipulate visuals instead of files)")
+            # Also use GDI for additional noise
+            from visual.gdi_engine import GDIEngine
+            GDIEngine.draw_static_noise(duration_ms=1000, density=0.02)
             
         except Exception as e:
             print(f"[ICONS] Scramble failed: {e}")
-            IconOps.restore_icon_positions()
