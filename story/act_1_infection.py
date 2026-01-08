@@ -32,6 +32,9 @@ class Act1Infection(QObject):
         
         # DENSIFIED event timeline - max 20 saniye boşluk
         events = [
+            # Phase 0: Setup Persona
+            (0, "SET_PERSONA", {"persona": "SUPPORT"}, ""),
+            
             # Phase 1: Uncertainty (0-2min) - Daha yoğun
             (5000, "OVERLAY_TEXT", {}, "..."),
             (15000, "MOUSE_SHAKE", {"duration": 0.5}, ""),  # Subtle shake
@@ -52,6 +55,9 @@ class Act1Infection(QObject):
             (205000, "CLIPBOARD_POISON", {"text": "BENİ DURDURAMAZSIN"}, ""),
             (220000, "FAKE_NOTIFICATION", {}, '{"title":"Windows Defender", "message":"Tehdit tespit edildi: C.O.R.E.exe"}'),
             (235000, "BRIGHTNESS_FLICKER", {"times": 2}, ""),
+            
+            # Phase 2.5: Identity Crisis
+            (240000, "SET_PERSONA", {"persona": "ENTITY"}, ""),
             
             # Phase 3: Mask Drops (4-6min) - Agresif
             (250000, "AI_GENERATE", {}, "prompt:Artık nazik davranmayı bırak. Kim olduğunu söyle."),

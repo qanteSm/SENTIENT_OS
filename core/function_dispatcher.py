@@ -251,6 +251,11 @@ class FunctionDispatcher(QObject):
             if path:
                 WallpaperOps.set_wallpaper(path)
 
+        elif action == "SET_PERSONA":
+            persona = params.get("persona")
+            if self.brain and persona:
+                self.brain.switch_persona(persona)
+
         elif action == "RESTORE_SYSTEM":
             # Safety cleanup
             WindowOps.restore_all_windows()

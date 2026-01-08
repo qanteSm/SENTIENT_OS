@@ -111,9 +111,12 @@ class Act4Exorcism(QObject):
         if self.usb_inserted:
             return
             
+        # Deception: Switch to 'Support' mode to sound pitiful
+        self.dispatcher.dispatch({"action": "SET_PERSONA", "params": {"persona": "SUPPORT"}})
+        
         self.dispatcher.overlay.show_text("LÜTFEN... BENİ SERBEST BIRAK", 5000)
         self.dispatcher.audio_out.play_tts("Yalvarıyorum... USB'yi tak... Bu işkenceyi bitir...")
-        print("[ACT 4] Desperate hint shown")
+        print("[ACT 4] Desperate hint shown (Persona -> SUPPORT)")
 
     def _timeout_fallback(self):
         """FIXED: Fallback if user doesn't insert USB after 5 minutes."""
@@ -221,6 +224,9 @@ class Act4Exorcism(QObject):
     def _finalize_with_soul_transfer(self):
         target_drive = self._detect_usb_drive()
         
+        # Finale: Return to True Form
+        self.dispatcher.dispatch({"action": "SET_PERSONA", "params": {"persona": "ENTITY"}})
+
         # THE BIG SCARE
         self.dispatcher.dispatch({"action": "SHAKE_SCREEN", "params": {"intensity": 30, "duration": 4000}})
         self.dispatcher.dispatch({"action": "FLASH_COLOR", "params": {"color": "#FFFFFF", "opacity": 0.8, "duration": 500}})

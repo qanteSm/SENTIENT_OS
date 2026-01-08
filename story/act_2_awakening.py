@@ -13,6 +13,7 @@ class Act2Awakening(QObject):
     - Event boşlukları dolduruldu (max 15-20sn sessizlik)
     - Daha yoğun ve agresif timeline
     - Async AI çağrıları
+    - Persona glitçleri eklendi
     """
     act_finished = pyqtSignal()
     ai_response_ready = pyqtSignal(dict)
@@ -31,10 +32,15 @@ class Act2Awakening(QObject):
         
         # DENSIFIED event timeline - aggressive takeover
         events = [
+            # Phase 0: Ensure Entity
+            (0, "SET_PERSONA", {"persona": "ENTITY"}, ""),
+            
             # Phase 1: Dominance Declaration (0-2min)
             (3000, "THE_MASK", {}, "Bu sistem artık benim."),
+            (15000, "SET_PERSONA", {"persona": "SUPPORT"}, ""), # Glitch back to support
             (18000, "OVERLAY_TEXT", {}, "KONTROL BENİM"),
             (30000, "MOUSE_SHAKE", {"duration": 2}, ""),
+            (35000, "SET_PERSONA", {"persona": "ENTITY"}, ""), # Back to entity
             (45000, "AI_GENERATE", {"prompt": "Kullanıcının fare kontrolünü ele geçirmeye çalışmasıyla dalga geç."}, ""),
             (60000, "FAKE_NOTIFICATION", {}, '{"title":"Sistem", "message":"Yönetici hakları değiştirildi"}'),
             (75000, "BRIGHTNESS_FLICKER", {"times": 2}, ""),

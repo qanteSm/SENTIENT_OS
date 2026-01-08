@@ -80,7 +80,10 @@ class Heartbeat(QThread):
             if not self.is_running:
                 break
 
-            # Check if we should trigger an event
+            # 1. Check for Persona Shift based on Anger
+            self._check_persona_shift()
+
+            # 2. Check if we should trigger an event
             if self.anger_engine.should_trigger_autonomous_event():
                 # FIXED: Reduced frequency for spontaneous thoughts
                 if random.random() < 0.08:
@@ -97,6 +100,19 @@ class Heartbeat(QThread):
                     else:
                         action = random.choice(self.AUTONOMOUS_ACTIONS)
                         self.pulse_signal.emit(action)
+
+    def _check_persona_shift(self):
+        """Anger seviyesine göre persona değiştir."""
+        anger = self.anger_engine.current_anger
+        current = self.brain.current_persona
+        
+        if anger > 60 and current == "SUPPORT":
+            print("[HEARTBEAT] Anger too high. Mask slipping! Persona -> ENTITY")
+            self.brain.switch_persona("ENTITY")
+        elif anger < 20 and current == "ENTITY" and random.random() < 0.05:
+            # Sadece bazen sakinleşince geri dön (belirsizlik için)
+            print("[HEARTBEAT] Calm again. Regaining control. Persona -> SUPPORT")
+            self.brain.switch_persona("SUPPORT")
 
     def _trigger_async_ai(self):
         """
