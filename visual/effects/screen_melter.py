@@ -73,11 +73,30 @@ class ScreenMelter(QWidget):
         if event.key() == Qt.Key.Key_Escape:
             self.close()
 
+_current_melter = None
+
 def trigger_melt():
-    """Helper to start the melt from the main thread."""
+    """Helper to start the melt from the main thread with overlap prevention."""
+    global _current_melter
+    
+    # Check if a melter is already active to prevent system lockup
+    if _current_melter is not None:
+        print("[SCREEN_MELTER] Already active, skipping duplicate trigger.")
+        return
+        
     if Config.IS_MOCK:
         print("[MOCK] Screen Melting triggered.")
         return
-    global _melter
-    _melter = ScreenMelter()
-    _melter.show()
+        
+    print("[SCREEN_MELTER] Capturing screen for melt effect...")
+    _current_melter = ScreenMelter()
+    
+    # Ensure it cleans up its own pointer when closed or destroyed
+    _current_melter.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+    _current_melter.destroyed.connect(_on_melter_destroyed)
+    _current_melter.show()
+
+def _on_melter_destroyed():
+    global _current_melter
+    _current_melter = None
+    print("[SCREEN_MELTER] Memory cleared.")

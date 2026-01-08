@@ -22,6 +22,7 @@ from core.sensors.window_sensor import WindowSensor
 from core.resilience_manager import ResilienceManager
 from hardware.wallpaper_ops import WallpaperOps
 from visual.glitch_logic import GlitchLogic
+from core.resource_guard import ResourceGuard
 
 class SentientKernel:
     """
@@ -58,6 +59,7 @@ class SentientKernel:
             
             # Resilience
             self.resilience = None
+            self.resource_guard = None
 
     def boot(self):
         """Initializes the application and shows the mandatory consent screen."""
@@ -139,6 +141,10 @@ class SentientKernel:
         self.window_sensor.start()
         self.heartbeat.start()
         
+        # 6.1 Start Resource Guard (Safety)
+        self.resource_guard = ResourceGuard()
+        self.resource_guard.start()
+        
         # 7. Story Engine
         log_info("Initializing Story Engine...", "KERNEL")
         self.story_manager = StoryManager(self.dispatcher, self.memory, self.brain)
@@ -165,26 +171,23 @@ class SentientKernel:
         bus.subscribe("anger.escalated", lambda data: log_warning(f"AI Anger level increased: {data.get('level')}", "KERNEL"))
 
     def shutdown(self):
-        """Graceful shutdown of all systems."""
+        """Graceful and robust shutdown of all systems."""
         log_info("Initiating System Shutdown...", "CLEANUP")
         
+        # Disable future signals to avoid recursion if something fails during cleanup
+        try:
+            bus.unsubscribe("system.shutdown")
+        except: pass
+
         try:
             # 0. Cleanup Resilience Session (Signals guard to stop)
             if self.resilience:
                 self.resilience.cleanup_session()
                 
-            # Call the old cleanup logic via Kernel
-            WindowOps.restore_all_windows()
-            IconOps.restore_icon_positions()
-            BrightnessOps.restore_brightness()
-            WallpaperOps.restore_wallpaper()
+            # 1. STOP ALL AUTONOMY (Threads first)
+            if self.resource_guard:
+                self.resource_guard.stop()
             
-            if self.state_manager:
-                self.state_manager.clear_all()
-            
-            if self.memory:
-                self.memory.shutdown()
-                
             if self.heartbeat:
                 self.heartbeat.stop()
             
@@ -193,15 +196,45 @@ class SentientKernel:
             
             if self.window_sensor:
                 self.window_sensor.stop()
+
+            # 2. HARDWARE RESTORE (Critical)
+            log_info("Restoring system hardware state...", "CLEANUP")
+            WindowOps.restore_all_windows()
+            IconOps.restore_icon_positions()
+            BrightnessOps.restore_brightness()
+            WallpaperOps.restore_wallpaper()
+            
+            # 3. Component Cleanup
+            if self.state_manager:
+                self.state_manager.clear_all()
+            
+            if self.memory:
+                self.memory.shutdown()
                 
-            print("[CLEANUP] System restored successfully")
+            print("[CLEANUP] All subsystems stabilized.")
         except Exception as e:
-            print(f"[CLEANUP] Error during shutdown: {e}")
+            log_error(f"Error during shutdown: {e}", "CLEANUP")
         
         if self.app:
             self.app.quit()
 
+# Global exception hook to ensure cleanup on crash
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    
+    log_error(f"UNHANDLED EXCEPTION: {exc_value}", "CRITICAL")
+    kernel = SentientKernel()
+    if kernel:
+        kernel.shutdown()
+    sys.__excepthook__(exc_type, exc_value, exc_traceback)
+
+sys.excepthook = handle_exception
+
 # Convenience function for main.py
 def boot_system():
+    kernel = SentientKernel()
+    kernel.boot()
     kernel = SentientKernel()
     kernel.boot()

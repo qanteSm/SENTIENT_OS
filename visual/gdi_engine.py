@@ -34,8 +34,8 @@ class GDIEngine:
     @classmethod
     def draw_static_noise(cls, area: Tuple[int, int, int, int] = None, density=0.01, duration_ms=500):
         """
-        Draws random black/white pixels (static) directly on the screen.
-        area: (x, y, width, height). None = Full primary screen.
+        Optimized: Draws random black/white blocks (static) directly on the screen.
+        Uses PatBlt instead of SetPixel for high performance.
         """
         if not HAS_WIN32:
             print("[GDI_MOCK] Drawing static noise...")
@@ -50,14 +50,27 @@ class GDIEngine:
         end_time = time.time() + (duration_ms / 1000.0)
         
         try:
+            # Create brushes once
+            black_brush = win32gui.CreateSolidBrush(0)
+            white_brush = win32gui.CreateSolidBrush(0xFFFFFF)
+            
             while time.time() < end_time:
-                for _ in range(int(w * h * density)):
-                    px = random.randint(x, x + w - 1)
-                    py = random.randint(y, y + h - 1)
-                    color = random.choice([0, 0xFFFFFF]) # Black or White
-                    win32gui.SetPixel(dc, px, py, color)
-                # Small sleep to yield
+                # Draw noise in chunks
+                for _ in range(20): # 20 blocks per iteration
+                    bx = random.randint(x, x + w - 10)
+                    by = random.randint(y, y + h - 10)
+                    bw = random.randint(2, 20)
+                    bh = random.randint(2, 20)
+                    brush = random.choice([black_brush, white_brush])
+                    
+                    old_brush = win32gui.SelectObject(dc, brush)
+                    win32gui.PatBlt(dc, bx, by, bw, bh, win32con.PATCOPY)
+                    win32gui.SelectObject(dc, old_brush)
+                
                 time.sleep(0.01)
+                
+            win32gui.DeleteObject(black_brush)
+            win32gui.DeleteObject(white_brush)
         finally:
             cls.release_dc(dc)
 
