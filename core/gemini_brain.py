@@ -12,6 +12,7 @@ import time
 from config import Config
 from PyQt6.QtCore import QObject, pyqtSignal
 from core.context_observer import ContextObserver
+from core.privacy_filter import PrivacyFilter
 
 try:
     import google.generativeai as genai
@@ -232,7 +233,12 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
         parts.append(f"\n=== KULLANICI MESAJI ===\n{user_input}")
         parts.append("\nCEVAP (SADECE JSON):")
         
-        return "\n".join(parts)
+        # Apply Privacy Scrubbing to the entire prompt before sending
+        final_prompt = "\n".join(parts)
+        if Config.STREAMER_MODE:
+            final_prompt = PrivacyFilter.singleton().scrub(final_prompt)
+            
+        return final_prompt
 
     def generate_response(self, user_input: str, context: dict = None) -> dict:
         """Gemini'den yanıt al - tam bağlam ile."""

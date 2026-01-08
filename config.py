@@ -18,6 +18,7 @@ class Config:
     LANGUAGE = "tr"
     SAFE_HARDWARE = False # If True, avoid physically damaging actions (even if capable)
     CHAOS_LEVEL = 0
+    ENABLE_STROBE = False # FALSE: Blocks rapid flashing and strobe effects for photosensitive users
     
     # Protected Processes (Publisher Protection)
     # The AI cannot kill these or draw over them if possible

@@ -23,6 +23,7 @@ from core.resilience_manager import ResilienceManager
 from hardware.wallpaper_ops import WallpaperOps
 from visual.glitch_logic import GlitchLogic
 from core.resource_guard import ResourceGuard
+from core.sensors.panic_sensor import PanicSensor
 
 class SentientKernel:
     """
@@ -57,9 +58,9 @@ class SentientKernel:
             self.presence_sensor = None
             self.window_sensor = None
             
-            # Resilience
-            self.resilience = None
+            # Safety Sensors
             self.resource_guard = None
+            self.panic_sensor = None
 
     def boot(self):
         """Initializes the application and shows the mandatory consent screen."""
@@ -141,9 +142,12 @@ class SentientKernel:
         self.window_sensor.start()
         self.heartbeat.start()
         
-        # 6.1 Start Resource Guard (Safety)
+        # 6.1 Start Resource Guard & Panic Sensor (Safety)
         self.resource_guard = ResourceGuard()
         self.resource_guard.start()
+        
+        self.panic_sensor = PanicSensor()
+        self.panic_sensor.start()
         
         # 7. Story Engine
         log_info("Initializing Story Engine...", "KERNEL")
@@ -187,6 +191,9 @@ class SentientKernel:
             # 1. STOP ALL AUTONOMY (Threads first)
             if self.resource_guard:
                 self.resource_guard.stop()
+                
+            if self.panic_sensor:
+                self.panic_sensor.stop()
             
             if self.heartbeat:
                 self.heartbeat.stop()

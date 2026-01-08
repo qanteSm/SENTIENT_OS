@@ -133,11 +133,22 @@ class BrightnessOps:
             if BrightnessOps._original_brightness is None:
                 BrightnessOps.save_brightness()
             
+            # Check photosensitivity safety
+            is_strobe = Config.ENABLE_STROBE
+            
             for _ in range(times):
-                sbc.set_brightness(10)  # Dark
-                time.sleep(0.2)
-                sbc.set_brightness(100)  # Bright
-                time.sleep(0.2)
+                if is_strobe:
+                    # TRUE STROBE: Hard 10% to 100%
+                    sbc.set_brightness(10)
+                    time.sleep(0.15)
+                    sbc.set_brightness(100)
+                    time.sleep(0.15)
+                else:
+                    # SAFE MODE: Soft pulsing instead (40% to 80%)
+                    sbc.set_brightness(40)
+                    time.sleep(0.5)
+                    sbc.set_brightness(80)
+                    time.sleep(0.5)
             
             # Return to original
             BrightnessOps.restore_brightness()

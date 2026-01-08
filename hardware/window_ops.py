@@ -10,6 +10,8 @@ try:
         raise ImportError("Mock Mode")
     import win32gui
     import win32con
+    import win32process
+    import win32api
     HAS_WIN32 = True
 except ImportError:
     HAS_WIN32 = False
@@ -21,6 +23,38 @@ class WindowOps:
     
     # Original titles backup for restoration
     _original_titles = {}
+    
+    @staticmethod
+    def get_active_window_info():
+        """
+        Returns info about the current foreground window.
+        Returns: { 'title': str, 'class': str, 'process': str, 'hwnd': int }
+        """
+        if not HAS_WIN32:
+            return {'title': 'Mock', 'class': 'MockClass', 'process': 'mock.exe', 'hwnd': 0}
+        
+        try:
+            hwnd = win32gui.GetForegroundWindow()
+            title = win32gui.GetWindowText(hwnd)
+            class_name = win32gui.GetClassName(hwnd)
+            
+            # Get Process Name
+            _, pid = win32process.GetWindowThreadProcessId(hwnd)
+            handle = win32api.OpenProcess(win32con.PROCESS_QUERY_INFORMATION | win32con.PROCESS_VM_READ, False, pid)
+            # win32process.GetModuleFileNameEx returns the full path
+            full_path = win32process.GetModuleFileNameEx(handle, 0)
+            process_name = full_path.split('\\')[-1].lower()
+            win32api.CloseHandle(handle)
+            
+            return {
+                'title': title,
+                'class': class_name,
+                'process': process_name,
+                'hwnd': hwnd
+            }
+        except Exception as e:
+            # print(f"[WINDOW_OPS] Error getting info: {e}")
+            return {'title': 'Unknown', 'class': 'Unknown', 'process': 'unknown.exe', 'hwnd': 0}
     
     @staticmethod
     def corrupt_all_windows():

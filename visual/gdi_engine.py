@@ -88,8 +88,14 @@ class GDIEngine:
         # PATINVERT uses the destination bits and PATTERN
         # DSTINVERT simply inverts the destination bits
         try:
+            # PATINVERT uses the destination bits and PATTERN
+            # DSTINVERT simply inverts the destination bits
+            
+            # SAFE MODE: If strobe is disabled, make the inversion longer and less 'flickery'
+            duration = duration_ms if Config.ENABLE_STROBE else (duration_ms * 3)
+            
             win32gui.BitBlt(dc, 0, 0, w, h, dc, 0, 0, win32con.DSTINVERT)
-            time.sleep(duration_ms / 1000.0)
+            time.sleep(duration / 1000.0)
             win32gui.BitBlt(dc, 0, 0, w, h, dc, 0, 0, win32con.DSTINVERT) # Revert
         finally:
             cls.release_dc(dc)
@@ -128,6 +134,11 @@ class GDIEngine:
         h = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
         
         try:
+            # SAFE MODE: Red flashing is a major seizure trigger. Suppress if not enabled.
+            if not Config.ENABLE_STROBE:
+                print("[GDI] Red flash suppressed for photosensitivity.")
+                return
+
             brush = win32gui.CreateSolidBrush(win32api.RGB(255, 0, 0))
             old_brush = win32gui.SelectObject(dc, brush)
             
