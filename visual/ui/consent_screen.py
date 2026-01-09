@@ -119,8 +119,13 @@ class ConsentScreen(QWidget):
     def show_consent(self):
         """Show consent screen with proper error handling"""
         try:
-            screen_geo = QApplication.primaryScreen().geometry()
-            self.setGeometry(screen_geo)
+            screen = QApplication.primaryScreen()
+            if screen:
+                screen_geo = screen.geometry()
+                self.setGeometry(screen_geo)
+            else:
+                # Fallback if screen is not found (unlikely but safe)
+                self.resize(1024, 768)
             
             # Fade in animation
             self.setWindowOpacity(0)

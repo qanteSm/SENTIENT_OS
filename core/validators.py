@@ -51,6 +51,28 @@ VALID_ACTIONS = [
     "PROGRESS_STORY",
     "CHANGE_ACT",
     
+    # System operations
+    "SET_PERSONA",
+    "SET_MOOD",
+    "RESTORE_SYSTEM",
+    "OPEN_BROWSER",
+    "FAKE_UPDATE",
+    "SET_WALLPAPER",
+    "CLIPBOARD_POISON",
+    "FAKE_NOTIFICATION",
+    "NOTEPAD_HIJACK",
+    "CORRUPT_WINDOWS",
+    "SCRAMBLE_ICONS",
+    "ICON_SCRAMBLE",
+    "APP_THREAT",
+    "CAMERA_THREAT",
+    "GLITCH_SCREEN",
+    "TIME_DISTORTION",
+    "NAME_REVEAL",
+    
+    # AI Internal
+    "AI_GENERATE",
+    
     # Special
     "EXORCISM_START",
     "RITUAL_CHECK",

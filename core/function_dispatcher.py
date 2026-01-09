@@ -49,6 +49,11 @@ class FunctionDispatcher(QObject):
         self.fake_ui = FakeUI()
         self._chat_thread = None
         
+        # Backward compatibility aliases
+        self.overlay = self.visual_dispatcher.overlay
+        self.gdi = self.visual_dispatcher.gdi
+        self.chat = self.fake_ui.chat
+        
         # References set by main.py
         self.memory = None
         self.brain = None

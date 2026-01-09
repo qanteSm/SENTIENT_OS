@@ -154,7 +154,7 @@ class ContextObserver:
             
             if os.path.exists(desktop):
                 # Streamer Mode restrictions
-                exts = ('.txt', '.md') if Config.STREAMER_MODE else ('.txt', '.md', '.py', '.json')
+                exts = ('.txt', '.md') if Config().get("STREAMER_MODE", True) else ('.txt', '.md', '.py', '.json')
                 files = [f for f in os.listdir(desktop) if f.lower().endswith(exts)]
                 
                 # Kara liste - hassas dosyaları elleme

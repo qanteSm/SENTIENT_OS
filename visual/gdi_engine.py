@@ -92,7 +92,7 @@ class GDIEngine:
             # DSTINVERT simply inverts the destination bits
             
             # SAFE MODE: If strobe is disabled, make the inversion longer and less 'flickery'
-            duration = duration_ms if Config.ENABLE_STROBE else (duration_ms * 3)
+            duration = duration_ms if Config().get("ENABLE_STROBE", False) else (duration_ms * 3)
             
             win32gui.BitBlt(dc, 0, 0, w, h, dc, 0, 0, win32con.DSTINVERT)
             time.sleep(duration / 1000.0)
@@ -135,7 +135,7 @@ class GDIEngine:
         
         try:
             # SAFE MODE: Red flashing is a major seizure trigger. Suppress if not enabled.
-            if not Config.ENABLE_STROBE:
+            if not Config().get("ENABLE_STROBE", False):
                 print("[GDI] Red flash suppressed for photosensitivity.")
                 return
 

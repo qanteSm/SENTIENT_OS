@@ -62,7 +62,7 @@ class OverlayManager(QWidget):
             pass
         
         # Fallback to target monitor
-        target_idx = Config.TARGET_MONITOR_INDEX
+        target_idx = Config().get("TARGET_MONITOR_INDEX", 0)
         if target_idx < len(screens):
             self.setGeometry(screens[target_idx].geometry())
         else:

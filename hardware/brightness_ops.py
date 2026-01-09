@@ -134,7 +134,7 @@ class BrightnessOps:
                 BrightnessOps.save_brightness()
             
             # Check photosensitivity safety
-            is_strobe = Config.ENABLE_STROBE
+            is_strobe = Config().get("ENABLE_STROBE", False)
             
             for _ in range(times):
                 if is_strobe:

@@ -67,6 +67,18 @@ class StateManager:
             except:
                 pass
 
+    def emergency_save(self, context=None):
+        """Saves a recovery point in case of crash."""
+        log_info("Emergency save triggered", "STATE")
+        self.update_state("emergency_checkpoint", {
+            "time": time.time(),
+            "context": context
+        })
+
+    def has_emergency_checkpoint(self) -> bool:
+        """Checks if there's an emergency save."""
+        return "emergency_checkpoint" in self.data
+
     def check_for_recovery(self, dispatcher) -> bool:
         """
         FIXED: Checks if there are pending modifications that need restoration.

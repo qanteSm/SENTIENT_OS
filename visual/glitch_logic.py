@@ -18,7 +18,7 @@ class GlitchLogic:
         EventBus().subscribe("ui.user_activity", self._on_user_activity)
         EventBus().subscribe("anger.escalated", self._on_anger_escalated)
 
-    def _on_window_changed(self, event_type, data):
+    def _on_window_changed(self, data):
         """Trigger a glitch based on Window Class (Language Independent)."""
         from hardware.window_ops import WindowOps
         
@@ -46,13 +46,13 @@ class GlitchLogic:
             if random.random() < 0.2: # 20% chance
                 self.dispatcher.dispatch({"action": "GDI_FLASH"})
 
-    def _on_user_activity(self, event_type, data):
+    def _on_user_activity(self, data):
         """Trigger a flicker if the user is moving mouse too fast/hesitantly."""
         # Simple probability based reaction
         if random.random() < 0.05: # Rare subtle flicker
             self.dispatcher.dispatch({"action": "BRIGHTNESS_FLICKER", "params": {"times": 1}})
 
-    def _on_anger_escalated(self, event_type, data):
+    def _on_anger_escalated(self, data):
         """Trigger more aggressive visuals when AI gets angrier."""
         level = data.get("level", 0)
         if level > 80:

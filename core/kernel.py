@@ -1,5 +1,6 @@
 import sys
 import time
+import os
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QObject, QTimer
 
@@ -57,6 +58,7 @@ class SentientKernel:
             self.heartbeat = None
             self.story_manager = None
             self.safety = None
+            self.resilience = None
             
             # Sensors
             self.presence_sensor = None
@@ -84,6 +86,7 @@ class SentientKernel:
         
         # 1. Initialize Qt Application
         self.app = QApplication(self.app_argv)
+        self.app.setQuitOnLastWindowClosed(False)
         
         # 2. Critical Backup (Safety) - These don't change system state yet
         
@@ -101,9 +104,9 @@ class SentientKernel:
         else:
             # Onboarding (replaces simple consent)
             from visual.ui.onboarding_manager import OnboardingManager
-            self.onboarding = OnboardingManager()
-            self.onboarding.onboarding_complete.connect(self.init_core_systems)
-            self.onboarding.start_onboarding()
+            self.onboarding_manager = OnboardingManager()
+            self.onboarding_manager.onboarding_complete.connect(self.init_core_systems)
+            self.onboarding_manager.start_onboarding()
         
         try:
             sys.exit(self.app.exec())
@@ -112,7 +115,7 @@ class SentientKernel:
             self.shutdown()
             raise
 
-    def _complete_boot(self):
+    def init_core_systems(self):
         """Rest of the boot logic, triggered after consent is granted."""
         log_info("Consent granted. Completing system boot...", "KERNEL")
         

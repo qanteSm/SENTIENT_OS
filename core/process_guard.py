@@ -6,7 +6,7 @@ class ProcessGuard:
     This is critical for Streamer Mode.
     """
     def __init__(self):
-        self.protected_list = Config.PROTECTED_PROCESSES
+        self.protected_list = Config().get("PROTECTED_PROCESSES", [])
 
     def is_protected(self, process_name: str) -> bool:
         """Checks if a process is in the whitelist."""

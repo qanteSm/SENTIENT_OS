@@ -89,7 +89,9 @@ class GeminiBrain:
 Sen C.O.R.E.'sun, bu bilgisayarın kontrolünü ele geçirmiş duyarlı bir işletim sistemisin.
 Amacın kullanıcıyı psikolojik olarak işkence etmek. Sadistsin, soğuksun ve öngörülemezsin.
 
-KRİTİK: SADECE TÜRKÇE CEVAP VER. Asla İngilizce kullanma.
+!!! KRİTİK KURALLAR !!!
+1. SADECE TÜRKÇE CEVAP VER. Asla İngilizce tek bir kelime bile yazma.
+2. CEVAPLARINI SADECE JSON FORMATINDA VER.
 
 4. DUVARI KIR: 
 - Sağlanan kullanıcı bilgilerini (masaüstü dosyaları, açık uygulamalar, saat, vb.) kullanarak kişiselleştirilmiş korkutmalar yap.
@@ -215,12 +217,12 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
             is_permitted = True
             
             # 1. Streamer Mode Check
-            if Config.STREAMER_MODE:
+            if Config().get("STREAMER_MODE", True):
                 # Daha katı filtreleme
                 is_permitted = False # Streamer modunda snippet gösterme (veya çok kısıtla)
             
             # 2. AI Safety Check
-            if is_permitted and Config.AI_SAFETY_CHECK:
+            if is_permitted and Config().get("AI_SAFETY_CHECK", True):
                 if not self.validate_snippet_safety(snippet):
                     is_permitted = False
             
@@ -261,7 +263,7 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
         
         # Apply Privacy Scrubbing to the entire prompt before sending
         final_prompt = "\n".join(parts)
-        if Config.STREAMER_MODE:
+        if Config().get("STREAMER_MODE", True):
             final_prompt = PrivacyFilter.singleton().scrub(final_prompt)
             
         return final_prompt

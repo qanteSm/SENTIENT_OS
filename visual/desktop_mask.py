@@ -63,7 +63,7 @@ class DesktopMask(QWidget):
         self.label.setPixmap(pixmap)
         
         # 2. Show Fullscreen
-        target_idx = Config.TARGET_MONITOR_INDEX
+        target_idx = Config().get("TARGET_MONITOR_INDEX", 0)
         screens = QApplication.screens()
         if target_idx < len(screens):
             self.setGeometry(screens[target_idx].geometry())

@@ -175,7 +175,7 @@ class FakeUpdate(QWidget):
 
     def _target_screen(self):
         screens = QApplication.screens()
-        target_idx = Config.TARGET_MONITOR_INDEX
+        target_idx = Config().get("TARGET_MONITOR_INDEX", 0)
         if target_idx < len(screens):
             self.setGeometry(screens[target_idx].geometry())
 
@@ -213,6 +213,10 @@ class FakeUI:
         if not self.update_screen:
             self.update_screen = FakeUpdate()
         self.update_screen.show_update(percent)
+    
+    def show_system_failure(self):
+        """Triggers the BSOD as a failure state."""
+        self.show_bsod()
     
     def close_all(self):
         if self.bsod: self.bsod.close()

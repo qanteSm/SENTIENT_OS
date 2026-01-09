@@ -14,7 +14,7 @@ audio:
 horror:
   chaos_level: 0
   enable_strobe: false
-  intensity: medium
+  intensity: extreme
   safe_hardware: false
 language:
   code: tr
