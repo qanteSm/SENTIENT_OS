@@ -26,6 +26,11 @@ from hardware.wallpaper_ops import WallpaperOps
 from visual.effects.screen_tear import ScreenTear
 from visual.effects.pixel_melt import PixelMelt
 
+# Custom exceptions and validators
+from core.exceptions import ValidationError, DispatchError
+from core.validators import validate_ai_response
+from core.logger import log_error, log_warning, log_info
+
 class FunctionDispatcher(QObject):
     """
     Translates JSON commands from the Brain (or Heartbeat) into actual Python function calls.
@@ -123,8 +128,21 @@ class FunctionDispatcher(QObject):
         """
         Parses the JSON/Dict: {"action": "THE_MASK", "params": {...}}
         Calls the appropriate function.
+        
+        NEW: With input validation and better error handling.
         """
-        if not command_data: return
+        if not command_data: 
+            log_warning("Empty command_data received", "DISPATCHER")
+            return
+        
+        # Validate AI response structure
+        try:
+            validate_ai_response(command_data)
+        except ValidationError as e:
+            log_error(f"Invalid AI response: {e.message}", "DISPATCHER")
+            if e.details:
+                log_error(f"Validation details: {e.details}", "DISPATCHER")
+            return
         
         action = command_data.get("action", "").upper()
         # Ensure params is always a dict, even if JSON has "params": null or missing
@@ -132,7 +150,7 @@ class FunctionDispatcher(QObject):
         params = raw_params if isinstance(raw_params, dict) else {}
         speech = command_data.get("speech", "")
 
-        print(f"[DISPATCH] Processing Action: {action}")
+        log_info(f"Dispatching action: {action}", "DISPATCHER")
 
         # FIXED: TTS sadece önemli aksiyonlarda ve speech varsa çağrılır
         # Bazı aksiyonlar sessiz olmalı (MOUSE_SHAKE, CLIPBOARD_POISON vs.)

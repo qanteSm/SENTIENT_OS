@@ -16,6 +16,13 @@ from core.context_observer import ContextObserver
 from core.privacy_filter import PrivacyFilter
 from core.file_awareness import FileSystemAwareness
 
+# Custom exceptions
+from core.exceptions import (
+    APIConnectionError,
+    AIResponseError,
+    ValidationError
+)
+
 try:
     import google.generativeai as genai
     HAS_GEMINI = True
@@ -56,8 +63,13 @@ class GeminiBrain:
                 genai.configure(api_key=self.api_key)
                 self.model = genai.GenerativeModel('gemini-2.5-flash')
                 print("[BRAIN] Gemini Connected.")
+            except (ConnectionError, TimeoutError) as e:
+                raise APIConnectionError(
+                    "Failed to connect to Gemini API",
+                    details={"error": str(e)}
+                )
             except Exception as e:
-                print(f"[BRAIN] Connection Failed: {e}. Reverting to Mock Mode.")
+                print(f"[BRAIN] Initialization error: {e}. Reverting to Mock Mode.")
                 self.mock_mode = True
 
         # Personality Management
@@ -285,14 +297,28 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
             full_prompt = self._build_dynamic_prompt(user_input)
             
             print(f"[BRAIN] Sending to Gemini API...")
-            response = self.model.generate_content(full_prompt)
+            try:
+                response = self.model.generate_content(full_prompt)
+            except (ConnectionError, TimeoutError) as e:
+                raise APIConnectionError(
+                    "Failed to reach Gemini API",
+                    details={"error": str(e), "input": user_input[:50]}
+                )
+            
             print(f"[BRAIN] Received response from Gemini")
             
             # Success - reset failure counter
             self._connection_failures = 0
             
+            # Parse JSON response
             clean_text = response.text.strip().replace("```json", "").replace("```", "")
-            result = json.loads(clean_text)
+            try:
+                result = json.loads(clean_text)
+            except json.JSONDecodeError as e:
+                raise AIResponseError(
+                    "Failed to parse AI response as JSON",
+                    details={"response": clean_text[:200], "error": str(e)}
+                )
             
             # Cache the response
             self._cache_response(cache_key, result)
@@ -304,8 +330,8 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
             
             return result
             
-        except Exception as e:
-            print(f"[BRAIN] Generation Error: {e}")
+        except (APIConnectionError, AIResponseError) as e:
+            print(f"[BRAIN] {type(e).__name__}: {e.message}")
             self._connection_failures += 1
             
             # Switch to offline mode after max failures
@@ -315,6 +341,9 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
                 return self._offline_response(user_input, context)
             
             print(f"[BRAIN] Failure {self._connection_failures}/{self._max_failures}, using backup...")
+            return self._backup_response(context)
+        except Exception as e:
+            print(f"[BRAIN] Unexpected error: {e}")
             return self._backup_response(context)
 
     def _get_cache_key(self, user_input: str, context: dict) -> str:
@@ -456,8 +485,12 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
             if not is_safe:
                 print(f"[BRAIN] Safety Check REJECTED snippet from {filename}")
             return is_safe
-        except:
-            return True # Hata durumunda güvenli tarafta kal (veya istersen False yap)
+        except APIConnectionError as e:
+            print(f"[BRAIN] Safety check failed (API error): {e.message}")
+            return True  # Fail-safe: allow on connection error
+        except Exception as e:
+            print(f"[BRAIN] Safety check failed (unexpected): {e}")
+            return True  # Fail-safe
 
     def _mock_response(self, user_input: str) -> dict:
         """Returns a random pre-set response for testing/fallback."""

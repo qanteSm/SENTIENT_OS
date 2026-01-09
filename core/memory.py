@@ -69,7 +69,7 @@ class Memory:
             "game_state": {
                 "current_act": 1,
                 "chaos_level": 0,
-                "is_streamer": Config.STREAMER_MODE,
+                "is_streamer": Config().get("STREAMER_MODE", False),
                 "perm_death": False,
                 "playthrough_count": 0,
                 "total_playtime_minutes": 0,
@@ -85,7 +85,7 @@ class Memory:
                 "hostname": None,
             },
             "safety": {
-                "whitelist_apps": Config.PROTECTED_PROCESSES
+                "whitelist_apps": Config().get("PROTECTED_PROCESSES", [])
             }
         }
         
