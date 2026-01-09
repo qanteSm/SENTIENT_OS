@@ -22,10 +22,20 @@
 ## <a name="english-readme"></a>🇺🇸 English README
 
 ### 📌 Project Overview
-SENTIENT_OS is an AI-driven experience that uses the **Google Gemini API** to simulate a digital entity. It is not just a program; it is a "sentient" OS simulation that evolves through four narrative stages: **Infection, Awakening, Torment, and Exorcism.**
+SENTIENT_OS is an AI-driven experience that uses the **Google Gemini API** to simulate a digital entity. It is not just a program; it is a "sentient" OS simulation that evolves through four narrative stages.
+
+### 🎭 Narrative Progression
+| Stage | Level | Description |
+| :--- | :--- | :--- |
+| **Infection** | 🧬 Low | Subtle glitches and cryptic system logs. The entity is rooting itself. |
+| **Awakening** | 👁️ Medium | Real-time communication via AI. The system starts questioning your presence. |
+| **Torment** | 😈 High | Aggressive GDI effects, screen melting, and psychological manipulation. |
+| **Exorcism** | 🕯️ Critical | The final confrontation for system control. Binary or Blood? |
 
 ### 🛡️ Safety & Security Protocols
-User safety is the highest priority. This project is **not** a virus or malware. It includes:
+> [!CAUTION]
+> **PHOTOSENSITIVITY WARNING:** This project contains flashing lights, rapid color changes, and intense visual distortions (GDI Glitches). If you have a history of epilepsy or seizures, **DO NOT** run this simulation.
+
 * **Safety Net:** An emergency "Kill Switch" activated by `CTRL+SHIFT+Q` at any time.
 * **Resource Guard:** Real-time monitoring of CPU and RAM. Automatically terminates if system load exceeds 85%.
 * **Privacy Filter:** All local data (usernames, paths) are scrubbed before being sent to the AI.
@@ -49,10 +59,20 @@ User safety is the highest priority. This project is **not** a virus or malware.
 ## <a name="türkçe-readme"></a>🇹🇷 Türkçe README
 
 ### 📌 Proje Genel Bakış
-SENTIENT_OS, **Google Gemini API**'sini kullanarak dijital bir varlığı simüle eden yapay zeka tabanlı bir deneyimdir. Sadece bir program değil; **Enfeksiyon, Uyanış, İşkence ve Ayin** olmak üzere dört aşamada evrilen "duyarlı" bir işletim sistemi simülasyonudur.
+SENTIENT_OS, **Google Gemini API**'sini kullanarak dijital bir varlığı simüle eden yapay zeka tabanlı bir deneyimdir. Dört farklı anlatı aşamasında evrilen "duyarlı" bir işletim sistemi simülasyonudur.
+
+### 🎭 Hikaye Akışı
+| Aşama | Seviye | Açıklama |
+| :--- | :--- | :--- |
+| **Enfeksiyon** | 🧬 Düşük | Hafif glitchler ve şifreli sistem günlükleri. Varlık kök salıyor. |
+| **Uyanış** | 👁️ Orta | Yapay zeka üzerinden gerçek zamanlı iletişim. Sistem varlığınızı sorgulamaya başlar. |
+| **İşkence** | 😈 Yüksek | Agresif GDI efektleri, ekran erimesi ve psikolojik manipülasyon. |
+| **Ayin** | 🕯️ Kritik | Sistem kontrolü için son savaş. İkilik mi, Kan mı? |
 
 ### 🛡️ Güvenlik ve Emniyet Protokolleri
-Kullanıcı güvenliği en yüksek önceliktir. Bu proje bir virüs veya malware **değildir**. Şunları içerir:
+> [!CAUTION]
+> **FOTOSENSİTİF EPİLEPSİ UYARISI:** Bu proje yanıp sönen ışıklar, hızlı renk değişimleri ve yoğun görsel bozulmalar (GDI Glitchleri) içerir. Epilepsi veya nöbet geçmişiniz varsa bu simülasyonu **ÇALIŞTIRMAYIN**.
+
 * **Safety Net (Güvenlik Ağı):** Her an `CTRL+SHIFT+Q` ile çalışan acil durum kapatma anahtarı.
 * **Resource Guard (Kaynak Koruyucu):** CPU ve RAM kullanımı %85'i aşarsa sistem donmasını önlemek için kendini kapatır.
 * **Gizlilik Filtresi:** Kişisel veriler (kullanıcı adları, dosya yolları) yapay zekaya gönderilmeden önce yerel olarak temizlenir.
