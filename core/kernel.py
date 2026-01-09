@@ -6,6 +6,7 @@ from PyQt6.QtCore import QObject, QTimer
 from config import Config
 from core.event_bus import bus
 from core.logger import log_info, log_error, log_warning
+from core.error_tracker import get_error_tracker, track_error, track_message
 from core.state_manager import StateManager
 from core.memory import Memory
 from core.anger_engine import AngerEngine
@@ -43,6 +44,10 @@ class SentientKernel:
             self._initialized = True
             self.app_argv = app_argv or sys.argv
             self.app = None
+            
+            # Initialize error tracker first
+            self.error_tracker = get_error_tracker()
+            track_message("Kernel initialization started", severity="INFO", component="KERNEL")
             
             # Core Components
             self.state_manager = None
@@ -87,6 +92,8 @@ class SentientKernel:
             sys.exit(self.app.exec())
         except Exception as e:
             log_error(f"Kernel Panic: {e}", "KERNEL")
+            track_error(e, context={"phase": "boot", "component": "kernel"}, 
+                       severity="CRITICAL", component="KERNEL")
             self.shutdown()
             raise
 

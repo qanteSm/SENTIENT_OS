@@ -1,0 +1,2 @@
+{"timestamp": "2026-01-09T14:28:26.798654", "severity": "INFO", "component": "TEST", "type": "Message", "message": "Test message", "traceback": null, "context": {}}
+{"timestamp": "2026-01-09T14:28:26.798839", "severity": "ERROR", "component": "TEST", "type": "ValueError", "message": "Test error", "traceback": "Traceback (most recent call last):\n  File \"<string>\", line 15, in <module>\nValueError: Test error\n", "context": {"test": true}}
