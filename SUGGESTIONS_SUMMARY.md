@@ -22,15 +22,14 @@ Detaylı analiz **DESIGN_IMPROVEMENTS.md** dosyasında. İşte kısa özet:
 
 #### 1️⃣ Güvenlik ve Stabilite (Öncelik: 🔴 Yüksek)
 - **Gelişmiş Error Handling:** Detaylı hata takibi ve crash recovery
-- **Configuration Management:** Kullanıcı ayarları için YAML/JSON config
-- **Test Infrastructure:** Unit tests, integration tests, CI/CD
+- **Configuration Management:** YAML/JSON config için kullanıcı ayarları
 - **Sandbox Modları:** Güvenli test ortamı
 
 #### 2️⃣ Yeni Özellikler (Öncelik: 🟡 Orta)
 - **Adaptif Zorluk:** AI kullanıcının tepkilerine göre zorluğu ayarlar
-- **Sosyal Özellikler:** Replay system, leaderboard, achievements
 - **Plugin Sistemi:** Topluluk modları ve custom content
 - **Dashboard/Settings UI:** Kullanıcı dostu ayarlar ekranı
+- **Gelişmiş Windows Entegrasyonu:** Daha derin sistem kontrol
 
 #### 3️⃣ Kullanıcı Deneyimi (Öncelik: 🟡 Orta)
 - **Gelişmiş Onboarding:** Tutorial, safety guide, customization
@@ -40,15 +39,15 @@ Detaylı analiz **DESIGN_IMPROVEMENTS.md** dosyasında. İşte kısa özet:
 
 #### 4️⃣ Teknik İyileştirmeler (Öncelik: 🟢 Düşük-Orta)
 - **Performans:** Memory management, asset loading, render optimization
-- **Cross-platform:** Linux ve macOS desteği
 - **Database:** SQLite ile daha iyi veri yönetimi
 - **Async Operations:** Non-blocking AI calls
+- **Windows GDI Optimizasyonu:** Daha etkileyici efektler
 
-#### 5️⃣ Topluluk ve Büyüme (Öncelik: 🟢 Düşük)
+#### 5️⃣ Topluluk ve Büyüme (Öncelik: 🟢 Düşük - Oyun mükemmel olduktan sonra)
 - **GitHub Optimization:** Contributing guidelines, issue templates
 - **Marketing:** Video tutorials, press kit, social media
 - **Documentation:** Technical docs, API reference, user guides
-- **Community Mods:** Workshop-style mod sharing
+- **Community Mods:** Workshop-style mod sharing (gelecekte)
 
 ### Önerilen Uygulama Sırası
 
@@ -56,24 +55,24 @@ Detaylı analiz **DESIGN_IMPROVEMENTS.md** dosyasında. İşte kısa özet:
 ```
 1. Configuration Management
 2. Error Handling & Logging
-3. Test Infrastructure
-4. Code Documentation
+3. Code Documentation
+4. Improved Onboarding
 ```
 
 #### Phase 2: Enhancement (5-8 Hafta) 🟡
 ```
-5. Improved Onboarding
-6. Settings UI
-7. Accessibility Features
-8. Performance Optimization
+5. Settings UI
+6. Accessibility Features
+7. Performance Optimization
+8. Windows GDI Enhancements
 ```
 
 #### Phase 3: Innovation (9-12 Hafta) 🟢
 ```
 9. Adaptive Difficulty
-10. Social Features
-11. Plugin System
-12. Community Building
+10. Plugin System
+11. Advanced Story Content
+12. Community Building (oyun hazır olduğunda)
 ```
 
 ### Maliyet ve Zaman Tahmini
@@ -110,14 +109,13 @@ Detailed analysis in **DESIGN_IMPROVEMENTS.md**. Here's a quick summary:
 #### 1️⃣ Security & Stability (Priority: 🔴 High)
 - **Enhanced Error Handling:** Detailed error tracking and crash recovery
 - **Configuration Management:** YAML/JSON config for user settings
-- **Test Infrastructure:** Unit tests, integration tests, CI/CD
 - **Sandbox Modes:** Safe testing environment
 
 #### 2️⃣ New Features (Priority: 🟡 Medium)
 - **Adaptive Difficulty:** AI adjusts intensity based on user reactions
-- **Social Features:** Replay system, leaderboard, achievements
 - **Plugin System:** Community mods and custom content
 - **Dashboard/Settings UI:** User-friendly settings screen
+- **Advanced Windows Integration:** Deeper system control
 
 #### 3️⃣ User Experience (Priority: 🟡 Medium)
 - **Enhanced Onboarding:** Tutorial, safety guide, customization
@@ -127,15 +125,15 @@ Detailed analysis in **DESIGN_IMPROVEMENTS.md**. Here's a quick summary:
 
 #### 4️⃣ Technical Improvements (Priority: 🟢 Low-Medium)
 - **Performance:** Memory management, asset loading, render optimization
-- **Cross-platform:** Linux and macOS support
 - **Database:** Better data management with SQLite
 - **Async Operations:** Non-blocking AI calls
+- **Windows GDI Optimization:** More impressive effects
 
-#### 5️⃣ Community & Growth (Priority: 🟢 Low)
+#### 5️⃣ Community & Growth (Priority: 🟢 Low - After game is perfect)
 - **GitHub Optimization:** Contributing guidelines, issue templates
 - **Marketing:** Video tutorials, press kit, social media
 - **Documentation:** Technical docs, API reference, user guides
-- **Community Mods:** Workshop-style mod sharing
+- **Community Mods:** Workshop-style mod sharing (future)
 
 ### Recommended Implementation Order
 
@@ -143,24 +141,24 @@ Detailed analysis in **DESIGN_IMPROVEMENTS.md**. Here's a quick summary:
 ```
 1. Configuration Management
 2. Error Handling & Logging
-3. Test Infrastructure
-4. Code Documentation
+3. Code Documentation
+4. Improved Onboarding
 ```
 
 #### Phase 2: Enhancement (Weeks 5-8) 🟡
 ```
-5. Improved Onboarding
-6. Settings UI
-7. Accessibility Features
-8. Performance Optimization
+5. Settings UI
+6. Accessibility Features
+7. Performance Optimization
+8. Windows GDI Enhancements
 ```
 
 #### Phase 3: Innovation (Weeks 9-12) 🟢
 ```
 9. Adaptive Difficulty
-10. Social Features
-11. Plugin System
-12. Community Building
+10. Plugin System
+11. Advanced Story Content
+12. Community Building (when game is ready)
 ```
 
 ### Cost & Time Estimate

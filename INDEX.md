@@ -18,7 +18,7 @@
 ### 2️⃣ Detaylı Analiz İstiyorsanız
 👉 **[DESIGN_IMPROVEMENTS.md](DESIGN_IMPROVEMENTS.md)**
 - ⏱️ Okuma süresi: 30-45 dakika
-- 📝 İçerik: 17 bölüm, 50+ öneri, kod örnekleri, risk analizi
+- 📝 İçerik: 16 bölüm, Windows-odaklı öneriler, kod örnekleri, risk analizi
 - 🌐 Dil: Türkçe (başlıklar ve açıklamalar)
 
 ### 3️⃣ Görsel Yol Haritası İstiyorsanız
@@ -49,21 +49,20 @@ SENTIENT_OS/
 ├── 📖 DESIGN_IMPROVEMENTS.md       ← Detaylı analiz / Detailed analysis
 │   ├── 1. Proje Analizi
 │   ├── 2. Güvenlik İyileştirmeleri
-│   ├── 3. Yeni Özellikler
+│   ├── 3. Yeni Özellikler (Windows-odaklı)
 │   ├── 4. UX İyileştirmeleri
 │   ├── 5. Teknik Mimari
 │   ├── 6. Performans
-│   ├── 7. Topluluk
+│   ├── 7. Topluluk (Oyun mükemmel olduktan sonra)
 │   ├── 8. Dokümantasyon
-│   ├── 9. Testing
-│   ├── 10. Cross-Platform
-│   ├── 11. Güvenlik ve Etik
-│   ├── 12. Öncelik Matrisi
-│   ├── 13. Roadmap
-│   ├── 14. Bütçe
-│   ├── 15. Riskler
-│   ├── 16. Metrikler
-│   └── 17. Next Steps
+│   ├── 9. Testing (Manual)
+│   ├── 10. Güvenlik ve Etik
+│   ├── 11. Öncelik Matrisi
+│   ├── 12. Roadmap
+│   ├── 13. Bütçe
+│   ├── 14. Riskler
+│   ├── 15. Metrikler
+│   └── 16. Next Steps
 │
 ├── 📊 IMPROVEMENT_MATRIX.md        ← Görsel rehber / Visual guide
 │   ├── Priority Matrix (2D diagram)
@@ -78,8 +77,8 @@ SENTIENT_OS/
 └── 🚀 QUICK_START_GUIDE.md         ← Pratik uygulama / Practical implementation
     ├── Week 1: Configuration System
     ├── Week 2: Error Handling
-    ├── Week 3: Testing Infrastructure
-    ├── Week 4: Documentation
+    ├── Week 3: Documentation
+    ├── Week 4: Improved Onboarding
     ├── Checklists
     ├── Commands
     └── Troubleshooting
@@ -153,13 +152,13 @@ SENTIENT_OS/
 - **DESIGN_IMPROVEMENTS.md** → Bölüm 6
 - **IMPROVEMENT_MATRIX.md** → Performance Targets
 
-### Testing
+### Testing (Manual)
 - **DESIGN_IMPROVEMENTS.md** → Bölüm 9
-- **QUICK_START_GUIDE.md** → Week 3
+- **Note:** Manual testing sufficient for solo/small team
 
 ### Dokümantasyon / Documentation
 - **DESIGN_IMPROVEMENTS.md** → Bölüm 8
-- **QUICK_START_GUIDE.md** → Week 4
+- **QUICK_START_GUIDE.md** → Week 3
 
 ### Topluluk / Community
 - **DESIGN_IMPROVEMENTS.md** → Bölüm 7

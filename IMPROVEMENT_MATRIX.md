@@ -38,22 +38,22 @@ PHASE 1: Foundation (1-4 Hafta/Weeks)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     Week 1  ███████ Configuration System
     Week 2  ████████ Error Handling
-    Week 3  ██████ Test Infrastructure
-    Week 4  █████ Documentation
+    Week 3  ██████ Code Documentation
+    Week 4  █████ Improved Onboarding
 
 PHASE 2: Enhancement (5-8 Hafta/Weeks)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    Week 5  ███████ Onboarding Flow
-    Week 6  ██████ Settings UI
-    Week 7  █████ Accessibility
-    Week 8  ████████ Performance Optimization
+    Week 5  ███████ Settings UI
+    Week 6  ██████ Accessibility
+    Week 7  █████ Performance Optimization
+    Week 8  ████████ Windows GDI Enhancements
 
 PHASE 3: Innovation (9-12 Hafta/Weeks)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     Week 9   ████████ Adaptive Difficulty
-    Week 10  ██████ Social Features
-    Week 11  ███████ Plugin System
-    Week 12  █████ Community Launch
+    Week 10  ██████ Plugin System
+    Week 11  ███████ Advanced Story Content
+    Week 12  █████ Polish & Community (when ready)
 
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                     BİLEŞEN MİMARİSİ / COMPONENT ARCHITECTURE           │
@@ -91,8 +91,7 @@ PHASE 3: Innovation (9-12 Hafta/Weeks)
 ┌───────────────────────────────────────────────────────────────────────┐
 │                         Hardware Abstraction Layer                    │
 ├───────────────────────────────────────────────────────────────────────┤
-│   Windows   │   Linux    │   macOS   │   Mock   │   Web (Future)   │
-│   (Win32)   │  (X11/WL)  │  (Cocoa)  │  (Test)  │   (WebAssembly)  │
+│   Windows (Win32)   │   Mock (Testing)   │   Future: Other Platforms │
 └───────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -190,10 +189,9 @@ Contributors
 
 Yeni Eklenecekler / To Be Added:
     ✓ YAML Config Parser
-    ✓ SQLite Database
-    ✓ pytest Testing Framework
-    ✓ GitHub Actions CI/CD
+    ✓ Centralized Error Tracker
     ✓ Documentation Generator (Sphinx)
+    ✓ Windows GDI Advanced Effects
 
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                  GÜVENLIK KATMANLARI / SECURITY LAYERS                  │

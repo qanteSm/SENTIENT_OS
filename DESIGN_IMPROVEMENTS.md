@@ -16,6 +16,14 @@
 6. [Performans Optimizasyonları](#6-performans-optimizasyonları)
 7. [Topluluk ve Büyüme](#7-topluluk-ve-büyüme)
 8. [Dokümantasyon Geliştirmeleri](#8-dokümantasyon-geliştirmeleri)
+9. [Testing ve Quality Assurance](#9-testing-ve-quality-assurance)
+10. [Güvenlik ve Etik](#10-güvenlik-ve-etik)
+11. [Öncelik Matrisi](#11-öncelik-matrisi)
+12. [Uygulama Roadmap](#12-uygulama-roadmap)
+13. [Bütçe ve Kaynak Tahmini](#13-bütçe-ve-kaynak-tahmini)
+14. [Riskler ve Mitigation](#14-riskler-ve-mitigation)
+15. [Success Metrics](#15-success-metrics)
+16. [Sonuç ve Next Steps](#16-sonuç-ve-next-steps)
 
 ---
 
@@ -29,10 +37,10 @@
 - **Kullanıcı güvenliği:** Consent screen, photosensitivity warnings, emergency kill switch
 
 ### Geliştirilebilir Alanlar 🔄
-- Cross-platform desteği (şu anda sadece Windows)
 - Test coverage (unit test, integration test eksikliği)
 - Konfigürasyon yönetimi (şu anda hardcoded değerler)
-- Telemetri ve analytics eksikliği
+- Windows GDI efektleri optimizasyonu
+- Gelişmiş hata yönetimi ve recovery
 - Çoklu dil desteği (şu anda sadece Türkçe/İngilizce)
 
 ---
@@ -116,24 +124,25 @@ class AdaptiveDifficulty:
 - Response time: Kullanıcı ne kadar hızlı tepki veriyor?
 - AI'ya feedback: "User seems frightened" → Adjust intensity
 
-### 3.2 Sosyal Özellikler
+### 3.2 Gelişmiş Windows Entegrasyonu
 **Öncelik:** 🟡 Orta
 
 **Öneriler:**
 ```python
-# Opsiyonel sosyal entegrasyonlar
-class SocialFeatures:
-    - Replay system: Deneyimleri kaydet ve paylaş
-    - Leaderboard: En uzun süre dayanabilenler
-    - Achievement system: Rozet ve başarılar
-    - Share highlights: En korkunç anları sosyal medyada paylaş
-    - Multiplayer mode(?): İki kişi aynı anda farklı bilgisayarlarda
+# Daha derin Windows sistem entegrasyonu
+class WindowsIntegration:
+    - Registry manipülasyonu (geçici, güvenli)
+    - Windows Defender false positives önleme
+    - Task Scheduler entegrasyonu
+    - Windows 11 özel efektleri
+    - Multi-monitor desteği optimizasyonu
 ```
 
 **Kullanım Senaryoları:**
-- Streamer'lar için: Replay ve highlight tools
-- Topluluk oluşturma: Leaderboard ve achievements
-- Viral potansiyel: Kolay paylaşım özellikleri
+- Windows 11'e özel UI tehditleri
+- Görev yöneticisi manipülasyonu
+- Sistem bildirimleri ile daha gerçekçi korkutma
+- Multi-monitor setup'larda senkronize efektler
 
 ### 3.3 Ek Story Branching
 **Öncelik:** 🟢 Düşük
@@ -156,20 +165,27 @@ Act0_Prologue: Enfeksiyondan önce "normal" sistem
 - Kullanıcılar farklı seçimleri denemek ister
 - Daha zengin hikaye anlatımı
 
-### 3.4 VR/AR Desteği (Uzun Vadeli)
-**Öncelik:** 🔵 Düşük/Gelecek
+### 3.4 Gelişmiş GDI Efektleri (Windows)
+**Öncelik:** 🟡 Orta
 
-**Vizyon:**
+**Öneriler:**
+```python
+# Windows GDI için daha yaratıcı efektler
+class AdvancedGDIEffects:
+    - Screen tearing simulation (gerçekçi glitch)
+    - Pixel shader benzeri efektler (GDI ile)
+    - Desktop composition manipülasyonu
+    - Taskbar/Start menu overlay
+    - Window border glitching
 ```
-Oculus/Meta Quest desteği ile tam immersive deneyim:
-- 3D horror ortamlar
-- Spatial audio ile yönlü sesler
-- Hand tracking ile gerçekçi etkileşim
-- Eye tracking ile korku seviyesi tespiti
-```
+
+**Faydalar:**
+- Daha immersive Windows-native deneyim
+- Performanslı (doğrudan GDI kullanımı)
+- Kullanıcı gerçekten sistemin bozulduğunu düşünür
 
 ### 3.5 Topluluk İçerikleri
-**Öncelik:** 🟡 Orta
+**Öncelik:** 🟢 Düşük (Oyun mükemmel olduktan sonra)
 
 **Öneriler:**
 ```python
@@ -180,11 +196,13 @@ class ModSystem:
     - Custom stories (topluluk hikayeleri)
     - Translation packs (dil paketleri)
     
-# Workshop benzeri sistem
+# Workshop benzeri sistem (gelecekte)
 - Kullanıcılar mod paylaşabilir
 - Rating ve review sistemi
 - Otomatik mod yükleyici (güvenlik kontrolü ile)
 ```
+
+**Not:** Bu özellikler oyunun kendisi mükemmel olduktan sonra düşünülmelidir. Önce core experience'i perfeksiyona ulaştırmak kritik.
 
 ---
 
@@ -495,9 +513,9 @@ class RenderOptimizer:
 - Code of conduct (CODE_OF_CONDUCT.md)
 - Issue templates (bug report, feature request)
 - PR templates
-- GitHub Actions CI/CD
+- Clear documentation
 
-# Topluluk yönetimi
+# Topluluk yönetimi (Oyun mükemmel olduktan sonra)
 - Discord sunucusu
 - Reddit community
 - Monthly developer blog
@@ -624,15 +642,15 @@ def think(self, prompt: str, context: dict) -> dict:
 ## 9. Testing ve Quality Assurance
 
 ### 9.1 Test Infrastructure
-**Öncelik:** 🔴 Yüksek
+**Öncelik:** 🟡 Orta (Solo/küçük ekip için manuel test yeterli)
 
 **Mevcut Durum:**
 - test_*.py dosyaları var ama minimal
-- CI/CD pipeline eksik
+- Manuel test yapılıyor
 
 **Öneriler:**
 ```python
-# Kapsamlı test suite
+# Kapsamlı test suite (isteğe bağlı)
 tests/
 ├── unit/
 │   ├── test_memory.py
@@ -649,27 +667,23 @@ tests/
 └── fixtures/
     ├── mock_api_responses.json
     └── test_configs.yaml
-
-# CI/CD Pipeline (GitHub Actions)
-.github/workflows/
-├── test.yml (run tests on every PR)
-├── lint.yml (code quality checks)
-└── release.yml (automated releases)
 ```
 
-### 9.2 Mock ve Simulation
+**Not:** Tek geliştirici veya küçük ekip için manuel test şimdilik yeterlidir. Automated testing ileride ekip büyüdüğünde düşünülebilir.
+
+### 9.2 Mock ve Simulation  
 **Öncelik:** 🟡 Orta
 
 **Öneriler:**
 ```python
-# Test ortamı için mock implementations
+# Test ortamı için mock implementations (Windows odaklı)
 class MockGeminiBrain:
     """API çağrısı yapmadan test et"""
     def think(self, prompt):
         return predefined_responses[prompt]
         
 class MockWindowsHardware:
-    """Linux/Mac'te test edebilmek için"""
+    """Test modunda Windows API'lerini simüle et"""
     def set_brightness(self, level):
         print(f"[MOCK] Brightness set to {level}")
         
@@ -711,71 +725,7 @@ class Analytics:
 
 ---
 
-## 10. Cross-Platform Desteği
-
-### 10.1 Linux/Mac Uyumluluğu
-**Öncelik:** 🟡 Orta
-
-**Mevcut Durum:**
-- Sadece Windows destekleniyor
-- IS_MOCK mode var ama limited
-
-**Öneriler:**
-```python
-# Platform-agnostic implementations
-hardware/
-├── base/
-│   ├── brightness_base.py (abstract)
-│   ├── audio_base.py
-│   └── window_base.py
-├── windows/
-│   └── win32_implementations.py
-├── linux/
-│   ├── x11_implementations.py
-│   └── wayland_implementations.py
-└── macos/
-    └── cocoa_implementations.py
-
-# Factory pattern
-def get_brightness_controller():
-    if platform == "Windows":
-        return WindowsBrightnessOps()
-    elif platform == "Linux":
-        return LinuxBrightnessOps()
-    # ...
-```
-
-**Dikkat:**
-- GDI efektleri Windows-specific
-- Linux için X11/Wayland alternatifleri gerekli
-- macOS için farklı security model
-
-### 10.2 Web Version (Uzun Vadeli)
-**Öncelik:** 🔵 Düşük/Gelecek
-
-**Vizyon:**
-```markdown
-# Browser-based version
-- WebAssembly (Python → WASM)
-- Three.js (3D effects)
-- Web Audio API
-- Limited hardware access (güvenlik kısıtlamaları)
-
-Avantajlar:
-- Platform bağımsız
-- Kolay paylaşım (URL link)
-- Demo için ideal
-- Mobile support
-
-Dezavantajlar:
-- Daha az güçlü (tam sistem kontrolü yok)
-- Performance sınırlamaları
-- Security restrictions
-```
-
----
-
-## 11. Güvenlik ve Etik
+## 10. Güvenlik ve Etik
 
 ### 11.1 Responsible AI Kullanımı
 **Öncelik:** 🔴 Yüksek
@@ -854,32 +804,32 @@ Riskli Davranışlar:
 
 ---
 
-## 12. Öncelik Matrisi
+## 11. Öncelik Matrisi
 
 ### Kısa Vadeli (1-2 Ay) 🔴
 1. **Configuration Management** - Kullanıcı ayarları
 2. **Error Handling** - Stabilite
-3. **Test Infrastructure** - Kalite güvencesi
-4. **Improved Onboarding** - İlk izlenim
-5. **Technical Documentation** - Developer experience
+3. **Improved Onboarding** - İlk izlenim
+4. **Technical Documentation** - Developer experience
+5. **Windows GDI Optimizasyonu** - Daha etkileyici efektler
 
 ### Orta Vadeli (3-6 Ay) 🟡
 1. **Adaptive Difficulty** - Daha iyi UX
-2. **Social Features** - Community building
-3. **Plugin System** - Genişletilebilirlik
-4. **Cross-platform (Linux)** - Daha geniş kitle
-5. **Dashboard/Settings UI** - Kullanıcı kontrolü
+2. **Plugin System** - Genişletilebilirlik
+3. **Dashboard/Settings UI** - Kullanıcı kontrolü
+4. **Advanced Windows Integration** - Daha derin sistem entegrasyonu
+5. **Performance Optimization** - Daha hızlı, daha stabil
 
 ### Uzun Vadeli (6+ Ay) 🟢
 1. **Additional Story Content** - Replay value
-2. **Community Mods** - User-generated content
-3. **VR/AR Support** - Next-gen experience
-4. **Web Version** - Accessibility
-5. **Advanced Analytics** - Data-driven decisions
+2. **Community Mods** (Oyun mükemmel olduktan sonra) - User-generated content
+3. **Advanced Analytics** - Data-driven decisions
+4. **Multi-language Support** - Daha geniş kitle
+5. **Professional Polish** - Production-ready
 
 ---
 
-## 13. Uygulama Roadmap
+## 12. Uygulama Roadmap
 
 ### Phase 1: Foundation (Hafta 1-4)
 ```
@@ -887,7 +837,7 @@ Riskli Davranışlar:
 ✅ Mevcut codebase'i refactor et
 ✅ Config system implement et
 ✅ Error handling iyileştir
-✅ Test infrastructure kur
+✅ Documentation başlat
 ```
 
 ### Phase 2: Enhancement (Hafta 5-8)
@@ -896,30 +846,30 @@ Riskli Davranışlar:
 ✅ Settings UI geliştir
 ✅ Accessibility features
 ✅ Performance optimization
-✅ Documentation yazı
+✅ Windows GDI efektleri geliştir
 ```
 
 ### Phase 3: Innovation (Hafta 9-12)
 ```
 ✅ Adaptive difficulty
-✅ Social features (başlangıç)
 ✅ Plugin system prototype
-✅ Community outreach
+✅ Advanced story branching
+✅ Community outreach (hazır olduğunda)
 ✅ Marketing malzemeleri
 ```
 
-### Phase 4: Expansion (Hafta 12+)
+### Phase 4: Polish (Hafta 12+)
 ```
-✅ Linux support
 ✅ New story content
 ✅ Advanced features
-✅ Community mods support
-✅ Scale ve optimize et
+✅ Bug fixes ve stabilization
+✅ Performance tuning
+✅ Production release hazırlıkları
 ```
 
 ---
 
-## 14. Bütçe ve Kaynak Tahmini
+## 13. Bütçe ve Kaynak Tahmini
 
 ### Development Time
 - Solo developer: ~200-300 saat
@@ -933,10 +883,9 @@ API Costs:
 - Production: ~$50-100/ay (orta kullanım)
 
 Tools & Services:
-- Domain name: ~$10/yıl
+- Domain name: ~$10/yıl (opsiyonel)
 - Hosting (docs): Ücretsiz (GitHub Pages)
-- CI/CD: Ücretsiz (GitHub Actions)
-- Code signing cert: ~$200/yıl (opsiyonel)
+- Code signing cert: ~$200/yıl (Windows Defender false positive önlemek için)
 
 Marketing:
 - Video production: $0 (DIY) - $500 (pro)
@@ -954,7 +903,7 @@ Direkt gelir beklenmemeli (open source), ancak:
 
 ---
 
-## 15. Riskler ve Mitigation
+## 14. Riskler ve Mitigation
 
 ### Teknik Riskler
 | Risk | Olasılık | Etki | Mitigation |
@@ -962,7 +911,7 @@ Direkt gelir beklenmemeli (open source), ancak:
 | API rate limits | Orta | Yüksek | Cache, fallbacks, quota monitoring |
 | Performance issues | Düşük | Orta | Profiling, optimization, testing |
 | Security vulnerabilities | Orta | Yüksek | Code review, security audit, updates |
-| Cross-platform bugs | Yüksek | Orta | Platform-specific testing, mocks |
+| Windows compatibility bugs | Orta | Orta | Version-specific testing, compatibility layer |
 
 ### Legal/Etik Riskler
 | Risk | Olasılık | Etki | Mitigation |
@@ -981,7 +930,7 @@ Direkt gelir beklenmemeli (open source), ancak:
 
 ---
 
-## 16. Success Metrics
+## 15. Success Metrics
 
 ### Kullanıcı Metrikleri
 - **Downloads/Installs:** Target: 1,000+ in first 3 months
@@ -1003,7 +952,7 @@ Direkt gelir beklenmemeli (open source), ancak:
 
 ---
 
-## 17. Sonuç ve Next Steps
+## 16. Sonuç ve Next Steps
 
 ### Önerilen Aksiyon Planı
 
