@@ -1,7 +1,7 @@
 # 👁️ SENTIENT_OS (v4.0)
 
 <p align="center">
-  <img src="SENTIENT_OS/assets/images/sentient/sentient_horizontal.jpg" alt="SENTIENT_OS Banner" width="100%">
+  <img src="assets/images/sentient/sentient_horizontal.jpg" alt="SENTIENT_OS Banner" width="100%">
 </p>
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
