@@ -18,3 +18,4 @@ psutil
 requests
 pillow
 cryptography
+PyYAML>=6.0

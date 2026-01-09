@@ -1,0 +1,42 @@
+# SENTIENT_OS Configuration File
+# Version 4.0
+
+system:
+  app_name: "SENTIENT_OS"
+  version: "4.0"
+  language: "tr"  # tr, en
+
+api:
+  gemini_key: "${GEMINI_API_KEY}"  # Set via environment variable
+  model: "gemini-2.5-flash"
+  max_tokens: 1000
+  timeout: 30
+
+safety:
+  streamer_mode: true  # Protect OBS/Discord windows
+  ai_safety_check: true  # Double-check AI responses
+  safe_hardware: false  # Avoid physically damaging actions
+  enable_strobe: false  # Block rapid flashing (photosensitivity)
+  chaos_level: 0  # 0-10 intensity
+
+performance:
+  max_cpu_percent: 85
+  max_ram_percent: 80
+  heartbeat_interval: 60  # seconds
+  target_monitor: 0  # Primary monitor index
+
+protected:
+  processes:
+    - "obs64.exe"
+    - "obs32.exe"
+    - "streamlabs.exe"
+    - "discord.exe"
+    - "chrome.exe"
+    - "firefox.exe"
+
+# Paths (relative to base directory)
+paths:
+  locales: "locales"
+  logs: "logs"
+  cache: "cache"
+  assets: "assets"
