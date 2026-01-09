@@ -1,6 +1,7 @@
-PyQt6==6.5.0
+PyQt6>=6.10.0
 PyQt6-WebEngine
-pygame
+PyYAML>=6.0
+pygame>=2.5.0
 google-generativeai
 pyttsx3
 win10toast
