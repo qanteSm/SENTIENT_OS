@@ -179,3 +179,12 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# SENTIENT_OS specific
+brain_dump.json
+user_settings.json
+achievements.json
+logs/
+cache/
+*.backup
+.permission_test
