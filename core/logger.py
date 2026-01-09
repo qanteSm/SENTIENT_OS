@@ -1,6 +1,6 @@
 """
 SENTIENT_OS Logging Framework
-Proper logging instead of print() statements.
+Professional logging system replacing print() statements with structured logs.
 """
 import logging
 import os
@@ -11,7 +11,20 @@ from config import Config
 class SentientLogger:
     """
     Centralized logging for SENTIENT_OS.
-    Supports file and console output with different log levels.
+    
+    Provides file and console output with different log levels.
+    Uses Python's built-in logging framework for robust log management.
+    
+    Features:
+        - Daily rotating log files
+        - Console and file output
+        - Module-based tagging
+        - Multiple log levels (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        
+    Example:
+        >>> from core.logger import log_info, log_error
+        >>> log_info("System initialized", module="KERNEL")
+        >>> log_error("Failed to connect to API", module="GEMINI")
     """
     
     _instance = None
@@ -65,18 +78,23 @@ class SentientLogger:
         self.logger.info(f"SENTIENT_OS v{Config.VERSION} - Logging initialized")
     
     def debug(self, message: str, module: str = "CORE"):
+        """Log debug message (detailed diagnostic information)."""
         self.logger.debug(f"[{module}] {message}")
     
     def info(self, message: str, module: str = "CORE"):
+        """Log info message (general informational messages)."""
         self.logger.info(f"[{module}] {message}")
     
     def warning(self, message: str, module: str = "CORE"):
+        """Log warning message (warning about potential issues)."""
         self.logger.warning(f"[{module}] {message}")
     
     def error(self, message: str, module: str = "CORE"):
+        """Log error message (error events that might still allow continued operation)."""
         self.logger.error(f"[{module}] {message}")
     
     def critical(self, message: str, module: str = "CORE"):
+        """Log critical message (serious errors requiring immediate attention)."""
         self.logger.critical(f"[{module}] {message}")
 
 
@@ -84,7 +102,12 @@ class SentientLogger:
 _logger = None
 
 def get_logger() -> SentientLogger:
-    """Returns the global logger instance."""
+    """
+    Get the global logger instance (singleton).
+    
+    Returns:
+        SentientLogger: Global logger instance
+    """
     global _logger
     if _logger is None:
         _logger = SentientLogger()
@@ -92,16 +115,51 @@ def get_logger() -> SentientLogger:
 
 # Convenience functions
 def log_debug(message: str, module: str = "CORE"):
+    """
+    Log debug message.
+    
+    Args:
+        message: Message to log
+        module: Module name for tagging
+    """
     get_logger().debug(message, module)
 
 def log_info(message: str, module: str = "CORE"):
+    """
+    Log info message.
+    
+    Args:
+        message: Message to log
+        module: Module name for tagging
+    """
     get_logger().info(message, module)
 
 def log_warning(message: str, module: str = "CORE"):
+    """
+    Log warning message.
+    
+    Args:
+        message: Message to log
+        module: Module name for tagging
+    """
     get_logger().warning(message, module)
 
 def log_error(message: str, module: str = "CORE"):
+    """
+    Log error message.
+    
+    Args:
+        message: Message to log
+        module: Module name for tagging
+    """
     get_logger().error(message, module)
 
 def log_critical(message: str, module: str = "CORE"):
+    """
+    Log critical message.
+    
+    Args:
+        message: Message to log
+        module: Module name for tagging
+    """
     get_logger().critical(message, module)

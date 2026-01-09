@@ -1,10 +1,28 @@
+"""
+Event Bus System for SENTIENT_OS
+Global event distribution system for component communication.
+"""
 from typing import Dict, Any, Callable, List
 import threading
 
 class EventBus:
     """
     The Nervous System of Sentient OS.
+    
+    Provides a centralized publish-subscribe event system for decoupled component communication.
     Pure Python implementation to avoid QApplication initialization issues.
+    
+    Features:
+        - Thread-safe event publishing and subscription
+        - Wildcard subscriptions with "*" event name
+        - Singleton pattern for global event bus
+        
+    Example:
+        >>> from core.event_bus import bus
+        >>> def handler(data):
+        ...     print(f"Received: {data}")
+        >>> bus.subscribe("user.action", handler)
+        >>> bus.publish("user.action", {"type": "click"})
     """
     _instance = None
     _lock = threading.Lock()
@@ -23,7 +41,16 @@ class EventBus:
             print("[EVENT_BUS] Nervous System Online (Pure Python).")
 
     def publish(self, event_name: str, data: Dict[str, Any] = None):
-        """Broadcast an event to all subscribers."""
+        """
+        Broadcast an event to all subscribers.
+        
+        Args:
+            event_name: Name of the event to publish
+            data: Optional event data dictionary
+            
+        Example:
+            >>> bus.publish("system.boot_complete", {"timestamp": time.time()})
+        """
         data = data or {}
         # print(f"[EVENT_BUS] Publishing: {event_name}")
         
@@ -45,12 +72,38 @@ class EventBus:
                 print(f"[EVENT_BUS] Error in wildcard callback: {e}")
 
     def subscribe(self, event_name: str, callback: Callable[[Dict[str, Any]], None]):
-        """Subscribe to a specific event."""
+        """
+        Subscribe to a specific event.
+        
+        Args:
+            event_name: Name of event to subscribe to (use "*" for all events)
+            callback: Function to call when event is published
+            
+        Example:
+            >>> def on_boot(data):
+            ...     print("System booted!")
+            >>> bus.subscribe("system.boot_complete", on_boot)
+        """
         with self._lock:
             if event_name not in self._subscribers:
                 self._subscribers[event_name] = []
             if callback not in self._subscribers[event_name]:
                 self._subscribers[event_name].append(callback)
+    
+    def unsubscribe(self, event_name: str, callback: Callable[[Dict[str, Any]], None] = None):
+        """
+        Unsubscribe from an event.
+        
+        Args:
+            event_name: Name of event to unsubscribe from
+            callback: Specific callback to remove (if None, removes all for event)
+        """
+        with self._lock:
+            if event_name in self._subscribers:
+                if callback is None:
+                    del self._subscribers[event_name]
+                elif callback in self._subscribers[event_name]:
+                    self._subscribers[event_name].remove(callback)
 
 # Global singleton instance
 bus = EventBus()
