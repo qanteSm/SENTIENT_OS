@@ -7,9 +7,10 @@ Komut satırı üzerinden ayarları yönetmek için kullanılır.
 
 import sys
 import os
+from pathlib import Path
 
 # Add parent directory to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, str(Path(__file__).parent))
 
 from core.settings_manager import settings
 from core.achievement_system import achievement_manager

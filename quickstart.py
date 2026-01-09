@@ -8,9 +8,10 @@ Yeni kullanıcılar için hızlı kurulum ve başlatma scripti.
 import sys
 import os
 import subprocess
+from pathlib import Path
 
 # Add parent directory to path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, str(Path(__file__).parent))
 
 def print_banner():
     """Hoş geldin banneri."""

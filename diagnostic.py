@@ -8,9 +8,10 @@ Sistem durumunu kontrol eder ve sorunları tespit eder.
 import sys
 import os
 import platform
+from pathlib import Path
 
 # Add parent directory to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, str(Path(__file__).parent))
 
 from config import Config
 

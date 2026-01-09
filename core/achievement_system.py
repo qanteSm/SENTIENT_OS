@@ -9,6 +9,7 @@ import os
 from typing import Dict, List, Optional
 from datetime import datetime
 from config import Config
+from core.event_bus import bus
 
 
 class Achievement:
@@ -147,8 +148,7 @@ class AchievementManager:
         
         print(f"[ACHIEVEMENTS] 🏆 Unlocked: {ach.name} (+{ach.points} points)")
         
-        # Trigger event bus notification
-        from core.event_bus import bus
+        # Trigger event bus notification (already imported at top)
         bus.publish("achievement_unlocked", {
             "id": achievement_id,
             "name": ach.name,

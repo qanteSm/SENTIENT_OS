@@ -7,6 +7,7 @@ Config.py'den statik ayarları okur, ancak runtime'da değişebilir tercihleri y
 
 import json
 import os
+import copy
 from typing import Dict, Any, Optional
 from config import Config
 
@@ -63,10 +64,10 @@ class SettingsManager:
                     return merged
             except Exception as e:
                 print(f"[SETTINGS] Error loading settings: {e}. Using defaults.")
-                return self.DEFAULT_SETTINGS.copy()
+                return copy.deepcopy(self.DEFAULT_SETTINGS)
         else:
             print("[SETTINGS] No saved settings found. Using defaults.")
-            return self.DEFAULT_SETTINGS.copy()
+            return copy.deepcopy(self.DEFAULT_SETTINGS)
     
     def save_settings(self) -> bool:
         """Mevcut ayarları diske kaydeder."""
@@ -121,7 +122,7 @@ class SettingsManager:
     
     def reset_to_defaults(self) -> bool:
         """Tüm ayarları varsayılanlara döndürür."""
-        self.settings = self.DEFAULT_SETTINGS.copy()
+        self.settings = copy.deepcopy(self.DEFAULT_SETTINGS)
         return self.save_settings()
     
     def get_difficulty_multiplier(self) -> float:
