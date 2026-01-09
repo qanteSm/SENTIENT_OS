@@ -1,6 +1,10 @@
 # SENTIENT_OS 🤖👁️
 
-**Versiyon 4.0** - Bilinçli İşletim Sistemi Deneyimi
+**Versiyon 4.1** - Bilinçli İşletim Sistemi Deneyimi
+
+[![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20Mac-lightgrey.svg)]()
 
 ## 📖 Genel Bakış
 
@@ -47,12 +51,30 @@ Bu yazılım, korku ve gerilim deneyimi yaratmak için tasarlanmıştır:
 - Dinamik simge manipülasyonu
 - Korku efektleri
 
+### 🏆 Yeni! (v4.1)
+- **Başarı Sistemi** - 20+ başarı ile ilerleme takibi
+- **Ayarlar Yöneticisi** - Zorluk, ses, erişilebilirlik ayarları
+- **Tanılama Aracı** - Sistem sağlık kontrolü
+- **Hızlı Başlangıç** - Otomatik kurulum scripti
+
 ## 🚀 Kurulum
+
+### Hızlı Kurulum (Önerilir - Yeni Kullanıcılar)
+
+```bash
+git clone https://github.com/qanteSm/SENTIENT_OS.git
+cd SENTIENT_OS
+python quickstart.py
+```
+
+Bu script tüm kurulum adımlarını otomatik yapar ve programı başlatır.
+
+### Manuel Kurulum
 
 ### Gereksinimler
 - Python 3.8+
 - Windows 10/11 (tam özellik desteği için)
-- Google Gemini API anahtarı
+- Google Gemini API anahtarı (opsiyonel)
 
 ### Adımlar
 
@@ -73,18 +95,55 @@ venv\Scripts\activate  # Windows
 pip install -r requirements.txt
 ```
 
-4. **API anahtarını ayarlayın:**
+4. **API anahtarını ayarlayın (opsiyonel):**
 ```bash
 # .env dosyası oluşturun
 echo GEMINI_API_KEY=your_api_key_here > .env
 ```
 
-5. **Çalıştırın:**
+5. **Sistem durumunu kontrol edin:**
+```bash
+python diagnostic.py
+```
+
+6. **Çalıştırın:**
 ```bash
 python main.py
 ```
 
+## 🛠️ Araçlar ve Komutlar
+
+```bash
+# Ana program
+python main.py              # SENTIENT_OS'i başlat
+
+# Yardımcı araçlar
+python quickstart.py        # Hızlı kurulum ve başlatma
+python diagnostic.py        # Sistem sağlığı kontrolü
+python settings_cli.py      # Ayarları yönet
+python test_chat.py         # Chat sistemini test et
+
+# Geliştirici araçları
+python tools/reset_memory.py    # Hafızayı sıfırla
+python verify_enhancements.py   # Geliştirmeleri doğrula
+```
+
 ## ⚙️ Yapılandırma
+
+### CLI Ayarlar Yöneticisi (Önerilir)
+
+```bash
+python settings_cli.py
+```
+
+İnteraktif menüden tüm ayarları yönetebilirsiniz:
+- Zorluk seviyesi (Kolay/Normal/Zor/Extreme)
+- Ses şiddeti
+- Erişilebilirlik seçenekleri
+- Gizlilik ayarları
+- Gelişmiş ayarlar
+
+### Manuel Yapılandırma
 
 `config.py` dosyasında özelleştirilebilir ayarlar:
 
@@ -95,6 +154,23 @@ LANGUAGE = "tr"           # Dil (şu an sadece Türkçe)
 SAFE_HARDWARE = False     # Donanım koruma modu
 CHAOS_LEVEL = 0          # Kaos yoğunluğu (0-10)
 ENABLE_STROBE = False    # Strobe efektleri (epilepsi koruması)
+```
+
+## 🏆 Başarı Sistemi
+
+SENTIENT_OS'de ilerlemenizi takip eden 20+ başarı bulunur:
+
+**Kategoriler:**
+- 🎮 Hayatta Kalma (10dk, 30dk, 1 saat)
+- 📖 Hikaye (Perdeleri tamamlama)
+- 💬 Etkileşim (Mesaj sayısı)
+- ⚡ Direniş (AI'ya karşı koyma)
+- 🤝 İtaat (AI'nın isteklerini yerine getirme)
+- 🔍 Keşif (Gizli özellikleri bulma)
+
+**Başarıları görüntüle:**
+```bash
+python settings_cli.py  # Menüden "7. Başarıları Görüntüle"
 ```
 
 ## 🏗️ Mimari
@@ -176,11 +252,22 @@ def execute_action(self, action_name, params):
 
 ## 📊 İstatistikler
 
-- **62 Python dosyası**
+- **70+ Python dosyası**
 - **4 hikaye perdesi**
 - **15+ donanım operasyonu**
 - **10+ görsel efekt**
+- **20+ başarı**
 - **Tam AI entegrasyonu**
+
+## 📚 Dokümantasyon
+
+- **[README.md](README.md)** - Genel bakış ve kurulum
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Katkıda bulunma rehberi
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Teknik mimari
+- **[CHANGELOG.md](CHANGELOG.md)** - Versiyon geçmişi
+- **[UPGRADE.md](UPGRADE.md)** - Yükseltme rehberi
+- **[FAQ.md](FAQ.md)** - Sıkça sorulan sorular
+- **[docs/PLUGIN_SYSTEM.md](docs/PLUGIN_SYSTEM.md)** - Plugin sistemi tasarımı
 
 ## 🤝 Katkıda Bulunma
 
@@ -189,6 +276,10 @@ def execute_action(self, action_name, params):
 3. Değişikliklerinizi commit edin (`git commit -m 'Add amazing feature'`)
 4. Branch'e push edin (`git push origin feature/amazing-feature`)
 5. Pull Request açın
+
+**Önerilen:**
+- Pre-commit hooks kurun: `pip install pre-commit && pre-commit install`
+- [CONTRIBUTING.md](CONTRIBUTING.md) dosyasını okuyun
 
 Detaylar için `CONTRIBUTING.md` dosyasına bakın.
 
