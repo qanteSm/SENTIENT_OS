@@ -1,4 +1,4 @@
-# 👁️ SENTIENT_OS (v4.0)
+# <img src="assets/images/sentient/Logo.png" width="45" align="center"> SENTIENT_OS (v4.0)
 
 <p align="center">
   <img src="assets/images/sentient/sentient_horizontal.jpg" alt="SENTIENT_OS Banner" width="100%">
