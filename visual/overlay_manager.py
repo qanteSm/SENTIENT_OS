@@ -35,6 +35,7 @@ class OverlayManager(QWidget):
         
         # Track if currently showing
         self._is_showing = False
+        self._is_shaking = False
         self._original_pos = self.pos()
         
         # Color Flash Layer (Full screen)
@@ -133,15 +134,20 @@ class OverlayManager(QWidget):
         self._is_showing = False
 
     def shake_screen(self, intensity=20, duration=1000):
-        """Rapidly moves the overlay window to simulate screen shaking."""
+        """Rapidly moves the overlay window to simulate screen shaking with guard."""
+        if self._is_shaking:
+            return
+            
         if not self.isVisible():
             self.show()
             
+        self._is_shaking = True
         original_geometry = self.geometry()
         
         def do_shake(count):
             if count <= 0:
                 self.setGeometry(original_geometry)
+                self._is_shaking = False
                 return
                 
             dx = random.randint(-intensity, intensity)

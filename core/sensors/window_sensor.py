@@ -35,16 +35,18 @@ class WindowSensor(BaseSensor):
             return {}
         
         try:
-            hwnd = self._win32gui.GetForegroundWindow()
-            window_title = self._win32gui.GetWindowText(hwnd)
+            # Get Process Info
+            from hardware.window_ops import WindowOps
+            info = WindowOps.get_active_window_info()
+            process_name = info.get("process", "unknown")
+            window_title = info.get("title", "unknown")
+            hwnd = info.get("hwnd", 0)
             
             if window_title != self.last_window:
                 self.last_window = window_title
-                
                 # Publish to event bus
-                data = {"window_title": window_title, "hwnd": hwnd}
+                data = {"window_title": window_title, "hwnd": hwnd, "process_name": process_name}
                 bus.publish("window.focus_changed", data)
-                
                 return data
             
             return {}  # No change

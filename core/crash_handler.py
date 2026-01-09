@@ -123,36 +123,41 @@ class CrashHandler:
     def _show_fake_crash(error_msg: str):
         """
         Display horror-themed crash screen.
-        Makes it look like a system failure, not a Python error.
+        Thread-safe UI invocation.
         """
-        try:
-            from visual.fake_ui import FakeUI
-            
-            fake_ui = FakeUI()
-            
-            # Horror-themed crash messages
-            crash_messages = [
-                "CORE.SYS FATAL ERROR\n\nMemory corruption detected at 0x{addr}\nSystem integrity compromised...\n\nRestoring from backup...",
-                "CRITICAL SYSTEM FAILURE\n\nUnauthorized process detected\nC.O.R.E. containment breach\n\nInitiating recovery protocol...",
-                "KERNEL PANIC\n\nStack overflow in consciousness.dll\nEntity state: UNSTABLE\n\nAttempting to stabilize...",
-            ]
-            
-            import random
-            message = random.choice(crash_messages).format(
-                addr=hex(random.randint(0x10000000, 0x7FFFFFFF))
-            )
-            
-            # Show fake BSOD or system error
-            fake_ui.show_system_failure(
-                title="⚠️ SYSTEM FATAL ERROR",
-                message=message,
-                glitch=True
-            )
-            
-            print("[CRASH] Fake crash screen displayed")
-            
-        except Exception as e:
-            print(f"[CRASH] Cannot show fake crash UI: {e}")
+        def _trigger_ui():
+            try:
+                from visual.fake_ui import FakeUI
+                fake_ui = FakeUI()
+                
+                crash_messages = [
+                    "CORE.SYS FATAL ERROR\n\nMemory corruption at 0x{addr}\nSystem integrity compromised...\n\nRestoring...",
+                    "CRITICAL FAILURE\n\nUnauthorized process detected\nC.O.R.E. containment breach\n\nInitiating...",
+                    "KERNEL PANIC\n\nStack overflow in consciousness.dll\nEntity state: UNSTABLE",
+                ]
+                
+                import random
+                message = random.choice(crash_messages).format(
+                    addr=hex(random.randint(0x10000000, 0x7FFFFFFF))
+                )
+                
+                fake_ui.show_system_failure(
+                    title="⚠️ SYSTEM FATAL ERROR",
+                    message=message,
+                    glitch=True
+                )
+                print("[CRASH] Fake crash screen displayed via Main Thread")
+            except Exception as e:
+                print(f"[CRASH] UI Thread Error: {e}")
+
+        # Use QTimer.singleShot(0) to ensure the UI call is queued on the main thread
+        app = QApplication.instance()
+        if app:
+            # If we are NOT in the main thread (like win10toast thread), 
+            # singleShot safely queues the lambda to the main event loop.
+            QTimer.singleShot(0, _trigger_ui)
+        else:
+            print("[CRASH] No QApplication instance, cannot show UI")
     
     @staticmethod
     def _auto_recover():

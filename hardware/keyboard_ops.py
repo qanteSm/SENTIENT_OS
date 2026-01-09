@@ -8,6 +8,7 @@ except ImportError:
     keyboard = None
     win32gui = None
 
+import time
 from core.process_guard import ProcessGuard
 
 class KeyboardOps:
@@ -61,21 +62,34 @@ class KeyboardOps:
                     "obs64.exe", "obs32.exe", "streamlabs.exe", 
                     "discord.exe", "vlc.exe", "mpc-hc.exe"
                 ]
+                protected_keywords = ["bank", "login", "password", "private", "özel", "şifre"]
                 
                 if proc in protected_procs:
                     print(f"[SAFETY] Ghost Type Blocked on Protected App: {proc}")
                     return
                 
-                title_lower = window_title.lower()
+                title_lower = info.get('title', '').lower()
                 for keyword in protected_keywords:
                     if keyword in title_lower:
-                        print(f"[SAFETY] Ghost Type Blocked on Protected Window: {window_title}")
+                        print(f"[SAFETY] Ghost Type Blocked on Protected Window: {info.get('title')}")
                         return
 
             # 3. Type
             keyboard.write(text, delay=0.1)
         except Exception as e:
             print(f"[HARDWARE] Typing Error: {e}")
+
+    @staticmethod
+    def toggle_caps_lock():
+        """Toggles the CapsLock state."""
+        if keyboard:
+            try:
+                keyboard.send('caps lock')
+                print("[HARDWARE] CapsLock Toggled.")
+            except Exception as e:
+                print(f"[HARDWARE] CapsLock Toggle Error: {e}")
+        else:
+            print("[MOCK] CAPSLOCK TOGGLED")
 
     @staticmethod
     def capslock_morse(message: str):

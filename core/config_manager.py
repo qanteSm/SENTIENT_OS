@@ -217,6 +217,7 @@ class ConfigManager:
         config_obj.set('ENABLE_STROBE', self.get('horror.enable_strobe', False), validate=False)
         config_obj.set('TARGET_MONITOR_INDEX', self.get('safety.target_monitor', 0), validate=False)
         config_obj.set('PROTECTED_PROCESSES', self.get('safety.protected_processes', []), validate=False)
+        config_obj.set('GEMINI_KEY', self.get('api.gemini_key', ''), validate=False)
         
         print("[CONFIG] Legacy Config populated from YAML")
 

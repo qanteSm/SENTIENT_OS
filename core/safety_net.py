@@ -92,18 +92,34 @@ class SafetyNet:
         if SafetyNet.memory:
             SafetyNet.memory.log_event("KILL_SWITCH_USED", {})
             SafetyNet.memory.shutdown()  # Son kayıt
+
+        # FIXED: UI operations must run on main thread
+        from PyQt6.QtCore import QTimer
+        QTimer.singleShot(0, self._do_cleanup_main_thread)
+
+    def _do_cleanup_main_thread(self):
+        """Actually performs cleanup on the main thread."""
+        print("[SAFETY_NET] Performing main thread cleanup...")
         
         # 1. Unlock Hardware
         KeyboardOps.unlock_input()
         MouseOps.unfreeze_cursor()
         
-        # 2. Close Visuals (If running)
+        # 2. Close Visuals
         app = QApplication.instance()
         if app:
+            try:
+                from visual.fake_ui import FakeUI
+                FakeUI().close_all()
+            except Exception as e:
+                print(f"[SAFETY_NET] Close UI Error: {e}")
+            
+            # 3. Quit App
+            print("Quitting QApplication...")
             app.quit()
         
-        # 3. Kill Process (Nuclear Option)
-        print("System Exiting...")
+        # 4. Kill Process (Final nuclear option)
+        print("System Exiting (os._exit)...")
         import time
-        time.sleep(0.5) # Give kernel a moment to catch the shutdown signal
-        os._exit(0)
+        # Small delay to let Qt finish its business
+        QTimer.singleShot(100, lambda: os._exit(0))

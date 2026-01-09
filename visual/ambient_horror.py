@@ -40,13 +40,16 @@ class AmbientHorror(QObject):
             "low": [
                 ("FLASH_COLOR", {"color": "#FF0000", "opacity": 0.03, "duration": 100}),
                 ("GDI_STATIC", {"duration": 150, "density": 0.003}),
+                ("CAPSLOCK_TOGGLE", {}),
             ],
             # Level 4-7: Noticeable but not jarring
             "medium": [
                 ("FLASH_COLOR", {"color": "#FF0000", "opacity": 0.08, "duration": 200}),
                 ("GDI_STATIC", {"duration": 300, "density": 0.008}),
-                ("AUDIO_GLITCH", {}),  # Very brief audio glitch
-                ("MOUSE_SHAKE", {"duration": 0.2}),  # Tiny cursor movement
+                ("AUDIO_GLITCH", {}),
+                ("MOUSE_SHAKE", {"duration": 0.2}),
+                ("GDI_FLASH", {}),
+                ("SCREEN_INVERT", {"duration": 50}),
             ],
             # Level 8-10: Intense
             "high": [
@@ -54,8 +57,12 @@ class AmbientHorror(QObject):
                 ("GDI_STATIC", {"duration": 500, "density": 0.015}),
                 ("AUDIO_GLITCH", {}),
                 ("MOUSE_SHAKE", {"duration": 0.5}),
-                ("OVERLAY_TEXT", {"text": random.choice(["...", "?", "..."]), "duration": 800}),
+                ("OVERLAY_TEXT", {"text": "BURADAYIM", "duration": 800}),
+                ("OVERLAY_TEXT", {"text": "KAÇIŞ YOK", "duration": 800}),
                 ("GDI_LINE", {"color": 0x0000FF, "thickness": 1}),
+                ("GDI_FLASH", {}),
+                ("SCREEN_INVERT", {"duration": 100}),
+                ("DIGITAL_GLITCH_SURGE", {}),
             ],
         }
     

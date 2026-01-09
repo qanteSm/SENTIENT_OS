@@ -52,27 +52,32 @@ class SystemDispatcher(BaseDispatcher):
             "SET_MOOD",
             "RESTORE_SYSTEM",
             "OPEN_BROWSER",
+            "CLIPBOARD_INJECT",
+            "NOTEPAD_SPAWN",
+            "WALLPAPER_CHANGE",
+            "ICON_SCRAMBLE",
+            "NOTIFICATION_SEND",
         ]
     
     def dispatch(self, action: str, params: Dict[str, Any], speech: str = ""):
         """Execute system action"""
         log_info(f"System action: {action}", "SYSTEM_DISPATCHER")
         
-        if action == "SET_WALLPAPER":
+        if action == "SET_WALLPAPER" or action == "WALLPAPER_CHANGE":
             path = params.get("image_path")
             if path:
                 self.wallpaper.set_wallpaper(path)
         
-        elif action == "CLIPBOARD_POISON":
+        elif action == "CLIPBOARD_POISON" or action == "CLIPBOARD_INJECT":
             text = params.get("text", "SEN BENİMSİN")
             self.clipboard.poison_clipboard(text)
         
-        elif action == "FAKE_NOTIFICATION":
-            title = params.get("title")
-            message = params.get("message")
+        elif action == "FAKE_NOTIFICATION" or action == "NOTIFICATION_SEND":
+            title = params.get("title", "SYSTEM NOTICE")
+            message = params.get("message", "...")
             self.notifications.show_fake_system_alert(title, message)
         
-        elif action == "NOTEPAD_HIJACK":
+        elif action == "NOTEPAD_HIJACK" or action == "NOTEPAD_SPAWN":
             text = params.get("text", "YARDIM EDİN")
             delay = params.get("delay", 0.1)
             self.notepad.hijack_and_type(text, delay)
@@ -80,7 +85,7 @@ class SystemDispatcher(BaseDispatcher):
         elif action == "CORRUPT_WINDOWS":
             self.window.corrupt_all_windows()
         
-        elif action == "SCRAMBLE_ICONS":
+        elif action == "SCRAMBLE_ICONS" or action == "ICON_SCRAMBLE":
             pattern = params.get("pattern", "spiral")
             self.icons.scramble_into_pattern(pattern)
         

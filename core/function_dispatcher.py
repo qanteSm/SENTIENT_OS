@@ -39,8 +39,9 @@ class FunctionDispatcher(QObject):
     - Clearer separation of concerns
     """
     
-    # Signal for thread-safe chat response handling
+    # Signals for thread-safe handling
     chat_response_signal = pyqtSignal(dict, object)  # (response, chat_window)
+    dispatch_signal = pyqtSignal(dict)              # (command_data) - Global dispatch router
     
     def __init__(self):
         super().__init__()
@@ -49,27 +50,30 @@ class FunctionDispatcher(QObject):
         self.fake_ui = FakeUI()
         self._chat_thread = None
         
+        # Initialize specialized dispatchers
+        self.visual_dispatcher = VisualDispatcher()
+        self.hardware_dispatcher = HardwareDispatcher(self.process_guard)
+        self.horror_dispatcher = HorrorDispatcher()
+        self.system_dispatcher = SystemDispatcher()
+        self._is_shutting_down = False
+
+        
+        # Inject dependencies into specialized dispatchers
+        self.horror_dispatcher.audio_out = self.audio_out
+        self.horror_dispatcher.overlay = self.visual_dispatcher.overlay
+        self.horror_dispatcher.system = self.system_dispatcher
+
         # Backward compatibility aliases
         self.overlay = self.visual_dispatcher.overlay
         self.gdi = self.visual_dispatcher.gdi
         self.chat = self.fake_ui.chat
         
-        # References set by main.py
-        self.memory = None
-        self.brain = None
-        self.heartbeat = None
-        
-        # Initialize specialized dispatchers
-        self.visual_dispatcher = VisualDispatcher()
-        self.hardware_dispatcher = HardwareDispatcher()
-        self.horror_dispatcher = HorrorDispatcher()
-        self.system_dispatcher = SystemDispatcher()
-        
         # Build action routing map
         self._action_map = self._build_action_map()
         
-        # Connect chat signal
+        # Connect signals
         self.chat_response_signal.connect(self._process_chat_response)
+        self.dispatch_signal.connect(self._do_dispatch)
     
     def _build_action_map(self):
         """Build dict mapping actions to their dispatcher"""
@@ -136,15 +140,18 @@ class FunctionDispatcher(QObject):
         
         # Play typing sound
         self.audio_out.play_typing_custom()
-    
+        
     def dispatch(self, command_data: dict):
         """
-        Route action to appropriate specialized dispatcher.
-        
-        This is the main entry point for all AI commands.
+        Public entry point. Safely queues action to the main thread.
         """
-        if not command_data:
-            log_warning("Empty command_data received", "DISPATCHER")
+        self.dispatch_signal.emit(command_data)
+
+    def _do_dispatch(self, command_data: dict):
+        """
+        ACTUAL dispatch logic. ALWAYS runs on the main thread via Qt signal.
+        """
+        if not command_data or self._is_shutting_down:
             return
         
         # Validate AI response structure
@@ -195,7 +202,7 @@ class FunctionDispatcher(QObject):
         
         elif action == "NONE":
             # Subtle effect if anger is high
-            if self.heartbeat and self.heartbeat.anger.current_anger > 75:
+            if self.heartbeat and self.heartbeat.anger_engine.current_anger > 75:
                 if self.fake_ui.chat:
                     self.fake_ui.chat.shake_window(5)
             return
@@ -203,9 +210,26 @@ class FunctionDispatcher(QObject):
         # Route to specialized dispatcher
         dispatcher = self._action_map.get(action)
         if dispatcher:
+            # HEAVY_ACTIONS: These block the thread (GDI loops, keyboard typing, etc.)
+            # Running them in a separate thread keeps the UI responsive.
+            HEAVY_ACTIONS = ["GDI_STATIC", "GDI_LINE", "GDI_FLASH", "SCREEN_INVERT", 
+                             "GHOST_TYPE", "BRIGHTNESS_FLICKER", "BRIGHTNESS_DIM",
+                             "ICON_SCRAMBLE", "SET_WALLPAPER", "CORRUPT_WINDOWS",
+                             "NOTEPAD_HIJACK", "NOTEPAD_SPAWN"]
+            
             try:
-                dispatcher.dispatch(action, params, speech)
+                if action in HEAVY_ACTIONS:
+                    import threading
+                    log_info(f"Dispatching heavy action {action} asynchronously", "DISPATCHER")
+                    threading.Thread(target=dispatcher.dispatch, args=(action, params, speech), daemon=True).start()
+                else:
+                    dispatcher.dispatch(action, params, speech)
             except Exception as e:
                 log_error(f"Dispatcher error for {action}: {e}", "DISPATCHER")
         else:
             log_warning(f"Unknown action: {action}", "DISPATCHER")
+
+    def stop_dispatching(self):
+        """Prevents any new actions from being dispatched during shutdown."""
+        self._is_shutting_down = True
+        log_info("Dispatcher shutdown initiated. Ignoring future actions.", "DISPATCHER")

@@ -73,7 +73,7 @@ class FakeChat(QWidget):
         self.setLayout(layout)
         
         # Visual State
-        self._shake_animation = None
+        self._is_shaking = False
         self._current_mood = "NORMAL"
 
     def set_mood(self, mood="NORMAL"):
@@ -170,14 +170,22 @@ class FakeChat(QWidget):
                     current_display += target_char
                     char_index += 1
                 
-                label.setText(temp_text)
+                if not self.isVisible():
+                    return # Stop if hidden
                 
-                # Auto-scroll
-                self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum())
-                
+                try:
+                    label.setText(temp_text)
+                    # Auto-scroll
+                    self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum())
+                except:
+                    return
+
                 QTimer.singleShot(delay, next_char)
             else:
-                label.setText(full_text) # Ensure final text is clean
+                try:
+                    label.setText(full_text) # Ensure final text is clean
+                except:
+                    pass
 
         next_char()
 
@@ -206,19 +214,25 @@ class FakeChat(QWidget):
         return label
 
     def shake_window(self, intensity: int = 10, duration: int = 500):
-        """Makes the chat window shake violently."""
-        if self._shake_animation:
+        """Makes the chat window shake violently with protection against drifting."""
+        if self._is_shaking:
             return
 
+        self._is_shaking = True
         original_pos = self.pos()
         
+        def _reset():
+            self.move(original_pos)
+            self._is_shaking = False
+
         # Multiple rapid moves
-        for i in range(10):
+        steps = 15
+        for i in range(steps):
             offset = QPoint(random.randint(-intensity, intensity), 
                             random.randint(-intensity, intensity))
-            QTimer.singleShot(i * 30, lambda o=offset: self.move(original_pos + o))
+            QTimer.singleShot(i * (duration // steps), lambda o=offset: self.move(original_pos + o))
         
-        QTimer.singleShot(300, lambda: self.move(original_pos))
+        QTimer.singleShot(duration + 50, _reset)
 
     def show_chat(self):
         """Position chat in bottom-right corner of screen."""

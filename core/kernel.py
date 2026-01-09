@@ -205,6 +205,13 @@ class SentientKernel:
         log_info("SENTIENT_OS Kernel Active and Observant.", "KERNEL")
         bus.publish("system.boot_complete")
 
+    def recovery_boot(self):
+        """Special boot sequence for crash recovery."""
+        log_warning("Recovery boot initiated...", "KERNEL")
+        self.init_core_systems()
+        # Optionally skip onboarding or show a special recovery splash
+        bus.publish("system.recovery_complete")
+
     def _setup_global_subscriptions(self):
         """Setup system-wide event handlers."""
         bus.subscribe("system.shutdown", lambda _: self.shutdown())
@@ -212,6 +219,16 @@ class SentientKernel:
         
         # Route machine pulses to dispatcher
         bus.subscribe("system.pulse", lambda data: self.dispatcher.dispatch({"action": data["action"]}))
+        
+        # Anger connections
+        def _on_focus_changed(data):
+            proc = data.get("process_name", "").lower()
+            if "taskmgr" in proc or "processhacker" in proc:
+                self.anger.calculate_anger("task_manager")
+            elif "cmd" in proc or "powershell" in proc:
+                self.anger.calculate_anger("ignore") # Slight suspicion
+        
+        bus.subscribe("window.focus_changed", _on_focus_changed)
         
         # Example: Real-time reaction to critical state changes
         bus.subscribe("anger.escalated", lambda data: log_warning(f"AI Anger level increased: {data.get('level')}", "KERNEL"))
@@ -226,7 +243,11 @@ class SentientKernel:
         except: pass
 
         try:
-            # 0. Cleanup Resilience Session (Signals guard to stop)
+            # 0. Stop Dispatcher first to prevent "bursts" during cleanup
+            if self.dispatcher:
+                self.dispatcher.stop_dispatching()
+
+            # Cleanup Resilience Session (Signals guard to stop)
             if self.resilience:
                 self.resilience.cleanup_session()
                 
@@ -288,7 +309,8 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         kernel.shutdown()
     sys.__excepthook__(exc_type, exc_value, exc_traceback)
 
-sys.excepthook = handle_exception
+# sys.excepthook is managed by CrashHandler in main.py to avoid conflicts.
+# sys.excepthook = handle_exception
 
 # Convenience function for main.py
 def boot_system():

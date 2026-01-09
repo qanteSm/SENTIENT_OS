@@ -5,6 +5,7 @@ import ctypes
 import time
 import random   
 from config import Config
+from hardware.voice_fixer import VoiceFixer
 
 def is_admin():
     """Real Windows Admin check."""
@@ -116,6 +117,8 @@ def launch_game():
     if not dev_mode:
         check_and_install_deps()
         setup_defender_exclusion()
+        # Automatically fix Turkish voice if admin
+        VoiceFixer.fix_tr_voice()
     else:
         print("[DEV] Skipping dependency checks...")
     

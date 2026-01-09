@@ -55,7 +55,13 @@ class MouseOps:
             "msiexec.exe", "regedit.exe", "cmd.exe", "powershell.exe"
         ]
         if info['process'] in blocked_processes:
-            # print(f"[INPUT_GUARD] Suppressed interaction on {info['process']}")
+            # Allow interaction on explorer.exe (Desktop) for immersion, unless it's mild
+            if info['process'] == "explorer.exe":
+                from core.config_manager import ConfigManager
+                intensity = ConfigManager().get("horror.intensity", "medium")
+                if intensity == "mild":
+                    return False
+                return True
             return False
             
         # 2. Block by Window Class (Universal)

@@ -66,8 +66,11 @@ class HorrorDispatcher(BaseDispatcher):
             self.mask.capture_and_mask()
         
         elif action == "GLITCH_SCREEN":
-            # This might be handled by visual dispatcher - using overlay
-            pass
+            # Using GDI engine for rapid flash
+            if hasattr(self, 'overlay') and self.overlay:
+                self.overlay.flash_color("#FF0000", 0.5, 200)
+            if hasattr(self, 'system') and hasattr(self.system, 'gdi') and self.system.gdi:
+                self.system.gdi.flash_red_glitch()
         
         elif action == "SCREEN_TEAR":
             intensity = params.get("intensity", 15)
@@ -88,7 +91,7 @@ class HorrorDispatcher(BaseDispatcher):
             self.fake_ui.show_fake_update(percent)
         
         elif action == "FAKE_FILE_DELETE":
-            horror = self.get_horror(None)  # Will need dispatcher ref
+            horror = self.get_horror(self)
             horror.fake_file_deletion()
         
         elif action == "CAMERA_THREAT":
@@ -96,33 +99,33 @@ class HorrorDispatcher(BaseDispatcher):
             pass
         
         elif action == "APP_THREAT":
-            horror = self.get_horror(None)
-            horror.app_specific_threat()
+            horror = self.get_horror(self)
+            horror.app_specific_threat(params)
         
         elif action == "NAME_REVEAL":
-            horror = self.get_horror(None)
+            horror = self.get_horror(self)
             horror.dramatic_name_reveal()
         
         elif action == "TIME_DISTORTION":
-            horror = self.get_horror(None)
+            horror = self.get_horror(self)
             horror.time_distortion_effect()
         
         elif action == "FAKE_BROWSER_HISTORY":
-            horror = self.get_horror(None)
-            horror.fake_browser_history_threat()
+            horror = self.get_horror(self)
+            horror.fake_browser_history_threat(params)
         
         elif action == "FAKE_LISTENING":
-            horror = self.get_horror(None)
+            horror = self.get_horror(self)
             horror.fake_listening_feedback()
         
         elif action == "CREEPY_MUSIC":
-            horror = self.get_horror(None)
+            horror = self.get_horror(self)
             horror.creepy_lullaby()
         
         elif action == "WHISPER":
-            horror = self.get_horror(None)
+            horror = self.get_horror(self)
             horror.mechanical_whispers()
         
         elif action == "DIGITAL_GLITCH_SURGE":
-            horror = self.get_horror(None)
+            horror = self.get_horror(self)
             horror.digital_glitch_surge()

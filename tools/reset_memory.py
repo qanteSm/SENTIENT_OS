@@ -7,35 +7,35 @@ def reset_game_data():
     """
     Deletes the 'SentientOS' directory in AppData (or local config dir).
     """
+    # 1. Clear .system_state.json (Local system state)
+    state_file = os.path.join(Config().BASE_DIR, ".system_state.json")
+    if os.path.exists(state_file):
+        try:
+            os.remove(state_file)
+            print(f"[RESET] Deleted local state file: {state_file}")
+        except: pass
+
+    # 2. Clear AppData/SentientOS (Memory, Checkpoints, Logs)
     if Config().IS_WINDOWS:
         app_data = os.getenv('APPDATA')
-        target_dir = os.path.join(app_data, "SentientOS")
-    else:
-        # For Linux/Mac/Dev, we used the base dir or local
-        target_dir = os.path.join(Config().BASE_DIR, "brain_dump.json")
-        # Actually memory.py uses BASE_DIR/brain_dump.json in dev mode, 
-        # but let's be safe and check if it created a folder or just file.
-        # In memory.py: self.filepath = os.path.join(Config().BASE_DIR, "brain_dump.json")
-        if os.path.exists(target_dir):
-            try:
-                os.remove(target_dir)
-                print(f"[RESET] Deleted memory file: {target_dir}")
-                return
-            except Exception as e:
-                print(f"[RESET] Error: {e}")
-                return
-
-    if os.path.exists(target_dir):
+        if app_data:
+            target_dir = os.path.join(app_data, "SentientOS")
+            if os.path.exists(target_dir):
+                try:
+                    shutil.rmtree(target_dir)
+                    print(f"[RESET] Wiped AppData directory: {target_dir}")
+                except Exception as e:
+                    print(f"[RESET] Failed to wipe AppData: {e}")
+    
+    # 3. Clear local brain_dump if exists
+    local_memory = os.path.join(Config().BASE_DIR, "brain_dump.json")
+    if os.path.exists(local_memory):
         try:
-            if os.path.isdir(target_dir):
-                shutil.rmtree(target_dir)
-            else:
-                os.remove(target_dir)
-            print(f"[RESET] Game data wiped from: {target_dir}")
-        except Exception as e:
-            print(f"[RESET] Failed to wipe data: {e}")
-    else:
-        print("[RESET] No game data found to wipe.")
+            os.remove(local_memory)
+            print(f"[RESET] Deleted local memory file: {local_memory}")
+        except: pass
+
+    print("[RESET] Game has been restored to factory settings. You can now start fresh.")
 
 if __name__ == "__main__":
     reset_game_data()

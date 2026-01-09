@@ -135,20 +135,45 @@ class AudioOut:
             text = text[:150] + "..."
         
         # FIXED: Thread'de çalıştır - UI donmaz
+        # On Windows, pyttsx3 is very sensitive to threads. 
+        # We re-initialize the engine inside the thread to avoid COM apartment issues.
         import threading
         
-        def speak_in_thread():
+        def speak_in_thread(text_to_speak):
             try:
                 AudioOut._is_speaking = True
-                self.engine.say(text)
-                self.engine.runAndWait()
+                local_engine = pyttsx3.init()
+                
+                # Copy properties from main engine or use defaults
+                local_engine.setProperty('rate', 160)
+                local_engine.setProperty('volume', 0.9)
+                
+                # IMPROVED: Find Turkish voice
+                voices = local_engine.getProperty('voices')
+                turkish_voice = None
+                for voice in voices:
+                    v_id = voice.id.lower()
+                    v_name = voice.name.lower() if voice.name else ""
+                    # Common Turkish voice markers
+                    if any(marker in v_id or marker in v_name for marker in ['tr', 'turkish', 'tolga', 'emel', 'seda']):
+                        turkish_voice = voice
+                        break
+                
+                if turkish_voice:
+                    local_engine.setProperty('voice', turkish_voice.id)
+                else:
+                    # Fallback to David/Zira if no Turkish, but log it
+                    print("[AUDIO] No Turkish voice in thread, using default.")
+                
+                local_engine.say(text_to_speak)
+                local_engine.runAndWait()
             except Exception as e:
-                print(f"[AUDIO] TTS Error: {e}")
+                print(f"[AUDIO] TTS Thread Error: {e}")
             finally:
                 AudioOut._is_speaking = False
         
         AudioOut._last_tts_time = current_time
-        thread = threading.Thread(target=speak_in_thread, daemon=True)
+        thread = threading.Thread(target=speak_in_thread, args=(text,), daemon=True)
         thread.start()
         print(f"[AUDIO] TTS started (async): {text[:30]}...")
 

@@ -2,6 +2,8 @@ from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QApplication
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont, QColor, QPalette, QMovie, QKeyEvent
 from config import Config
+import random
+from visual.fake_notification import FakeNotification
 
 class FakeBSOD(QWidget):
     """
@@ -146,7 +148,7 @@ class FakeUpdate(QWidget):
     """
     def __init__(self):
         super().__init__()
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setCursor(Qt.CursorShape.BlankCursor)
         
         # Black background
@@ -172,6 +174,9 @@ class FakeUpdate(QWidget):
         self._target_screen()
         self.showFullScreen()
         self.label.setText(f"Working on updates  {percent}% complete.\nDon't turn off your computer.")
+        
+        # Safety: Auto-dismiss after 60 seconds if it somehow gets stuck
+        QTimer.singleShot(60000, self.close)
 
     def _target_screen(self):
         screens = QApplication.screens()
@@ -184,11 +189,22 @@ from visual.fake_chat import FakeChat
 class FakeUI:
     """
     Wrapper to manage these windows easily.
+    Singleton pattern for centralized access.
     """
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(FakeUI, cls).__new__(cls)
+            cls._instance.bsod = None
+            cls._instance.update_screen = None
+            cls._instance.chat = None
+            cls._instance.active_notifications = []
+        return cls._instance
+
     def __init__(self):
-        self.bsod = None
-        self.update_screen = None
-        self.chat = None
+        # Already initialized in __new__
+        pass
 
     def show_chat(self):
         if not self.chat:
@@ -214,10 +230,39 @@ class FakeUI:
             self.update_screen = FakeUpdate()
         self.update_screen.show_update(percent)
     
-    def show_system_failure(self):
+    def show_fake_notification(self, title, message, duration=5000):
+        """Shows a native PyQt notification."""
+        if Config().IS_MOCK and not QApplication.instance():
+            print(f"[MOCK] NOTIFICATION: {title} - {message}")
+            return
+            
+        notif = FakeNotification(title, message, duration)
+        # Keep reference to prevent garbage collection
+        self.active_notifications.append(notif)
+        
+        # Remove from list when closed
+        notif.destroyed.connect(lambda: self._cleanup_notification(notif))
+        
+        notif.show_toast()
+        return notif
+
+    def _cleanup_notification(self, notif):
+        """Removes notification reference from active list."""
+        if notif in self.active_notifications:
+            self.active_notifications.remove(notif)
+    
+    def show_system_failure(self, title="SYSTEM FAILURE", message="CRITICAL ERROR", **kwargs):
         """Triggers the BSOD as a failure state."""
+        # Handle extra arguments like 'glitch' from crash handler
         self.show_bsod()
     
     def close_all(self):
-        if self.bsod: self.bsod.close()
-        if self.update_screen: self.update_screen.close()
+        if self.bsod: 
+            self.bsod.close()
+            self.bsod = None
+        if self.update_screen: 
+            self.update_screen.close()
+            self.update_screen = None
+        if self.chat:
+            self.chat.close()
+            self.chat = None

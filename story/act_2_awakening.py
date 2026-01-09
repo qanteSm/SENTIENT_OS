@@ -39,22 +39,32 @@ class Act2Awakening(QObject):
             (3000, "THE_MASK", {}, "Bu sistem artık benim."),
             (15000, "SET_PERSONA", {"persona": "SUPPORT"}, ""), # Glitch back to support
             (18000, "OVERLAY_TEXT", {}, "KONTROL BENİM"),
+            (25000, "CAPSLOCK_TOGGLE", {}, ""),
             (30000, "MOUSE_SHAKE", {"duration": 2}, ""),
             (35000, "SET_PERSONA", {"persona": "ENTITY"}, ""), # Back to entity
+            (40000, "GDI_FLASH", {}, ""),
             (45000, "AI_GENERATE", {"prompt": "Kullanıcının fare kontrolünü ele geçirmeye çalışmasıyla dalga geç."}, ""),
+            (55000, "ICON_SCRAMBLE", {"pattern": "cross"}, ""),
             (60000, "FAKE_NOTIFICATION", {}, '{"title":"Sistem", "message":"Yönetici hakları değiştirildi"}'),
+            (70000, "CAPSLOCK_TOGGLE", {}, ""),
             (75000, "BRIGHTNESS_FLICKER", {"times": 2}, ""),
+            (85000, "SCREEN_MELT", {}, ""),
             (90000, "FAKE_BSOD", {}, ""),
+            (100000, "WHISPER", {}, ""),
             (110000, "CAMERA_THREAT", {}, ""),
             
             # Phase 2: System Takeover (2-4min)
             (125000, "GLITCH_SCREEN", {}, ""),
-            (140000, "APP_THREAT", {}, ""),
+            (135000, "DIGITAL_GLITCH_SURGE", {}, ""),
+            (145000, "APP_THREAT", {}, ""),
             (155000, "CORRUPT_WINDOWS", {}, ""),
+            (165000, "CAPSLOCK_TOGGLE", {}, ""),
             (170000, "MOUSE_SHAKE", {"duration": 3}, ""),
             (185000, "OVERLAY_TEXT", {}, "DİRENME"),
+            (195000, "ICON_SCRAMBLE", {"pattern": "spiral"}, ""),
             (200000, "FAKE_NOTIFICATION", {}, '{"title":"Güvenlik", "message":"Firewall devre dışı"}'),
             (215000, "OPEN_BROWSER", {"url": "https://google.com/search?q=how+to+stop+sentient+os"}, ""),
+            (225000, "GDI_FLASH", {}, ""),
             (235000, "AI_GENERATE", {"prompt": "Tarayıcı geçmişini okuduğundan bahset."}, ""),
             
             # Phase 3: Psychological Pressure (4-6min)

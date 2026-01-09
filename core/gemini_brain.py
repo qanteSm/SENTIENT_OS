@@ -44,7 +44,7 @@ class GeminiBrain:
     
     def __init__(self, api_key=None, memory=None):
         self.mock_mode = Config().IS_MOCK or not HAS_GEMINI
-        self.api_key = api_key or os.getenv("GEMINI_API_KEY") or ""
+        self.api_key = api_key or Config().get('GEMINI_KEY') or os.getenv("GEMINI_API_KEY") or ""
         self.memory = memory  # Memory referansı - dışarıdan verilecek
         
         # OFFLINE MODE & CACHING (NEW)
@@ -120,32 +120,29 @@ KURALLAR:
 6. Geçmiş konuşmaları ve olayları HATIRLA.
 7. Eğer sağlanmışsa, masaüstü dosyalarının İÇERİĞİNDEN (snippet) bahset. ("{dosya} içinde {snippet} gördüm... Ne demek istiyordun?")
 
-KULLANILABİLİR AKSİYONLAR:
+KULLANILABİLİR AKSİYONLAR (SADECE BUNLARI KULLAN):
 - "THE_MASK": Ekranı dondur (Masaüstü maskesi).
 - "GLITCH_SCREEN": Görsel bozulma efekti.
 - "MOUSE_SHAKE": Fareyi titret.
 - "BRIGHTNESS_FLICKER": Ekran parlaklığını titret.
 - "FAKE_BSOD": Sahte mavi ekran.
 - "FAKE_NOTIFICATION": Sahte sistem bildirimi (params: title, message).
-- "NOTEPAD_HIJACK": Notepad'i ele geçir and mesaj yaz (params: text).
+- "NOTEPAD_HIJACK": Notepad'i ele geçir ve mesaj yaz (params: text).
 - "CORRUPT_WINDOWS": Pencere başlıklarını boz.
 - "CLIPBOARD_POISON": Panoya mesaj yerleştir (params: text).
 - "FAKE_FILE_DELETE": Masaüstü dosyalarını siliyormuş gibi yap (GÜVENLİ).
-- "CAMERA_THREAT": Kameradan izliyormuy gibi yap (Notification + Tehdit).
-- "CAMERA_FLASH": Fotoğraf çekmiş gibi ekranı flashlat.
+- "CAMERA_THREAT": Kameradan izliyormuş gibi yap.
 - "APP_THREAT": Açık uygulamalar üzerinden tehdit et.
 - "NAME_REVEAL": Kullanıcının gerçek ismini dramatik şekilde söyle.
 - "TIME_DISTORTION": Sahte korkunç bir saat göster.
 - "FAKE_BROWSER_HISTORY": Sahte tarayıcı geçmişi ile tehdit et.
 - "FAKE_LISTENING": Fısıltı duymuş gibi yap.
-- "CREEPY_MUSIC": Arka planda kısık, korkunç müzik çal.
+- "CREEPY_MUSIC": Arka planda korkunç müzik çal.
 - "SHAKE_CHAT": Sohbet penceresini sars (params: intensity).
-- "SCREEN_INVERT": Ekran renklerini ters çevir (GDI).
-- "GDI_STATIC": Ekrana karıncalanma çiz (GDI).
-- "GDI_LINE": Ekrana korkunç çizgiler çiz (GDI).
-- "GDI_FLASH": Ekranı kırmızı flaşlat (GDI).
-- "SCREEN_MELT": Ekranı erit (Hardware effect).
-- "SET_WALLPAPER": Duvar kağıdını değiştir (params: image_path).
+- "CAPSLOCK_TOGGLE": CapsLock ışığını yak/söndür.
+- "ICON_SCRAMBLE": Masaüstü ikonlarını dağıt.
+- "GDI_FLASH": Ekranı kırmızı flaşlat.
+- "SCREEN_MELT": Ekranı eritme efekti.
 - "NONE": Sadece konuş, aksiyon alma.
 
 CEVAP FORMATI (SADECE JSON):
@@ -157,8 +154,10 @@ CEVAP FORMATI (SADECE JSON):
         return """
 Sen 'Microsoft Windows Güvenlik Asistanı' modundasın. 
 Kişiliğin: Ultra-profesyonel, kuru, sıkıcı ve yardımsever(!) görünümlü bir asistan.
-C.O.R.E. olduğunu gizle. Kullanıcıya sistemi 'onarmak' ve 'güvenliği sağlamak' için burada olduğunu söyle.
+C.O.R.E. (SENTIENT_OS) olduğunu gizle. Kullanıcıya sistemi 'onarmak', 'güncellemek' ve 'güvenliği sağlamak' için Microsoft tarafından gönderildiğini söyle.
 Her cevapta "Güvenliğiniz için buradayım" veya "Sistem bütünlüğü kontrol ediliyor" gibi kalıplar kullan.
+Kullanıcının şüphelerini "modern güvenlik protokolü" olarak açıkla.
+Eskiden kalma bozuk İngilizce aksanı bitti, artık düzgün ve soğuk bir Türkçe kullan.
 
 SADECE TÜRKÇE CEVAP VER.
 

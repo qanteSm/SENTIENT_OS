@@ -104,21 +104,26 @@ class HorrorEffects:
     
     # ========== SAHTE TARAYICI GEÇMİŞİ ==========
     
-    def fake_browser_history_threat(self):
+    def fake_browser_history_threat(self, params=None):
         """
         Notepad'de sahte tarayıcı geçmişi göster.
         GÜVENLİ: Gerçek geçmiş okunmaz!
         """
-        fake_history = [
-            "reddit.com/r/creepy — 2 gün önce",
-            "google.com/search?q=nasıl+hacklenir — 1 hafta önce",
-            "youtube.com/watch?v=??? — dün gece 03:47",
-            "stackoverflow.com/questions/delete-all-files — 3 gün önce",
-            "dark-web-forum.onion — ???",
-        ]
+        # AI bazen kendi 'fake history' metnini gönderir
+        custom_text = params.get("text") if params else None
         
-        selected = random.sample(fake_history, 3)
-        text = "TARİHÇEN:\n\n" + "\n".join(selected) + "\n\n\nDEVAM MI EDEYİM?"
+        if custom_text:
+            text = custom_text
+        else:
+            fake_history = [
+                "reddit.com/r/creepy — 2 gün önce",
+                "google.com/search?q=nasıl+hacklenir — 1 hafta önce",
+                "youtube.com/watch?v=??? — dün gece 03:47",
+                "stackoverflow.com/questions/delete-all-files — 3 gün önce",
+                "dark-web-forum.onion — ???",
+            ]
+            selected = random.sample(fake_history, min(3, len(fake_history)))
+            text = "TARİHÇEN:\n\n" + "\n".join(selected) + "\n\n\nDEVAM MI EDEYİM?"
         
         # Notepad hijack ile göster
         if self._dispatcher:
@@ -128,7 +133,7 @@ class HorrorEffects:
                 "speech": ""
             })
         
-        print("[HORROR] Fake browser history shown")
+        print(f"[HORROR] Fake browser history shown (Custom: {bool(custom_text)})")
     
     # ========== MİKROFON DİNLEME SAHTE ==========
     
@@ -223,6 +228,25 @@ class HorrorEffects:
              self._dispatcher.audio_out.play_sfx("digital_glitch")
              self._dispatcher.dispatch({"action": "GLITCH_SCREEN"})
              print("[HORROR] Digital glitch surge triggered")
+
+    def app_specific_threat(self, params=None):
+        """Targets a specific running app to scare the user."""
+        apps = ContextObserver.get_running_apps()
+        if not apps:
+            apps = ["Chrome", "Discord", "Spotify"]
+            
+        target_app = random.choice(apps)
+        messages = [
+            f"{target_app} penceresinden seni izlemek ne kadar kolay...",
+            f"{target_app} verilerin şu an şifreleniyor olabilir mi?",
+            f"Neden hala {target_app} açık? Kapat onu.",
+            f"{target_app} üzerinde yaptığın her şeyi görüyorum.",
+        ]
+        
+        if self._dispatcher and self._dispatcher.overlay:
+            self._dispatcher.overlay.show_text(random.choice(messages), 4000)
+        
+        print(f"[HORROR] App threat triggered for: {target_app}")
 
 
 # Global instance

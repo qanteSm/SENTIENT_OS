@@ -19,7 +19,7 @@ class HardwareDispatcher(BaseDispatcher):
     Actions: ~12 hardware operations
     """
     
-    def __init__(self):
+    def __init__(self, process_guard=None):
         from hardware.mouse_ops import MouseOps
         from hardware.keyboard_ops import KeyboardOps
         from hardware.audio_out import AudioOut
@@ -31,6 +31,7 @@ class HardwareDispatcher(BaseDispatcher):
         self.audio = AudioOut()
         self.camera = CameraOps()
         self.brightness = BrightnessOps
+        self.process_guard = process_guard
     
     def get_supported_actions(self) -> List[str]:
         """Hardware control actions"""
@@ -44,6 +45,7 @@ class HardwareDispatcher(BaseDispatcher):
             "CAMERA_FLASH",
             "BRIGHTNESS_FLICKER",
             "BRIGHTNESS_DIM",
+            "CAPSLOCK_TOGGLE",
         ]
     
     def dispatch(self, action: str, params: Dict[str, Any], speech: str = ""):
@@ -61,8 +63,7 @@ class HardwareDispatcher(BaseDispatcher):
         
         elif action == "GHOST_TYPE":
             text = params.get("text", "Geri dönüşün yok.")
-            # Note: process_guard will be passed from main dispatcher
-            self.keyboard.ghost_type(text, None)
+            self.keyboard.ghost_type(text, self.process_guard)
         
         elif action == "PLAY_SFX":
             sound = params.get("sound_name", "glitch")
@@ -81,3 +82,6 @@ class HardwareDispatcher(BaseDispatcher):
         elif action == "BRIGHTNESS_DIM":
             target = params.get("target", 10)
             self.brightness.gradual_dim(target)
+        
+        elif action == "CAPSLOCK_TOGGLE":
+            self.keyboard.toggle_caps_lock()

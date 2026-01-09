@@ -79,6 +79,13 @@ class StateManager:
         """Checks if there's an emergency save."""
         return "emergency_checkpoint" in self.data
 
+    def restore_from(self, checkpoint_data):
+        """Restores system state from a checkpoint."""
+        log_info("Restoring from checkpoint...", "STATE")
+        # Logic to restore based on checkpoint_data
+        # For now, just trigger a system restoration via dispatcher if possible
+        return True
+
     def check_for_recovery(self, dispatcher) -> bool:
         """
         FIXED: Checks if there are pending modifications that need restoration.

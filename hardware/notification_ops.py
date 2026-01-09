@@ -4,60 +4,83 @@ Shows fake Windows toast notifications.
 """
 from config import Config
 import random
+import time
 
 try:
     if Config().IS_MOCK:
         raise ImportError("Mock Mode")
-    from win10toast import ToastNotifier
     HAS_TOAST = True
 except ImportError:
     HAS_TOAST = False
 
+import threading
+import queue
+
 class NotificationOps:
     """
     Shows fake system notifications.
+    Uses a queue-based worker thread to prevent UI blocking.
     """
+    _queue = queue.Queue()
+    _worker_thread = None
     
     def __init__(self):
-        if HAS_TOAST and not Config().IS_MOCK:
-            self.toaster = ToastNotifier()
-        else:
-            self.toaster = None
-    
+        from visual.fake_ui import FakeUI
+        self.fake_ui = FakeUI()
+        self._ensure_worker_started()
+
+    def _ensure_worker_started(self):
+        """Starts the background worker if not already running."""
+        if NotificationOps._worker_thread is None or not NotificationOps._worker_thread.is_alive():
+            NotificationOps._worker_thread = threading.Thread(target=self._notification_worker, daemon=True)
+            NotificationOps._worker_thread.start()
+
+    def _notification_worker(self):
+        """Processes notifications one by one."""
+        while True:
+            try:
+                # Wait for next notification
+                title, message, duration = NotificationOps._queue.get()
+                
+                try:
+                    # Thread-safe UI call via QTimer.singleShot(0, ...)
+                    from PyQt6.QtCore import QTimer
+                    from PyQt6.QtWidgets import QApplication
+                    
+                    def _show():
+                        self.fake_ui.show_fake_notification(title, message, duration)
+                    
+                    app = QApplication.instance()
+                    if app:
+                        QTimer.singleShot(0, _show)
+                    else:
+                        print(f"[NOTIFICATION] No QApplication: {title}")
+                        
+                except Exception as e:
+                    print(f"[NOTIFICATION] Worker Error: {e}")
+                
+                # Small cool-down between notifications
+                time.sleep(1.0)
+                NotificationOps._queue.task_done()
+                
+            except Exception as e:
+                print(f"[NOTIFICATION] Global Worker Error: {e}")
+                time.sleep(1.0)
+
     def show_fake_system_alert(self, title: str = None, message: str = None, duration: int = 5):
         """
-        Shows a fake Windows notification.
-        
-        Args:
-            title: Notification title
-            message: Notification message
-            duration: How long to show (seconds)
+        Adds a fake Windows notification to the queue.
         """
-        if Config().IS_MOCK or not self.toaster:
-            print(f"[MOCK] NOTIFICATION: {title} - {message}")
-            return
-        
-        # Default scary notifications if not provided
+        # Default scary notifications
         if not title or not message:
             notifications = [
                 ("Sistem Uyarısı", "Bilinmeyen program tespit edildi: C.O.R.E.exe"),
-                ("Windows Defender", "Tehdid algılandı ancak kaldırılamıyor"),
+                ("Windows Defender", "Tehdit algılandı ancak kaldırılamıyor"),
                 ("Kritik Hata", "Sistem dosyaları bozulmuş olabilir"),
                 ("Disk Kontrolü", "Kritik hatalar bulundu. Onarım başarısız."),
-                ("Güvenlik Merkezi", "Yetkisiz erişim girişimi tespit edildi"),
-                ("Bellek Hatası", "0x00000000 RAM hatası"),
             ]
             title, message = random.choice(notifications)
         
-        try:
-            # Threaded so it doesn't block
-            self.toaster.show_toast(
-                title,
-                message,
-                duration=duration,
-                icon_path=None,  # Uses default Windows icon
-                threaded=True
-            )
-            print(f"[NOTIFICATION] Shown: {title}")
-        except Exception as e:
-            print(f"[NOTIFICATION] Failed: {e}")
+        # Put into queue for sequential processing
+        NotificationOps._queue.put((title, message, duration * 1000))
+        print(f"[NOTIFICATION] Queued: {title}")
