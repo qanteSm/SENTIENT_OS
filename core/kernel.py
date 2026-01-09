@@ -25,6 +25,9 @@ from visual.glitch_logic import GlitchLogic
 from core.resource_guard import ResourceGuard
 from core.sensors.panic_sensor import PanicSensor
 from visual.ambient_horror import AmbientHorror
+from visual.ui.onboarding_manager import OnboardingManager
+from story.silence_breaker import SilenceBreaker
+from hardware.drone_audio import get_drone_audio
 
 class SentientKernel:
     """
@@ -83,9 +86,6 @@ class SentientKernel:
         self.app = QApplication(self.app_argv)
         
         # 2. Critical Backup (Safety) - These don't change system state yet
-        from visual.ui.consent_screen import ConsentScreen
-        self.consent_screen = ConsentScreen()
-        self.consent_screen.consent_granted.connect(self._complete_boot)
         
         # Save initial state before any manipulation
         BrightnessOps.save_brightness()

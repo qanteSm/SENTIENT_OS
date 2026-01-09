@@ -1,3 +1,4 @@
+from PyQt6.QtCore import QObject, QTimer, pyqtSignal
 from core.localization_manager import tr
 
 class Act1Infection(QObject):
@@ -85,6 +86,8 @@ class Act1Infection(QObject):
         Gelişmiş event tetikleyici.
         'data' parametresi düz string (TTS/Prompt) veya JSON string (Karmaşık objeler) alabilir.
         """
+        from PyQt6.QtCore import QObject, QTimer, pyqtSignal
+        import randomn
         import json
         
         # Action specific preprocessing
