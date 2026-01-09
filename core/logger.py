@@ -62,7 +62,7 @@ class SentientLogger:
         self.logger.addHandler(file_handler)
         self.logger.addHandler(console_handler)
         
-        self.logger.info(f"SENTIENT_OS v{Config.VERSION} - Logging initialized")
+        self.logger.info(f"SENTIENT_OS v{Config().get('VERSION', '0.8.0')} - Logging initialized")
     
     def debug(self, message: str, module: str = "CORE"):
         self.logger.debug(f"[{module}] {message}")

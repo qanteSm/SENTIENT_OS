@@ -80,7 +80,7 @@ class SentientKernel:
 
     def boot(self):
         """Initializes the application and shows the mandatory consent screen."""
-        print(f"\n[KERNEL] Booting {Config.APP_NAME} v{Config.VERSION}...")
+        print(f"\n[KERNEL] Booting {Config().get('APP_NAME', 'SENTIENT_OS')} v{Config().get('VERSION', '0.8.0')}...")
         
         # 1. Initialize Qt Application
         self.app = QApplication(self.app_argv)
@@ -93,10 +93,17 @@ class SentientKernel:
         IconOps.save_icon_positions()
         
         # 3. Show Onboarding Flow (Welcome -> Calibration -> Consent)
-        # No horror effects or sensors start before this is accepted
-        self.onboarding_manager = OnboardingManager()
-        self.onboarding_manager.onboarding_complete.connect(self._complete_boot)
-        self.onboarding_manager.start_onboarding()
+        # No horror effects or        # Check if DEV_MODE - skip onboarding for faster testing
+        dev_mode_file = os.path.join(os.path.dirname(__file__), "..", "DEV_MODE.txt")
+        if os.path.exists(dev_mode_file):
+            print("[DEV] Skipping onboarding - starting game directly...")
+            self.init_core_systems()
+        else:
+            # Onboarding (replaces simple consent)
+            from visual.ui.onboarding_manager import OnboardingManager
+            self.onboarding = OnboardingManager()
+            self.onboarding.onboarding_complete.connect(self.init_core_systems)
+            self.onboarding.start_onboarding()
         
         try:
             sys.exit(self.app.exec())

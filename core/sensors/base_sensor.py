@@ -17,8 +17,12 @@ from typing import Dict, Any
 import threading
 import time
 
+# Combined metaclass to resolve QObject + ABC conflict
+class QABCMeta(type(QObject), type(ABC)):
+    """Combined metaclass for QObject and ABC"""
+    pass
 
-class BaseSensor(QObject, ABC):
+class BaseSensor(QObject, ABC, metaclass=QABCMeta):
     """
     Thread-safe base class for all sensors.
     

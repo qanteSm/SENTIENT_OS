@@ -1,5 +1,7 @@
 from PyQt6.QtCore import QObject, QTimer, pyqtSignal
 from core.localization_manager import tr
+from core.function_dispatcher import FunctionDispatcher
+from core.gemini_brain import GeminiBrain
 
 class Act1Infection(QObject):
     # ... (class docstring kept as is) ...
@@ -87,7 +89,7 @@ class Act1Infection(QObject):
         'data' parametresi düz string (TTS/Prompt) veya JSON string (Karmaşık objeler) alabilir.
         """
         from PyQt6.QtCore import QObject, QTimer, pyqtSignal
-        import randomn
+        import random
         import json
         
         # Action specific preprocessing

@@ -3,6 +3,7 @@ import os
 import subprocess
 import ctypes
 import time
+import random   
 from config import Config
 
 def is_admin():
@@ -84,7 +85,20 @@ def hacker_terminal_splash():
         time.sleep(0.4)
 
 def launch_game():
-    if not is_admin() and not Config().IS_MOCK:
+    # Check for DEV_MODE.txt file (simple and reliable)
+    dev_mode_file = os.path.join(os.path.dirname(__file__), "DEV_MODE.txt")
+    dev_mode = os.path.exists(dev_mode_file)
+    
+    if dev_mode:
+        print("\n" + "=" * 60)
+        print(" ⚡ DEVELOPER MODE ACTIVE - Skipping admin/intro checks")
+        print(" Delete DEV_MODE.txt to disable")
+        print("=" * 60 + "\n")
+    
+    config = Config()
+    
+    # Skip admin check in dev mode
+    if not dev_mode and not is_admin() and not config.IS_MOCK:
         print("!" * 60)
         print("ERROR: Administrative privileges required.")
         print("Attempting to escalate...")
@@ -92,14 +106,22 @@ def launch_game():
         run_as_admin()
         sys.exit()
 
-    import random # Needed for splash
-    hacker_terminal_splash()
+    # Skip intro in dev mode
+    if not dev_mode:
+        hacker_terminal_splash()
+    else:
+        print("[DEV] Skipping intro animation...")
     
-    check_and_install_deps()
-    setup_defender_exclusion()
+    # Skip dependency/defender checks in dev mode
+    if not dev_mode:
+        check_and_install_deps()
+        setup_defender_exclusion()
+    else:
+        print("[DEV] Skipping dependency checks...")
     
     print("\n[READY] System initialized. Entering C.O.R.E. state...")
-    time.sleep(1)
+    if not dev_mode:
+        time.sleep(1)
 
     # Check for reset flag
     if "--reset" in sys.argv:
@@ -108,11 +130,10 @@ def launch_game():
             from tools.reset_memory import reset_game_data
             reset_game_data()
         except ImportError:
-            # Maybe path is different
             print("[ERROR] Reset tool not found.")
 
     # Call main.py
-    subprocess.call([sys.executable, os.path.join(Config().BASE_DIR, "main.py")])
+    subprocess.call([sys.executable, os.path.join(config.BASE_DIR, "main.py")])
 
 if __name__ == "__main__":
     launch_game()

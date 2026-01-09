@@ -117,20 +117,30 @@ class ConsentScreen(QWidget):
         self.setLayout(layout)
 
     def show_consent(self):
-        screen_geo = QApplication.primaryScreen().geometry()
-        self.setGeometry(screen_geo)
-        
-        # Fade in animation
-        self.setWindowOpacity(0)
-        self.showFullScreen()
-        self.raise_()
-        
-        self.anim = QPropertyAnimation(self, b"windowOpacity")
-        self.anim.setDuration(1500)
-        self.anim.setStartValue(0)
-        self.anim.setEndValue(1)
-        self.anim.setEasingCurve(QEasingCurve.Type.InOutQuad)
-        self.anim.start()
+        """Show consent screen with proper error handling"""
+        try:
+            screen_geo = QApplication.primaryScreen().geometry()
+            self.setGeometry(screen_geo)
+            
+            # Fade in animation
+            self.setWindowOpacity(0)
+            self.showFullScreen()
+            self.raise_()
+            self.activateWindow()  # Ensure window is active
+            
+            self.anim = QPropertyAnimation(self, b"windowOpacity")
+            self.anim.setDuration(1500)
+            self.anim.setStartValue(0)
+            self.anim.setEndValue(1)
+            self.anim.setEasingCurve(QEasingCurve.Type.InOutQuad)
+            self.anim.start()
+            
+            print("[CONSENT] Screen shown successfully")
+        except Exception as e:
+            print(f"[CONSENT] Error showing screen: {e}")
+            # Even if animation fails, show the window
+            self.showFullScreen()
+            self.raise_()
 
     def _grant_consent(self):
         print("[CONSENT] User accepted the terms.")

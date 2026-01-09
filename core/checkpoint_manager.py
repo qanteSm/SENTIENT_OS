@@ -42,7 +42,7 @@ class CheckpointManager:
             "_checkpoint_meta": {
                 "name": name,
                 "timestamp": timestamp,
-                "version": Config.VERSION,
+                "version": Config().get("VERSION", "0.8.0"),
                 "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
             },
             "data": self.memory.data.copy()
