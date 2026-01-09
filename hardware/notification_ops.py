@@ -6,7 +6,7 @@ from config import Config
 import random
 
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     from win10toast import ToastNotifier
     HAS_TOAST = True
@@ -19,7 +19,7 @@ class NotificationOps:
     """
     
     def __init__(self):
-        if HAS_TOAST and not Config.IS_MOCK:
+        if HAS_TOAST and not Config().IS_MOCK:
             self.toaster = ToastNotifier()
         else:
             self.toaster = None
@@ -33,7 +33,7 @@ class NotificationOps:
             message: Notification message
             duration: How long to show (seconds)
         """
-        if Config.IS_MOCK or not self.toaster:
+        if Config().IS_MOCK or not self.toaster:
             print(f"[MOCK] NOTIFICATION: {title} - {message}")
             return
         

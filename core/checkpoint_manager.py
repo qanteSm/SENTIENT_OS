@@ -17,11 +17,11 @@ class CheckpointManager:
         self.memory = memory
         
         # Checkpoint directory
-        if Config.IS_WINDOWS:
+        if Config().IS_WINDOWS:
             app_data = os.getenv('APPDATA')
             self.checkpoint_dir = os.path.join(app_data, "SentientOS", "checkpoints")
         else:
-            self.checkpoint_dir = os.path.join(Config.BASE_DIR, "checkpoints")
+            self.checkpoint_dir = os.path.join(Config().BASE_DIR, "checkpoints")
         
         os.makedirs(self.checkpoint_dir, exist_ok=True)
         self.max_checkpoints = 5  # Keep last 5 checkpoints

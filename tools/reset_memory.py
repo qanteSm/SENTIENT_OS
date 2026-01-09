@@ -7,15 +7,15 @@ def reset_game_data():
     """
     Deletes the 'SentientOS' directory in AppData (or local config dir).
     """
-    if Config.IS_WINDOWS:
+    if Config().IS_WINDOWS:
         app_data = os.getenv('APPDATA')
         target_dir = os.path.join(app_data, "SentientOS")
     else:
         # For Linux/Mac/Dev, we used the base dir or local
-        target_dir = os.path.join(Config.BASE_DIR, "brain_dump.json")
+        target_dir = os.path.join(Config().BASE_DIR, "brain_dump.json")
         # Actually memory.py uses BASE_DIR/brain_dump.json in dev mode, 
         # but let's be safe and check if it created a folder or just file.
-        # In memory.py: self.filepath = os.path.join(Config.BASE_DIR, "brain_dump.json")
+        # In memory.py: self.filepath = os.path.join(Config().BASE_DIR, "brain_dump.json")
         if os.path.exists(target_dir):
             try:
                 os.remove(target_dir)

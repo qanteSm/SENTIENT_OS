@@ -3,12 +3,16 @@ import atexit
 import signal
 from core.kernel import SentientKernel
 from core.logger import log_info, log_error
+from core.crash_handler import install_crash_handler
 
 def main():
     """
     SENTIENT_OS Bootloader.
     The actual logic is managed by the SentientKernel.
     """
+    # CRITICAL: Install crash handler FIRST
+    install_crash_handler()
+    
     kernel = SentientKernel()
     
     # Register global exit handlers

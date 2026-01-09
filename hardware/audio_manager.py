@@ -3,7 +3,7 @@ import random
 from config import Config
 
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     import pygame
     HAS_PYGAME = True
@@ -16,7 +16,7 @@ class AudioManager:
     Handles background ambience, UI sound effects, and glitches.
     """
     def __init__(self):
-        self.mock_mode = Config.IS_MOCK or not HAS_PYGAME
+        self.mock_mode = Config().IS_MOCK or not HAS_PYGAME
         
         if not self.mock_mode:
             try:

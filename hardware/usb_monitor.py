@@ -4,7 +4,7 @@ import sys
 
 # Windows imports
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     import win32gui
     import win32con
@@ -27,7 +27,7 @@ class USBMonitor(QObject):
         self.listening = False
 
     def start_monitoring(self):
-        if Config.IS_MOCK or not win32gui:
+        if Config().IS_MOCK or not win32gui:
             print("[USB] Monitoring Started (Mock Mode).")
             self.listening = True
             

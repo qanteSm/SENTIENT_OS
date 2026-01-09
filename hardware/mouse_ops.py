@@ -4,7 +4,7 @@ import random
 import threading
 
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     import mouse
 except ImportError:
@@ -20,7 +20,7 @@ class MouseOps:
     @staticmethod
     def freeze_cursor():
         """Locks mouse to center of screen."""
-        if Config.IS_MOCK or not mouse:
+        if Config().IS_MOCK or not mouse:
             print("[MOCK] CURSOR FROZEN")
             return
 
@@ -72,7 +72,7 @@ class MouseOps:
     @staticmethod
     def shake_cursor(duration=1.0):
         """Jitters the mouse for a duration. SUPPRESSED on system windows."""
-        if Config.IS_MOCK or not mouse:
+        if Config().IS_MOCK or not mouse:
             print(f"[MOCK] CURSOR SHAKE ({duration}s)")
             return
 
@@ -103,7 +103,7 @@ class MouseOps:
     @staticmethod
     def click_randomly():
         """Performs a random click, ONLY if it's safe."""
-        if Config.IS_MOCK or not mouse:
+        if Config().IS_MOCK or not mouse:
             return
             
         if MouseOps._is_safe_to_interact():

@@ -6,7 +6,7 @@ class BrowserOps:
     Opens browsers to specific URLs safely (or scary ones).
     """
     def open_url(self, url: str):
-        if Config.IS_MOCK:
+        if Config().IS_MOCK:
             print(f"[MOCK] BROWSER OPENED: {url}")
             return
         

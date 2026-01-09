@@ -21,10 +21,10 @@ def run_as_admin():
 
 def setup_defender_exclusion():
     """Automatically add the current folder to Windows Defender exclusions."""
-    if Config.IS_MOCK: return
+    if Config().IS_MOCK: return
     
     print("[SYSTEM] Attempting Windows Defender exclusion...")
-    game_path = Config.BASE_DIR
+    game_path = Config().BASE_DIR
     cmd = f"Add-MpPreference -ExclusionPath '{game_path}'"
     
     try:
@@ -49,7 +49,7 @@ def setup_defender_exclusion():
 def check_and_install_deps():
     """Check requirements.txt and install missing dependencies."""
     print("[SYSTEM] Verifying dependencies...")
-    req_file = os.path.join(Config.BASE_DIR, "requirements.txt")
+    req_file = os.path.join(Config().BASE_DIR, "requirements.txt")
     if os.path.exists(req_file):
         try:
             subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", req_file, "--quiet"])
@@ -84,7 +84,7 @@ def hacker_terminal_splash():
         time.sleep(0.4)
 
 def launch_game():
-    if not is_admin() and not Config.IS_MOCK:
+    if not is_admin() and not Config().IS_MOCK:
         print("!" * 60)
         print("ERROR: Administrative privileges required.")
         print("Attempting to escalate...")
@@ -112,7 +112,7 @@ def launch_game():
             print("[ERROR] Reset tool not found.")
 
     # Call main.py
-    subprocess.call([sys.executable, os.path.join(Config.BASE_DIR, "main.py")])
+    subprocess.call([sys.executable, os.path.join(Config().BASE_DIR, "main.py")])
 
 if __name__ == "__main__":
     launch_game()

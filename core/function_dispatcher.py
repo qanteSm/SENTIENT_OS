@@ -22,6 +22,10 @@ from visual.gdi_engine import GDIEngine
 from visual.effects.screen_melter import trigger_melt
 from hardware.wallpaper_ops import WallpaperOps
 
+# NEW: Sprint 3 imports
+from visual.effects.screen_tear import ScreenTear
+from visual.effects.pixel_melt import PixelMelt
+
 class FunctionDispatcher(QObject):
     """
     Translates JSON commands from the Brain (or Heartbeat) into actual Python function calls.
@@ -335,6 +339,16 @@ class FunctionDispatcher(QObject):
         elif action == "DIGITAL_GLITCH_SURGE":
             horror = get_horror_effects(self)
             horror.digital_glitch_surge()
+        
+        # === SPRINT 3: ADVANCED GDI EFFECTS ===
+        
+        elif action == "SCREEN_TEAR":
+            intensity = params.get("intensity", 15)
+            duration = params.get("duration", 500)
+            ScreenTear.tear_screen(intensity, duration)
+        
+        elif action == "PIXEL_MELT":
+            PixelMelt.trigger_random()
             
         else:
             print(f"[DISPATCH] Unknown Action: {action}")

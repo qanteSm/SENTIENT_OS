@@ -84,7 +84,7 @@ def trigger_melt():
         print("[SCREEN_MELTER] Already active, skipping duplicate trigger.")
         return
         
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         print("[MOCK] Screen Melting triggered.")
         return
         

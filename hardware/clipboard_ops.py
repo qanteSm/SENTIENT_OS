@@ -5,7 +5,7 @@ Injects messages into the user's clipboard.
 from config import Config
 
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     import pyperclip
     HAS_CLIPBOARD = True
@@ -24,7 +24,7 @@ class ClipboardOps:
         
         When user pastes, they get our message instead.
         """
-        if Config.IS_MOCK or not HAS_CLIPBOARD:
+        if Config().IS_MOCK or not HAS_CLIPBOARD:
             print(f"[MOCK] CLIPBOARD POISONED: {message}")
             return
         
@@ -39,7 +39,7 @@ class ClipboardOps:
         """
         Reads current clipboard content (for context awareness).
         """
-        if Config.IS_MOCK or not HAS_CLIPBOARD:
+        if Config().IS_MOCK or not HAS_CLIPBOARD:
             return ""
         
         try:

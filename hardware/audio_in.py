@@ -1,6 +1,6 @@
 from config import Config
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     import sounddevice as sd
     import numpy as np
@@ -18,7 +18,7 @@ class AudioIn:
 
     def calibrate_noise_floor(self, duration=3):
         """Measures ambient noise for `duration` seconds."""
-        if Config.IS_MOCK or not sd:
+        if Config().IS_MOCK or not sd:
             print("[MOCK] CALIBRATING AUDIO NOISE FLOOR...")
             self.threshold = 50
             self.calibrated = True
@@ -42,7 +42,7 @@ class AudioIn:
 
     def listen_for_scream(self, duration=1):
         """Returns True if input volume exceeds threshold significantly."""
-        if Config.IS_MOCK or not sd:
+        if Config().IS_MOCK or not sd:
             return False
         
         try:

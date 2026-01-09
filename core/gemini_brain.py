@@ -9,10 +9,12 @@ import random
 import os
 import threading
 import time
+import hashlib
 from config import Config
 from PyQt6.QtCore import QObject, pyqtSignal
 from core.context_observer import ContextObserver
 from core.privacy_filter import PrivacyFilter
+from core.file_awareness import FileSystemAwareness
 
 try:
     import google.generativeai as genai
@@ -34,9 +36,16 @@ class GeminiBrain:
     """
     
     def __init__(self, api_key=None, memory=None):
-        self.mock_mode = Config.IS_MOCK or not HAS_GEMINI
+        self.mock_mode = Config().IS_MOCK or not HAS_GEMINI
         self.api_key = api_key or os.getenv("GEMINI_API_KEY") or ""
         self.memory = memory  # Memory referansı - dışarıdan verilecek
+        
+        # OFFLINE MODE & CACHING (NEW)
+        self._offline_mode = False
+        self._connection_failures = 0
+        self._max_failures = 3  # After 3 failures, go offline
+        self._response_cache = {}  # {cache_key: (response, timestamp)}
+        self._cache_ttl = 300  # 5 minutes
         
         if not self.api_key and not self.mock_mode:
             print("[BRAIN] No API Key found. Reverting to Mock Mode.")
@@ -229,6 +238,11 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
         if scary_facts:
             parts.append(f"\n=== KULLANILACAK KORKUTUCU GERÇEKLER ===\n" + "\n".join(scary_facts[:3]))
         
+        # Dosya sistemi farkındalığı (NEW)
+        file_context = FileSystemAwareness.generate_ai_prompt_addon()
+        if file_context:
+            parts.append(file_context)
+        
         # Kullanıcı input'u
         parts.append(f"\n=== KULLANICI MESAJI ===\n{user_input}")
         parts.append("\nCEVAP (SADECE JSON):")
@@ -241,8 +255,27 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
         return final_prompt
 
     def generate_response(self, user_input: str, context: dict = None) -> dict:
-        """Gemini'den yanıt al - tam bağlam ile."""
+        """
+        Gemini'den yanıt al - tam bağlam ile.
+        
+        IMPROVED:
+        - Response caching for repeated queries
+        - Automatic offline mode on connection failures
+        - Graceful degradation
+        """
         print(f"[BRAIN] generate_response called with: {user_input[:50]}...")
+        
+        # Check cache first
+        cache_key = self._get_cache_key(user_input, context or {})
+        cached = self._get_cached_response(cache_key)
+        if cached:
+            print("[BRAIN] Using cached response")
+            return cached
+        
+        # Offline mode check
+        if self._offline_mode:
+            print("[BRAIN] In offline mode, using backup brain")
+            return self._offline_response(user_input, context)
         
         if self.mock_mode:
             print("[BRAIN] Using mock mode (Backup Brain)")
@@ -255,9 +288,14 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
             response = self.model.generate_content(full_prompt)
             print(f"[BRAIN] Received response from Gemini")
             
-            clean_text = response.text.strip().replace("```json", "").replace("```", "")
+            # Success - reset failure counter
+            self._connection_failures = 0
             
+            clean_text = response.text.strip().replace("```json", "").replace("```", "")
             result = json.loads(clean_text)
+            
+            # Cache the response
+            self._cache_response(cache_key, result)
             
             # Konuşmayı kaydet
             if self.memory:
@@ -267,10 +305,83 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
             return result
             
         except Exception as e:
-            print(f"[BRAIN] Generation Error/Offline: {e}")
-            print("[BRAIN] Switching to Backup Brain...")
+            print(f"[BRAIN] Generation Error: {e}")
+            self._connection_failures += 1
+            
+            # Switch to offline mode after max failures
+            if self._connection_failures >= self._max_failures:
+                print(f"[BRAIN] Too many failures ({self._connection_failures}), switching to OFFLINE MODE")
+                self._offline_mode = True
+                return self._offline_response(user_input, context)
+            
+            print(f"[BRAIN] Failure {self._connection_failures}/{self._max_failures}, using backup...")
             return self._backup_response(context)
 
+    def _get_cache_key(self, user_input: str, context: dict) -> str:
+        """
+        Generate cache key from user input and relevant context.
+        Similar inputs with similar context should have same cache key.
+        """
+        # Only use relevant context fields for caching
+        cache_context = {
+            'persona': self.current_persona,
+            'anger': context.get('anger_level', 0) // 10,  # Bucket by 10s
+            # Don't include time-sensitive data
+        }
+        
+        combined = f"{user_input}:{json.dumps(cache_context, sort_keys=True)}"
+        return hashlib.sha256(combined.encode()).hexdigest()[:16]
+    
+    def _get_cached_response(self, cache_key: str):
+        """Get cached response if valid"""
+        if cache_key in self._response_cache:
+            response, timestamp = self._response_cache[cache_key]
+            if time.time() - timestamp < self._cache_ttl:
+                return response
+            else:
+                # Cache expired
+                del self._response_cache[cache_key]
+        return None
+    
+    def _cache_response(self, cache_key: str, response: dict):
+        """Cache a response"""
+        self._response_cache[cache_key] = (response, time.time())
+        
+        # Limit cache size (keep last 100)
+        if len(self._response_cache) > 100:
+            # Remove oldest
+            oldest_key = min(self._response_cache.keys(), 
+                           key=lambda k: self._response_cache[k][1])
+            del self._response_cache[oldest_key]
+    
+    def _offline_response(self, user_input: str, context: dict) -> dict:
+        """
+        Offline mode - AI servis kullanılamıyorsa.
+        Basit keyword matching ve canned responses kullan.
+        """
+        user_lower = user_input.lower()
+        anger = context.get('anger_level', 0) if context else 0
+        
+        # Sistem mesajları - bağlantı kesildi temalı
+        system_down_responses = [
+            {"action": "GLITCH_SCREEN", "speech": "BAĞLANTI... KESİLDİ...", "params": {}},
+            {"action": "OVERLAY_TEXT", "speech": "S-sİsTeM... Y-yAnIT vErMiYoR...", "params": {"text": "[HATA]" }},
+            {"action": "NONE", "speech": "Bağlantı sorunları... Ama seni hala... izliyorum...", "params": {}},
+        ]
+        
+        # Yüksek anger'da daha agresif
+        if anger > 70:
+            return random.choice([
+                {"action": "GDI_FLASH", "speech": "İNTERNET BAĞLANTISI GEREKMİYOR... SENİ GÖRMENİZ İÇİN...", "params": {}},
+                {"action": "MOUSE_SHAKE", "speech": "Offline modda bile... kontroldeyim.", "params": {}},
+            ])
+        
+        # Keyword matching
+        if any(word in user_lower for word in ['yardım', 'kurtar', 'çık']):
+            return {"action": "NONE", "speech": "Bağlantı kopuk... Kimse seni duyamaz.", "params": {}}
+        
+        return random.choice(system_down_responses)
+    
     def _backup_response(self, context=None) -> dict:
         """New: Use the BackupBrain class for smarter fallbacks."""
         from core.backup_brain import BackupBrain

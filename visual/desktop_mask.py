@@ -14,7 +14,7 @@ from config import Config
 import sys
 
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     import keyboard
     HAS_KEYBOARD = True
@@ -49,7 +49,7 @@ class DesktopMask(QWidget):
         Args:
             duration_ms: Maskenin ne kadar kalacağı (default 15 saniye)
         """
-        if Config.IS_MOCK and (sys.platform == 'linux' or not QApplication.instance()):
+        if Config().IS_MOCK and (sys.platform == 'linux' or not QApplication.instance()):
             print(f"[MOCK] DESKTOP CAPTURED AND MASKED (Linux Mock) - {duration_ms}ms")
             return
 
@@ -137,7 +137,7 @@ class DesktopMask(QWidget):
 
     def remove_mask(self):
         """Removes the mask overlay."""
-        if Config.IS_MOCK and (sys.platform == 'linux' or not QApplication.instance()):
+        if Config().IS_MOCK and (sys.platform == 'linux' or not QApplication.instance()):
             print("[MOCK] MASK REMOVED")
             return
         

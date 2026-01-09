@@ -5,7 +5,7 @@ import time
 
 # Windows Imports
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     import pyttsx3
     HAS_PYTTSX3 = True
@@ -14,7 +14,7 @@ except ImportError:
     pyttsx3 = None
 
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     from ctypes import cast, POINTER
     from comtypes import CLSCTX_ALL
@@ -113,7 +113,7 @@ class AudioOut:
         if not text or text.strip() == "":
             return
             
-        if Config.IS_MOCK or not self.engine:
+        if Config().IS_MOCK or not self.engine:
             print(f"[MOCK] TTS: {text}")
             return
         
@@ -160,7 +160,7 @@ class AudioOut:
         """
         Sets system master volume (0.0 to 1.0).
         """
-        if Config.IS_MOCK or not HAS_PYCAW:
+        if Config().IS_MOCK or not HAS_PYCAW:
             print(f"[MOCK] SYSTEM VOLUME SET: {level * 100}%")
             return
 
@@ -182,7 +182,7 @@ class AudioOut:
         """
         Placeholder for 3D sound logic.
         """
-        if Config.IS_MOCK:
+        if Config().IS_MOCK:
             print(f"[MOCK] PLAY 3D SOUND: {sound_file} from {direction}")
             return
         pass

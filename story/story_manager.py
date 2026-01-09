@@ -34,6 +34,8 @@ class StoryManager(QObject):
         self.brain = brain
         self.current_act_instance = None
         self.checkpoint_manager = CheckpointManager(memory)  # NEW: Checkpoint integration
+        self.ambient_horror = None  # NEW: Ambient horror system
+        self.drone_audio = None  # NEW: Drone audio system
         
         # Load saved act or start from 1
         self.current_act_num = self.memory.get_act()
@@ -52,6 +54,16 @@ class StoryManager(QObject):
 
         print(f"[STORY] Starting Story at Act {self.current_act_num}")
         self._load_act(self.current_act_num)
+    
+    def set_ambient_horror(self, ambient_horror):
+        """Set ambient horror system and start it"""
+        self.ambient_horror = ambient_horror
+        print("[STORY] Ambient horror system connected")
+    
+    def set_drone_audio(self, drone_audio):
+        """Set drone audio system"""
+        self.drone_audio = drone_audio
+        print("[STORY] Drone audio system connected")
 
     def _load_act(self, act_num: int):
         """Initializes and starts the specific Act class."""
@@ -80,6 +92,16 @@ class StoryManager(QObject):
         
         # NEW: Create checkpoint at act start
         self.checkpoint_manager.create(f"act_{act_num}_start")
+        
+        # NEW: Set ambient horror intensity based on act
+        if self.ambient_horror:
+            intensity_map = {1: 2, 2: 4, 3: 7, 4: 9}
+            self.ambient_horror.set_intensity(intensity_map.get(act_num, 5))
+            self.ambient_horror.start()
+        
+        # NEW: Set drone audio for act
+        if self.drone_audio:
+            self.drone_audio.set_act_drone(act_num)
         
         # Start the act
         self.current_act_instance.start()

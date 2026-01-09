@@ -70,7 +70,7 @@ class OverlayManager(QWidget):
 
     def show_text(self, text: str, duration=3000):
         """Displays text that fades in and out."""
-        if Config.IS_MOCK and not QApplication.instance():
+        if Config().IS_MOCK and not QApplication.instance():
             print(f"[MOCK] OVERLAY TEXT: {text}")
             return
 

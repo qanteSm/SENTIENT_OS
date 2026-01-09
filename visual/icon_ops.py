@@ -9,7 +9,7 @@ import random
 import math
 
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     import win32com.client
     HAS_COM = True
@@ -30,7 +30,7 @@ class IconOps:
         Saves current desktop icon positions to a backup file.
         CRITICAL: This must succeed before any scrambling.
         """
-        if Config.IS_MOCK or not HAS_COM:
+        if Config().IS_MOCK or not HAS_COM:
             print("[MOCK] ICON POSITIONS SAVED")
             # Create mock backup
             with open(IconOps._backup_file, 'w') as f:
@@ -82,7 +82,7 @@ class IconOps:
             print("[ICONS] No backup file found")
             return
         
-        if Config.IS_MOCK or not HAS_COM:
+        if Config().IS_MOCK or not HAS_COM:
             print("[MOCK] ICON POSITIONS RESTORED")
             try:
                 os.remove(IconOps._backup_file)

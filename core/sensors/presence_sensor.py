@@ -1,36 +1,47 @@
-import time
-from PyQt6.QtCore import QThread, pyqtSignal
+from typing import Dict, Any
+from core.sensors.base_sensor import BaseSensor
 from core.event_bus import bus
 
-class PresenceSensor(QThread):
+class PresenceSensor(BaseSensor):
     """
     Monitors user input activity to detect engagement levels.
+    
+    IMPROVED:
+    - Inherits from BaseSensor for thread safety
+    - Uses QMutex for safe event publishing
+    - Automatic error handling
     """
     def __init__(self):
-        super().__init__()
-        self.is_running = True
+        super().__init__(poll_interval=1.0)  # Check every second
         self.last_mouse_pos = None
-
-    def run(self):
-        print("[SENSOR] Presence Sensor Active.")
-        try:
-            import pyautogui
-        except ImportError:
-            print("[SENSOR] pyautogui not found, PresenceSensor will be limited.")
-            return
-
-        while self.is_running:
+        self._pyautogui = None
+    
+    def collect_data(self) -> Dict[str, Any]:
+        """Collect mouse position data"""
+        # Lazy import pyautogui
+        if self._pyautogui is None:
             try:
-                current_pos = pyautogui.position()
-                if current_pos != self.last_mouse_pos:
-                    # User moved the mouse
-                    bus.publish("ui.user_activity", {"type": "mouse_move", "pos": current_pos})
-                    self.last_mouse_pos = current_pos
-                    
-                time.sleep(1.0) # Check every second
-            except Exception:
-                time.sleep(5.0)
-
-    def stop(self):
-        self.is_running = False
-        self.wait()
+                import pyautogui
+                self._pyautogui = pyautogui
+            except ImportError:
+                print("[SENSOR] pyautogui not found, PresenceSensor disabled")
+                return {}
+        
+        try:
+            current_pos = self._pyautogui.position()
+            
+            if current_pos != self.last_mouse_pos:
+                # User moved the mouse
+                self.last_mouse_pos = current_pos
+                
+                # Publish to event bus (already thread-safe via safe_publish)
+                data = {"type": "mouse_move", "pos": current_pos}
+                bus.publish("ui.user_activity", data)
+                
+                return data
+            
+            return {}  # No change
+            
+        except Exception as e:
+            self._handle_error(f"Error getting mouse position: {e}")
+            return {}

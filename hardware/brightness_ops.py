@@ -14,7 +14,7 @@ import os
 import json
 
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     import screen_brightness_control as sbc
     HAS_BRIGHTNESS = True
@@ -32,7 +32,7 @@ class BrightnessOps:
     @staticmethod
     def save_brightness():
         """Saves current brightness for restoration - both in memory and on disk."""
-        if Config.IS_MOCK or not HAS_BRIGHTNESS:
+        if Config().IS_MOCK or not HAS_BRIGHTNESS:
             BrightnessOps._original_brightness = 50
             return
         
@@ -88,7 +88,7 @@ class BrightnessOps:
         saved_brightness = BrightnessOps._load_from_file()
         if saved_brightness is not None:
             print(f"[BRIGHTNESS] Found crash recovery data: {saved_brightness}%")
-            if not Config.IS_MOCK and HAS_BRIGHTNESS:
+            if not Config().IS_MOCK and HAS_BRIGHTNESS:
                 try:
                     sbc.set_brightness(saved_brightness)
                     print(f"[BRIGHTNESS] Crash recovery: Restored to {saved_brightness}%")
@@ -107,7 +107,7 @@ class BrightnessOps:
             if BrightnessOps._original_brightness is None:
                 return
         
-        if Config.IS_MOCK or not HAS_BRIGHTNESS:
+        if Config().IS_MOCK or not HAS_BRIGHTNESS:
             print(f"[MOCK] BRIGHTNESS RESTORED TO {BrightnessOps._original_brightness}%")
             BrightnessOps._cleanup_restore_file()
             return
@@ -124,7 +124,7 @@ class BrightnessOps:
         """
         Rapidly flickers brightness between dark and bright.
         """
-        if Config.IS_MOCK or not HAS_BRIGHTNESS:
+        if Config().IS_MOCK or not HAS_BRIGHTNESS:
             print(f"[MOCK] BRIGHTNESS FLICKERED {times} times")
             return
         
@@ -162,7 +162,7 @@ class BrightnessOps:
         Gradually dims the screen to create unease.
         FIXED: Runs in thread + auto-restore.
         """
-        if Config.IS_MOCK or not HAS_BRIGHTNESS:
+        if Config().IS_MOCK or not HAS_BRIGHTNESS:
             print(f"[MOCK] BRIGHTNESS DIMMED TO {target}%")
             return
         

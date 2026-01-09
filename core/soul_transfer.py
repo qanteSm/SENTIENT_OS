@@ -50,7 +50,7 @@ class SoulTransfer:
 
     def transfer_to_usb(self, drive_letter: str) -> bool:
         """Writes the .echo file to the USB drive root."""
-        if Config.IS_MOCK:
+        if Config().IS_MOCK:
             print(f"[SOUL] Mock Transfer to {drive_letter}:/SOUL.echo")
             return True
 

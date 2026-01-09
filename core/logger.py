@@ -29,12 +29,12 @@ class SentientLogger:
         SentientLogger._initialized = True
         
         # Create logs directory
-        self.logs_dir = Config.LOGS_DIR
+        self.logs_dir = Config().LOGS_DIR
         os.makedirs(self.logs_dir, exist_ok=True)
         
         # Create logger
         self.logger = logging.getLogger("SENTIENT_OS")
-        self.logger.setLevel(logging.DEBUG if Config.IS_MOCK else logging.INFO)
+        self.logger.setLevel(logging.DEBUG if Config().IS_MOCK else logging.INFO)
         
         # Create formatters
         file_formatter = logging.Formatter(

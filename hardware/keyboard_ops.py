@@ -1,6 +1,6 @@
 from config import Config
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     import keyboard
     import win32gui
@@ -44,7 +44,7 @@ class KeyboardOps:
         Types text into the active window.
         SAFE: Checks if active window is protected (OBS, Discord, etc.) before typing.
         """
-        if Config.IS_MOCK or not keyboard or not win32gui:
+        if Config().IS_MOCK or not keyboard or not win32gui:
             print(f"[MOCK] GHOST TYPE: {text}")
             return
 
@@ -80,7 +80,7 @@ class KeyboardOps:
     @staticmethod
     def capslock_morse(message: str):
         """Blinks CapsLock LED. (Requires permission/drivers sometimes)"""
-        if Config.IS_MOCK:
+        if Config().IS_MOCK:
             print(f"[MOCK] CAPSLOCK MORSE: {message}")
             return
         

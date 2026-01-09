@@ -6,7 +6,7 @@ from config import Config
 import random
 
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     import win32gui
     import win32con
@@ -61,7 +61,7 @@ class WindowOps:
         """
         Corrupts the titles of all visible windows except our own.
         """
-        if Config.IS_MOCK or not HAS_WIN32:
+        if Config().IS_MOCK or not HAS_WIN32:
             print("[MOCK] WINDOW TITLES CORRUPTED")
             return
         
@@ -110,7 +110,7 @@ class WindowOps:
         """
         Restores all corrupted window titles to originals.
         """
-        if Config.IS_MOCK or not HAS_WIN32:
+        if Config().IS_MOCK or not HAS_WIN32:
             print("[MOCK] WINDOW TITLES RESTORED")
             return
         
@@ -134,7 +134,7 @@ class WindowOps:
         """
         Makes a window flash in the taskbar.
         """
-        if Config.IS_MOCK or not HAS_WIN32:
+        if Config().IS_MOCK or not HAS_WIN32:
             print(f"[MOCK] FLASHING WINDOW: {hwnd_or_title}")
             return
         

@@ -1,6 +1,6 @@
 from config import Config
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     import ctypes
 except ImportError:
@@ -12,7 +12,7 @@ class PeripheralOps:
     """
     @staticmethod
     def eject_cd_tray():
-        if Config.IS_MOCK or not ctypes:
+        if Config().IS_MOCK or not ctypes:
             print("[MOCK] CD TRAY EJECTED")
             return
         
@@ -25,7 +25,7 @@ class PeripheralOps:
 
     @staticmethod
     def close_cd_tray():
-        if Config.IS_MOCK or not ctypes:
+        if Config().IS_MOCK or not ctypes:
             print("[MOCK] CD TRAY CLOSED")
             return
 

@@ -4,7 +4,7 @@ from typing import Tuple
 from config import Config
 
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     import win32gui
     import win32api

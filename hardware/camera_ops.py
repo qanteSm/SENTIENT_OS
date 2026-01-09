@@ -10,7 +10,7 @@ from config import Config
 import random
 
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     import cv2
 except ImportError:
@@ -34,7 +34,7 @@ class CameraOps:
 
     def snap_frame(self):
         """Captures a frame for AI analysis (RAM only, not saved)."""
-        if Config.IS_MOCK or not cv2:
+        if Config().IS_MOCK or not cv2:
             print("[MOCK] WEBCAM FRAME CAPTURED")
             return None 
         

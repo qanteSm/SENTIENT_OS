@@ -15,7 +15,7 @@ from core.event_bus import bus
 
 # Try to import keyboard for hotkey listening
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     import keyboard
 except ImportError:
@@ -37,7 +37,7 @@ class SafetyNet:
 
     def start_monitoring(self):
         """Starts the listener for the kill switch and escape attempts."""
-        if Config.IS_MOCK or not keyboard:
+        if Config().IS_MOCK or not keyboard:
             print("[SAFETY_NET] Kill Switch Monitor Active (CTRL+SHIFT+Q) [MOCK]")
             return
 

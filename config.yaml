@@ -1,0 +1,56 @@
+# SENTIENT_OS Configuration
+# All settings are configurable at runtime
+
+system:
+  app_name: "SENTIENT_OS"
+  version: "4.1"
+  is_windows: true  # Auto-detected
+  debug_mode: false
+  
+api:
+  # Set GEMINI_API_KEY environment variable or paste here
+  gemini_key: "${GEMINI_API_KEY}"
+  model: "gemini-2.5-flash"
+  cache_ttl: 300  # seconds
+  max_failures: 3  # Before switching to offline mode
+  
+horror:
+  # Intensity levels: mild, medium, extreme
+  intensity: "extreme"
+  enable_strobe: false  # WARNING: Photosensitive users should keep false
+  safe_hardware: false  # If true, avoids risky hardware manipulation
+  chaos_level: 0  # 0-100, increases during gameplay
+  
+safety:
+  streamer_mode: true  # Hides personal info, protects OBS/Discord
+  ai_safety_check: true  # AI validates snippets before showing
+  target_monitor: 0  # Primary monitor (0), others are safe zones
+  protected_processes:
+    - "obs64.exe"
+    - "obs32.exe"
+    - "streamlabs.exe"
+    - "discord.exe"
+    - "chrome.exe"
+    - "firefox.exe"
+    
+language:
+  code: "tr"  # tr, en supported
+  voice_rate: 150  # TTS speed
+  voice_volume: 0.8
+  
+ambient:
+  enabled: true
+  base_interval_min: 8000  # ms
+  base_interval_max: 15000  # ms
+  
+audio:
+  enable_drone: true
+  drone_volume: 0.3
+  tts_cooldown: 5.0  # seconds between TTS
+  
+paths:
+  base_dir: "."
+  logs: "./logs"
+  cache: "./cache"
+  assets: "./assets"
+  locales: "./locales"

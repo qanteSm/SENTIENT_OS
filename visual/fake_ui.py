@@ -197,7 +197,7 @@ class FakeUI:
         return self.chat
 
     def show_bsod(self):
-        if Config.IS_MOCK and not QApplication.instance():
+        if Config().IS_MOCK and not QApplication.instance():
             print("[MOCK] FAKE BSOD DISPLAYED")
             return
             
@@ -206,7 +206,7 @@ class FakeUI:
         self.bsod.show_bsod()
 
     def show_fake_update(self, percent=0):
-        if Config.IS_MOCK and not QApplication.instance():
+        if Config().IS_MOCK and not QApplication.instance():
             print(f"[MOCK] FAKE UPDATE: {percent}%")
             return
 

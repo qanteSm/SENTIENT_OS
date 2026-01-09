@@ -10,7 +10,7 @@ class StateManager:
     Ensures that if the game crashes, the system is restored to its original state on the next boot.
     """
     _instance = None
-    _state_file = os.path.join(Config.BASE_DIR, ".system_state.json")
+    _state_file = os.path.join(Config().BASE_DIR, ".system_state.json")
 
     def __new__(cls):
         if cls._instance is None:

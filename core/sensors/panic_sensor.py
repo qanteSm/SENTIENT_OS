@@ -4,7 +4,7 @@ from core.event_bus import bus
 from config import Config
 
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     import win32api
     HAS_WIN32 = True

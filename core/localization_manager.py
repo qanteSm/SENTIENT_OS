@@ -19,11 +19,11 @@ class LocalizationManager:
     def load_locale(self):
         """Loads the JSON file for the configured language."""
         lang_code = Config.LANGUAGE 
-        path = os.path.join(Config.LOCALES_DIR, f"{lang_code}.json")
+        path = os.path.join(Config().LOCALES_DIR, f"{lang_code}.json")
         
         if not os.path.exists(path):
             print(f"[LOCALE] Warning: Locale file {path} not found. Fallback to 'tr'.")
-            path = os.path.join(Config.LOCALES_DIR, "tr.json")
+            path = os.path.join(Config().LOCALES_DIR, "tr.json")
             
         try:
             with open(path, "r", encoding="utf-8") as f:

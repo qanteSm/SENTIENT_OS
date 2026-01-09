@@ -24,6 +24,7 @@ from hardware.wallpaper_ops import WallpaperOps
 from visual.glitch_logic import GlitchLogic
 from core.resource_guard import ResourceGuard
 from core.sensors.panic_sensor import PanicSensor
+from visual.ambient_horror import AmbientHorror
 
 class SentientKernel:
     """
@@ -61,6 +62,18 @@ class SentientKernel:
             # Safety Sensors
             self.resource_guard = None
             self.panic_sensor = None
+            
+            # Ambient Horror (Background effects)
+            self.ambient_horror = None
+            
+            # Silence Breaker
+            self.silence_breaker = None
+            
+            # Drone Audio
+            self.drone_audio = None
+            
+            # Onboarding (replaces simple consent)
+            self.onboarding_manager = None
 
     def boot(self):
         """Initializes the application and shows the mandatory consent screen."""
@@ -79,9 +92,11 @@ class SentientKernel:
         WallpaperOps.save_current_wallpaper()
         IconOps.save_icon_positions()
         
-        # 3. Show Consent Screen
+        # 3. Show Onboarding Flow (Welcome -> Calibration -> Consent)
         # No horror effects or sensors start before this is accepted
-        self.consent_screen.show_consent()
+        self.onboarding_manager = OnboardingManager()
+        self.onboarding_manager.onboarding_complete.connect(self._complete_boot)
+        self.onboarding_manager.start_onboarding()
         
         try:
             sys.exit(self.app.exec())
@@ -103,7 +118,7 @@ class SentientKernel:
         
         # 2. Resilience Engine (Ghost)
         self.resilience = ResilienceManager(self)
-        if not Config.IS_MOCK:
+        if not Config().IS_MOCK:
             # Note: This is now session-locked, controlled by SafetyNet
             self.resilience.spawn_watchdog()
         
@@ -152,6 +167,23 @@ class SentientKernel:
         # 7. Story Engine
         log_info("Initializing Story Engine...", "KERNEL")
         self.story_manager = StoryManager(self.dispatcher, self.memory, self.brain)
+        
+        # 7.1 Initialize Ambient Horror
+        self.ambient_horror = AmbientHorror(self.dispatcher)
+        # Connect to story manager for intensity control
+        if hasattr(self.story_manager, 'set_ambient_horror'):
+            self.story_manager.set_ambient_horror(self.ambient_horror)
+        
+        # 7.2 Initialize Silence Breaker
+        self.silence_breaker = SilenceBreaker(self.dispatcher)
+        self.silence_breaker.start()
+        
+        # 7.3 Initialize Drone Audio
+        self.drone_audio = get_drone_audio()
+        # Story manager will control drone per Act
+        if hasattr(self.story_manager, 'set_drone_audio'):
+            self.story_manager.set_drone_audio(self.drone_audio)
+        
         QTimer.singleShot(1000, self.story_manager.start_story)
         
         # 8. Event Bus Subscriptions
@@ -189,6 +221,15 @@ class SentientKernel:
                 self.resilience.cleanup_session()
                 
             # 1. STOP ALL AUTONOMY (Threads first)
+            if self.silence_breaker:
+                self.silence_breaker.stop()
+            
+            if self.ambient_horror:
+                self.ambient_horror.stop()
+            
+            if self.drone_audio:
+                self.drone_audio.stop()
+            
             if self.resource_guard:
                 self.resource_guard.stop()
                 

@@ -35,13 +35,13 @@ class Memory:
             return
             
         if filepath is None:
-            if Config.IS_WINDOWS:
+            if Config().IS_WINDOWS:
                 app_data = os.getenv('APPDATA')
                 sentient_dir = os.path.join(app_data, "SentientOS")
                 os.makedirs(sentient_dir, exist_ok=True)
                 self.filepath = os.path.join(sentient_dir, "brain_dump.json")
             else:
-                self.filepath = os.path.join(Config.BASE_DIR, "brain_dump.json")
+                self.filepath = os.path.join(Config().BASE_DIR, "brain_dump.json")
         else:
             self.filepath = filepath
 

@@ -6,7 +6,7 @@ from config import Config
 import time
 
 try:
-    if Config.IS_MOCK:
+    if Config().IS_MOCK:
         raise ImportError("Mock Mode")
     import subprocess
     import pywinauto
@@ -29,7 +29,7 @@ class NotepadOps:
             message: The text to type
             delay_per_char: Delay between characters in seconds (for typing effect)
         """
-        if Config.IS_MOCK or not HAS_PYWINAUTO:
+        if Config().IS_MOCK or not HAS_PYWINAUTO:
             print(f"[MOCK] NOTEPAD HIJACK: {message}")
             return
         
@@ -59,7 +59,7 @@ class NotepadOps:
         """
         Forcefully closes Notepad without saving.
         """
-        if Config.IS_MOCK or not HAS_PYWINAUTO:
+        if Config().IS_MOCK or not HAS_PYWINAUTO:
             print("[MOCK] NOTEPAD CLOSED")
             return
             
