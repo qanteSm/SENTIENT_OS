@@ -12,6 +12,7 @@ from hardware.mouse_ops import MouseOps
 from visual.fake_ui import FakeUI
 from config import Config
 from core.event_bus import bus
+from PyQt6.QtCore import QTimer
 
 # Try to import keyboard for hotkey listening
 try:
@@ -94,7 +95,6 @@ class SafetyNet:
             SafetyNet.memory.shutdown()  # Son kayıt
 
         # FIXED: UI operations must run on main thread
-        from PyQt6.QtCore import QTimer
         QTimer.singleShot(0, self._do_cleanup_main_thread)
 
     def _do_cleanup_main_thread(self):

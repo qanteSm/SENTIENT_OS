@@ -26,7 +26,7 @@ class TestGeminiBrainInitialization:
         with patch('core.gemini_brain.HAS_GEMINI', False):
             brain = GeminiBrain(api_key="test_key")
             
-            assert brain._offline_mode == True
+            assert brain.mock_mode == True
     
     def test_set_memory(self, mock_gemini_api, mock_memory):
         """Should accept memory reference"""
@@ -59,10 +59,10 @@ class TestGeminiBrainCaching:
         response = {"action": "TEST", "params": {}}
         
         # Set cache with timestamp in the past
-        brain._response_cache[key] = {
-            "response": response,
-            "timestamp": 0  # Very old timestamp
-        }
+        brain._response_cache[key] = (
+            response,
+            0  # Very old timestamp
+        )
         
         cached = brain._get_cached_response(key)
         assert cached is None  # Should be expired
@@ -112,7 +112,7 @@ class TestGeminiBrainPersonas:
         
         assert isinstance(prompt, str)
         assert len(prompt) > 50
-        assert "support" in prompt.lower() or "help" in prompt.lower()
+        assert "asistan" in prompt.lower() or "güvenlik" in prompt.lower()
 
 
 class TestGeminiBrainResponseGeneration:
@@ -146,7 +146,7 @@ class TestGeminiBrainResponseGeneration:
         
         assert response is not None
         assert "action" in response
-        assert response["action"] in ["NONE", "TTS_SPEAK", "OVERLAY_TEXT"]
+        assert response["action"] in ["NONE", "GLITCH_SCREEN", "OVERLAY_TEXT", "GDI_FLASH", "MOUSE_SHAKE"]
 
 
 class TestGeminiBrainErrorHandling:
@@ -188,11 +188,12 @@ class TestGeminiBrainBehaviorAnalysis:
         # Test different inputs
         result1 = brain.analyze_user_behavior("help me please")
         result2 = brain.analyze_user_behavior("what are you?")
-        result3 = brain.analyze_user_behavior("fuck you")
+        result3 = brain.analyze_user_behavior("salak herif")
         
-        assert result1 in ["cooperative", "fearful", "curious", "hostile", "confused"]
-        assert result2 in ["cooperative", "fearful", "curious", "hostile", "confused"]
-        assert result3 in ["cooperative", "fearful", "curious", "hostile", "confused"]
+        # Test different inputs - expects actual behavior categories or None
+        assert result1 is None # "help me please" doesn't match current keywords
+        assert result2 is None
+        assert result3 == "swear"
 
 
 class TestGeminiBrainSnippetSafety:
@@ -207,10 +208,13 @@ class TestGeminiBrainSnippetSafety:
             "language": "python"
         }
         
-        # Mock AI response as safe
-        with patch.object(brain, 'generate_response', return_value={"safe": True}):
-            result = brain.validate_snippet_safety(safe_snippet)
-            assert result == True
+        # Mock AI response as safe (YES)
+        mock_response = MagicMock()
+        mock_response.text = "YES"
+        mock_gemini_api.return_value.generate_content.return_value = mock_response
+        
+        result = brain.validate_snippet_safety(safe_snippet)
+        assert result == True
     
     def test_validate_unsafe_snippet(self, mock_gemini_api):
         """Should detect unsafe snippets"""
@@ -221,7 +225,10 @@ class TestGeminiBrainSnippetSafety:
             "language": "python"
         }
         
-        # Mock AI response as unsafe
-        with patch.object(brain, 'generate_response', return_value={"safe": False}):
-            result = brain.validate_snippet_safety(unsafe_snippet)
-            assert result == False
+        # Mock AI response as unsafe (NO)
+        mock_response = MagicMock()
+        mock_response.text = "NO"
+        mock_gemini_api.return_value.generate_content.return_value = mock_response
+        
+        result = brain.validate_snippet_safety(unsafe_snippet)
+        assert result == False

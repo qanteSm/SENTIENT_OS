@@ -18,6 +18,7 @@ class GDIEngine:
     Low-level GDI drawing engine for direct screen manipulation.
     Bypasses the window manager to draw 'glitches' directly on the monitor.
     """
+    HAS_WIN32 = HAS_WIN32
     
     @staticmethod
     def get_screen_dc():
@@ -151,3 +152,15 @@ class GDIEngine:
             win32gui.DeleteObject(brush)
         finally:
             cls.release_dc(dc)
+
+    @staticmethod
+    def force_refresh_screen():
+        """Forces the entire screen to redraw, clearing any GDI leftovers."""
+        if not HAS_WIN32: return
+        try:
+            from ctypes import windll
+            # InvalidateRect(0, None, True) triggers a full screen redraw
+            windll.user32.InvalidateRect(0, None, True)
+            print("[GDI] Screen refresh forced.")
+        except Exception as e:
+            print(f"[GDI] Refresh error: {e}")

@@ -156,7 +156,7 @@ class TestFunctionDispatcherHardwareActions:
         }
         
         # Mock hardware to prevent actual mouse movement
-        with patch('hardware.mouse_ops.MouseOps.shake'):
+        with patch('hardware.mouse_ops.MouseOps.shake_cursor'):
             dispatcher.dispatch(command)
     
     def test_dispatch_keyboard_block(self):
@@ -170,7 +170,7 @@ class TestFunctionDispatcherHardwareActions:
             }
         }
         
-        with patch('hardware.keyboard_ops.KeyboardOps.block'):
+        with patch('hardware.keyboard_ops.KeyboardOps.lock_input'):
             dispatcher.dispatch(command)
 
 
@@ -212,23 +212,27 @@ class TestFunctionDispatcherSignals:
     """Test Qt signals"""
     
     def test_has_chat_response_signal(self):
-        """Should have chat_response signal"""
+        """Should have chat_response_signal"""
         dispatcher = FunctionDispatcher()
         
-        assert hasattr(dispatcher, 'chat_response')
+        assert hasattr(dispatcher, 'chat_response_signal')
     
     def test_chat_response_emission(self):
-        """Should emit chat_response signal"""
+        """Should emit chat_response_signal via _handle_chat_input"""
         dispatcher = FunctionDispatcher()
         
         # Connect a mock slot
         mock_slot = Mock()
-        dispatcher.chat_response.connect(mock_slot)
+        dispatcher.chat_response_signal.connect(mock_slot)
         
-        response = {"action": "NONE", "speech": "Test"}
-        chat_window = Mock()
+        mock_brain = Mock()
+        # Mock generate_async to call callback immediately
+        def mock_gen(text, callback):
+            callback({"action": "NONE", "speech": "Test"})
+            return Mock()
+        mock_brain.generate_async.side_effect = mock_gen
         
-        dispatcher._process_chat_response(response, chat_window)
+        dispatcher._handle_chat_input("Hello", mock_brain, Mock())
         
         # Signal should have been emitted
-        assert mock_slot.called or True  # Signal emission is async
+        assert mock_slot.called

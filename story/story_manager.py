@@ -36,6 +36,7 @@ class StoryManager(QObject):
         self.checkpoint_manager = CheckpointManager(memory)  # NEW: Checkpoint integration
         self.ambient_horror = None  # NEW: Ambient horror system
         self.drone_audio = None  # NEW: Drone audio system
+        self._is_transitioning = False  # NEW: Transition lock
         
         # Load saved act or start from 1
         self.current_act_num = self.memory.get_act()
@@ -109,13 +110,24 @@ class StoryManager(QObject):
 
     def next_act(self):
         """Advances to the next act with dramatic transition."""
+        if self._is_transitioning:
+            print("[STORY] Already transitioning, ignoring call.")
+            return
+            
         next_act_num = self.current_act_num + 1
         
         if next_act_num > 4:
             self._end_game()
             return
         
+        self._is_transitioning = True
         print(f"[STORY] Transitioning to Act {next_act_num}...")
+        
+        # Stop ambient systems during transition
+        if self.ambient_horror:
+            self.ambient_horror.stop()
+        if self.drone_audio:
+            self.drone_audio.stop()
         
         # 1. Glitch/Black out
         if self.dispatcher.overlay:
@@ -166,6 +178,7 @@ class StoryManager(QObject):
 
     def _actually_load_next_act(self, act_num: int):
         """Actually loads the next act after transition."""
+        self._is_transitioning = False
         self.current_act_num = act_num
         self._load_act(act_num)
 

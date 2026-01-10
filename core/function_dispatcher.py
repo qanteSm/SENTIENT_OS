@@ -56,6 +56,11 @@ class FunctionDispatcher(QObject):
         self.horror_dispatcher = HorrorDispatcher()
         self.system_dispatcher = SystemDispatcher()
         self._is_shutting_down = False
+        
+        # Injected dependencies
+        self.heartbeat = None
+        self.brain = None
+        self.memory = None
 
         
         # Inject dependencies into specialized dispatchers
@@ -88,6 +93,7 @@ class FunctionDispatcher(QObject):
     
     def enable_chat(self, brain):
         """Enables the interactive chat and connects it to the Brain."""
+        self.brain = brain
         chat_window = self.fake_ui.show_chat()
         chat_window.message_sent.connect(
             lambda text: self._handle_chat_input(text, brain, chat_window)

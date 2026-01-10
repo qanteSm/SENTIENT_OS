@@ -14,7 +14,7 @@ class FakeNotification(QWidget):
             Qt.WindowType.FramelessWindowHint | 
             Qt.WindowType.WindowStaysOnTopHint | 
             Qt.WindowType.Tool |
-            Qt.WindowType.NoFocus
+            Qt.WindowType.WindowDoesNotAcceptFocus
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
@@ -77,10 +77,12 @@ class FakeNotification(QWidget):
         start_y = geom.bottom()
         
         # End position (Inside screen)
-        end_y = geom.bottom() - self.height() - 10
+        # FIXED: Ensure it's above the taskbar (usually ~40-60px)
+        end_y = geom.bottom() - self.height() - 40
         
         self.move(start_x, start_y)
         self.show()
+        self.raise_() # Ensure it's on top
         
         self.anim.setStartValue(QPoint(start_x, start_y))
         self.anim.setEndValue(QPoint(start_x, end_y))

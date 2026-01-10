@@ -131,9 +131,13 @@ class DesktopMask(QWidget):
         self._escape_count = 0
     
     def remove_mask_emergency(self):
-        """Acil durum - kill switch ile kapama."""
+        """Acil durum - kill switch ile kapama ve tam sistem kapatma."""
         print("[MASK] EMERGENCY REMOVAL via kill switch")
         self.remove_mask()
+        
+        # Trigger full system shutdown
+        from core.event_bus import bus
+        bus.publish("system.shutdown", {"reason": "kill_switch_mask"})
 
     def remove_mask(self):
         """Removes the mask overlay."""

@@ -73,6 +73,17 @@ class ScreenMelter(QWidget):
         if event.key() == Qt.Key.Key_Escape:
             self.close()
 
+    def closeEvent(self, event):
+        """Clean up resources and refresh screen."""
+        self.timer.stop()
+        self.screenshot = None # Release pixmap
+        
+        # Trigger screen refresh to clear any lingering pixels
+        from visual.gdi_engine import GDIEngine
+        GDIEngine.force_refresh_screen()
+        
+        super().closeEvent(event)
+
 _current_melter = None
 
 def trigger_melt():

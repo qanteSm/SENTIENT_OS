@@ -176,7 +176,10 @@ class FakeUpdate(QWidget):
         self.label.setText(f"Working on updates  {percent}% complete.\nDon't turn off your computer.")
         
         # Safety: Auto-dismiss after 60 seconds if it somehow gets stuck
-        QTimer.singleShot(60000, self.close)
+        self._auto_close_timer = QTimer()
+        self._auto_close_timer.setSingleShot(True)
+        self._auto_close_timer.timeout.connect(self.close)
+        self._auto_close_timer.start(60000)
 
     def _target_screen(self):
         screens = QApplication.screens()
@@ -266,3 +269,15 @@ class FakeUI:
         if self.chat:
             self.chat.close()
             self.chat = None
+        
+        # Clear active notifications
+        for notif in list(self.active_notifications):
+            notif.close()
+        self.active_notifications.clear()
+        
+        # Force refresh screen to clear GDI particles
+        try:
+            from visual.gdi_engine import GDIEngine
+            GDIEngine.force_refresh_screen()
+        except:
+            pass
