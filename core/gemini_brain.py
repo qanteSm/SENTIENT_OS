@@ -288,58 +288,92 @@ Masaüstü Dosyaları: {', '.join([f[0] for f in context.get('desktop_files', []
             log_info("Using mock mode (Backup Brain)", "BRAIN")
             return self._backup_response(context)
         
-        try:
-            full_prompt = self._build_dynamic_prompt(user_input)
-            
-            log_info("Sending request to Gemini API...", "BRAIN")
+        # Retry Loop for JSON Repair
+        max_retries = 1
+        current_try = 0
+        last_error = None
+        
+        full_prompt = self._build_dynamic_prompt(user_input)
+        
+        while current_try <= max_retries:
             try:
-                response = self.model.generate_content(full_prompt)
-            except (ConnectionError, TimeoutError) as e:
-                raise APIConnectionError(
-                    "Failed to reach Gemini API",
-                    details={"error": str(e), "input": user_input[:50]}
-                )
-            
-            log_debug("Received response from Gemini", "BRAIN")
-            
-            # Success - reset failure counter
-            self._connection_failures = 0
-            
-            # Parse JSON response
-            clean_text = response.text.strip().replace("```json", "").replace("```", "")
-            try:
-                result = json.loads(clean_text)
-            except json.JSONDecodeError as e:
-                raise AIResponseError(
-                    "Failed to parse AI response as JSON",
-                    details={"response": clean_text[:200], "error": str(e)}
-                )
-            
-            # Cache the response
-            self._cache_response(cache_key, result)
-            
-            # Konuşmayı kaydet
-            if self.memory:
-                self.memory.add_conversation("user", user_input, context)
-                self.memory.add_conversation("ai", result.get("speech", ""))
-            
-            return result
-            
-        except (APIConnectionError, AIResponseError) as e:
-            log_error(f"{type(e).__name__}: {e.message}", "BRAIN")
-            self._connection_failures += 1
-            
-            # Switch to offline mode after max failures
-            if self._connection_failures >= self._max_failures:
-                log_critical(f"Too many failures ({self._connection_failures}), switching to OFFLINE MODE", "BRAIN")
-                self._offline_mode = True
-                return self._offline_response(user_input, context)
-            
-            log_warning(f"Failure {self._connection_failures}/{self._max_failures}, using backup...", "BRAIN")
-            return self._backup_response(context)
-        except Exception as e:
-            log_error(f"Unexpected error: {e}", "BRAIN")
-            return self._backup_response(context)
+                log_info(f"Sending request to Gemini API (Try {current_try + 1})...", "BRAIN")
+                
+                # If retrying, append error instruction
+                current_prompt = full_prompt
+                if current_try > 0 and last_error:
+                    current_prompt += f"\n\nSYSTEM ERROR: Previous response was invalid JSON. Error: {last_error}\nFIX IT AND RETURN ONLY VALID JSON."
+                
+                try:
+                    response = self.model.generate_content(current_prompt)
+                except (ConnectionError, TimeoutError) as e:
+                    raise APIConnectionError(
+                        "Failed to reach Gemini API",
+                        details={"error": str(e), "input": user_input[:50]}
+                    )
+                
+                log_debug("Received response from Gemini", "BRAIN")
+                
+                # Success - reset failure counter
+                self._connection_failures = 0
+                
+                # Parse JSON response
+                if not response.text:
+                     raise AIResponseError("Empty response text from API")
+                     
+                clean_text = response.text.strip().replace("```json", "").replace("```", "")
+                try:
+                    result = json.loads(clean_text)
+                except json.JSONDecodeError as e:
+                    last_error = str(e)
+                    # Raise only if we are out of retries
+                    if current_try >= max_retries:
+                         raise AIResponseError(
+                            "Failed to parse AI response as JSON",
+                            details={"response": clean_text[:200], "error": str(e)}
+                        )
+                    else:
+                        log_warning(f"Invalid JSON received. Retrying... Error: {e}", "BRAIN")
+                        current_try += 1
+                        continue # Retry loop
+
+                # Check for required fields
+                if "speech" not in result or "action" not in result:
+                     raise AIResponseError("Missing required fields in JSON")
+
+                # Log successful generation including retry count if any
+                if current_try > 0:
+                    log_info(f"JSON repair successful on try {current_try + 1}", "BRAIN")
+
+                # Cache the response
+                self._cache_response(cache_key, result)
+                
+                # Konuşmayı kaydet
+                if self.memory:
+                    self.memory.add_conversation("user", user_input, context)
+                    self.memory.add_conversation("ai", result.get("speech", ""))
+                
+                return result
+                
+            except (APIConnectionError, AIResponseError) as e:
+                # If we are here, it means we exhausted retries or hit a hard error
+                log_error(f"{type(e).__name__}: {e.message}", "BRAIN")
+                self._connection_failures += 1
+                
+                # Switch to offline mode after max failures
+                if self._connection_failures >= self._max_failures:
+                    log_critical(f"Too many failures ({self._connection_failures}), switching to OFFLINE MODE", "BRAIN")
+                    self._offline_mode = True
+                    return self._offline_response(user_input, context)
+                
+                log_warning(f"Failure {self._connection_failures}/{self._max_failures}, using backup...", "BRAIN")
+                return self._backup_response(context)
+            except Exception as e:
+                log_error(f"Unexpected error: {e}", "BRAIN")
+                return self._backup_response(context)
+        
+        # End of while loop fallback (should be unreachable due to returns)
+        return self._backup_response(context)
 
     def _get_cache_key(self, user_input: str, context: dict) -> str:
         """

@@ -1,36 +1,101 @@
+from unittest.mock import MagicMock, patch
+from PyQt6.QtWidgets import QApplication
+import sys
+import threading
+import time
 
-from core.function_dispatcher import FunctionDispatcher
-
-def test_dispatcher():
-    dispatcher = FunctionDispatcher()
+def debug_priority():
+    print("--- START DEBUG ---")
     
-    # CASE 1: Normal
-    print("Testing Normal...")
-    dispatcher.dispatch({"action": "NONE", "params": {}})
+    # Initialize QApplication to satisfy Qt requirements
+    if not QApplication.instance():
+        app = QApplication(sys.argv)
     
-    # CASE 2: Params is None (JSON: "params": null)
-    print("Testing Null Params...")
-    try:
-        dispatcher.dispatch({"action": "NONE", "params": None})
-        print("SUCCESS: Handled None params")
-    except Exception as e:
-        print(f"FAIL: Crashed on None params: {e}")
+    with patch('core.function_dispatcher.FakeUI'), \
+         patch('core.function_dispatcher.AudioOut'):
+        
+        from core.function_dispatcher import FunctionDispatcher 
+        
+        disp = FunctionDispatcher()
+        
+        # Kill default workers
+        disp.stop_dispatching()
+        
+        print("Waiting for threads to die...")
+        start_wait = time.time()
+        while threading.active_count() > 1:
+            if time.time() - start_wait > 5:
+                print("TIMEOUT waiting for threads!")
+                print([t.name for t in threading.enumerate()])
+                break
+            time.sleep(0.1)
+            
+        disp._is_shutting_down = False # Force reopen
+        disp._workers = []
+    
+    # Mock dispatchers
+    disp.visual_dispatcher = MagicMock()
+    disp.system_dispatcher = MagicMock()
+    
+    disp._action_map = {
+        "GDI_FLASH": disp.visual_dispatcher,
+        "FILE_DELETE": disp.system_dispatcher,
+        "PROCESS_KILL": disp.system_dispatcher
+    }
+    
+    print(f"DEBUG: FILE_DELETE mapper type: {type(disp._action_map['FILE_DELETE'])}")
+    
+    execution_order = []
+    
+    def slow_action(action, params, speech):
+        print(f"Inside SLOW_ACTION: {action}")
+        try:
+            time.sleep(0.5)
+            execution_order.append("SLOW_LOW")
+        except Exception as e:
+            print(f"SLOW_ACTION ERROR: {e}")
+        print("Finished SLOW_ACTION")
+        
+    def high_priority(action, params, speech):
+        print(f"Inside HIGH_ACTION: {action}")
+        execution_order.append("HIGH_PRIORITY")
+        
+    def fast_low(action, params, speech):
+        print(f"Inside FAST_LOW: {action}")
+        execution_order.append("FAST_LOW")
 
-    # CASE 3: Missing Params
-    print("Testing Missing Params...")
-    try:
-        dispatcher.dispatch({"action": "NONE"})
-        print("SUCCESS: Handled missing params")
-    except Exception as e:
-        print(f"FAIL: Crashed on missing params: {e}")
+    disp.system_dispatcher.dispatch.side_effect = slow_action
+    disp.visual_dispatcher.dispatch.side_effect = high_priority
 
-    # CASE 4: Missing Title in Notification
-    print("Testing Missing Title...")
-    try:
-        dispatcher.dispatch({"action": "FAKE_NOTIFICATION", "params": {}})
-        print("SUCCESS: Handled missing title")
-    except Exception as e:
-        print(f"FAIL: Crashed on missing title: {e}")
+    # Start 1 worker
+    print(f"Active Threads before start: {[t.name for t in threading.enumerate()]}")
+    print("Starting 1 worker...")
+    
+    # We need to manually start the loop but catch errors
+    t = threading.Thread(target=disp._worker_loop, daemon=True)
+    disp._workers.append(t)
+    t.start()
+    
+    # 1. Dispatch Slow
+    print("Dispatching FILE_DELETE (Slow)")
+    disp._do_dispatch({"action": "FILE_DELETE", "params": {}, "speech": "slow"})
+    print(f"Queue Size after Slow: {disp._action_queue.qsize()}")
+    time.sleep(0.1) # Wait for pickup
+    
+    # 2. Dispatch Low
+    disp.system_dispatcher.dispatch.side_effect = fast_low # Switch side effect
+    print("Dispatching PROCESS_KILL (Fast Low)")
+    disp._do_dispatch({"action": "PROCESS_KILL", "params": {}, "speech": "low"})
+    print(f"Queue Size after Low: {disp._action_queue.qsize()}")
+    
+    # 3. Dispatch High
+    print("Dispatching GDI_FLASH (High)")
+    disp._do_dispatch({"action": "GDI_FLASH", "params": {}, "speech": "high"})
+    print(f"Queue Size after High: {disp._action_queue.qsize()}")
+    
+    print("Waiting for workers...")
+    time.sleep(2.0)
+    print(f"Final Order: {execution_order}")
 
 if __name__ == "__main__":
-    test_dispatcher()
+    debug_priority()

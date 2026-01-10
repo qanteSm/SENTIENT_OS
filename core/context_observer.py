@@ -37,6 +37,9 @@ class ContextObserver:
     _cache_time = {}
     _cache_ttl = 30  # seconds
     
+    # Static info cache (never changes during session)
+    _static_cache = {}
+
     @classmethod
     def _get_cached(cls, key, fetcher, ttl=None):
         """Simple caching to avoid repeated expensive operations."""
@@ -50,6 +53,13 @@ class ContextObserver:
         cls._cache[key] = value
         cls._cache_time[key] = now
         return value
+    
+    @classmethod
+    def _get_static(cls, key, fetcher):
+        """Fetch once and cache forever."""
+        if key not in cls._static_cache:
+            cls._static_cache[key] = fetcher()
+        return cls._static_cache[key]
     
     # ========== TEMEL BİLGİLER ==========
     
@@ -87,14 +97,16 @@ class ContextObserver:
         """Tam saati al (HH:MM formatında)."""
         return datetime.datetime.now().strftime("%H:%M")
     
-    @staticmethod
-    def get_user_name():
+    @classmethod
+    def get_user_name(cls):
         """Kullanıcı adını al."""
-        try:
-            user = os.getlogin() if os.name == 'nt' else "User"
-        except Exception:
-            user = os.getenv("USERNAME", os.getenv("USER", "Unknown"))
-        return user
+        def fetch():
+            try:
+                user = os.getlogin() if os.name == 'nt' else "User"
+            except Exception:
+                user = os.getenv("USERNAME", os.getenv("USER", "Unknown"))
+            return user
+        return cls._get_static("user_name", fetch)
     
     # ========== ZENGİN BİLGİLER ==========
     
@@ -223,15 +235,17 @@ class ContextObserver:
             pass
         return None
     
-    @staticmethod
-    def get_network_info():
+    @classmethod
+    def get_network_info(cls):
         """Temel ağ bilgileri (hostname, IP)."""
-        try:
-            hostname = socket.gethostname()
-            local_ip = socket.gethostbyname(hostname)
-            return {"hostname": hostname, "local_ip": local_ip}
-        except Exception:
-            return {"hostname": "Unknown", "local_ip": "Unknown"}
+        def fetch():
+            try:
+                hostname = socket.gethostname()
+                local_ip = socket.gethostbyname(hostname)
+                return {"hostname": hostname, "local_ip": local_ip}
+            except Exception:
+                return {"hostname": "Unknown", "local_ip": "Unknown"}
+        return cls._get_static("network", fetch)
     
     @staticmethod
     def get_disk_usage():

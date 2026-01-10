@@ -8,6 +8,11 @@ Original size: 355 lines
 New size: ~120 lines (70% reduction)
 """
 import json
+import time
+import threading
+import queue
+from dataclasses import dataclass, field
+from typing import Dict, Any
 from PyQt6.QtCore import QObject, pyqtSignal
 from core.process_guard import ProcessGuard
 from hardware.audio_out import AudioOut
@@ -24,24 +29,32 @@ from core.exceptions import ValidationError, DispatchError
 from core.validators import validate_ai_response
 from core.logger import log_error, log_warning, log_info
 
+@dataclass(order=True)
+class ActionTask:
+    """Task item for the Priority Queue."""
+    priority: int
+    timestamp: float = field(compare=False)
+    action: str = field(compare=False)
+    params: Dict[str, Any] = field(compare=False, default_factory=dict)
+    speech: str = field(compare=False, default="")
 
 class FunctionDispatcher(QObject):
     """
-    Main dispatcher that routes actions to specialized dispatchers.
+    Main dispatcher that routes actions to specialized dispatchers using a Priority Queue.
     
-    REFACTORED from monolithic 355-line class to use composition pattern.
-    Each action category (visual, hardware, horror, system) has its own dispatcher.
-    
-    Benefits:
-    - Easier to test (mock only relevant components)
-    - Easier to extend (add actions to specific dispatcher)
-    - Better code organization
-    - Clearer separation of concerns
+    Architecture:
+    - Priority Queue: Ensures high-priority effects (Visuals) run before background tasks.
+    - Worker Pool: 5 worker threads consume tasks from the queue.
     """
     
     # Signals for thread-safe handling
     chat_response_signal = pyqtSignal(dict, object)  # (response, chat_window)
     dispatch_signal = pyqtSignal(dict)              # (command_data) - Global dispatch router
+    
+    # Priority Levels (Lower number = Higher Priority)
+    PRIORITY_HIGH = 1    # Visual effects (latency sensitive)
+    PRIORITY_MEDIUM = 2  # Audio/TTS (narrative critical)
+    PRIORITY_LOW = 3     # System/File ops (background)
     
     def __init__(self):
         super().__init__()
@@ -64,7 +77,6 @@ class FunctionDispatcher(QObject):
         self.difficulty = None
         self.last_ai_reply_time = 0
 
-        
         # Inject dependencies into specialized dispatchers
         self.horror_dispatcher.audio_out = self.audio_out
         self.horror_dispatcher.overlay = self.visual_dispatcher.overlay
@@ -78,10 +90,40 @@ class FunctionDispatcher(QObject):
         # Build action routing map
         self._action_map = self._build_action_map()
         
+        # Priority Queue & Worker Pool
+        self._action_queue = queue.PriorityQueue()
+        self._workers = []
+        self._init_worker_pool(5)
+        
         # Connect signals
         self.chat_response_signal.connect(self._process_chat_response)
         self.dispatch_signal.connect(self._do_dispatch)
     
+    def _init_worker_pool(self, num_workers):
+        """Start worker threads to consume the action queue."""
+        for i in range(num_workers):
+            t = threading.Thread(target=self._worker_loop, name=f"ActionWorker-{i}", daemon=True)
+            self._workers.append(t)
+            t.start()
+            
+    def _worker_loop(self):
+        """Infinite loop for worker threads."""
+        while not self._is_shutting_down:
+            try:
+                # Get task with a timeout to allow checking shutdown flag
+                task = self._action_queue.get(timeout=1.0)
+                
+                if self._is_shutting_down:
+                    break
+
+                self._execute_action(task.action, task.params, task.speech)
+                self._action_queue.task_done()
+                
+            except queue.Empty:
+                continue
+            except Exception as e:
+                log_error(f"Worker exception: {e}", "DISPATCHER")
+
     def _build_action_map(self):
         """Build dict mapping actions to their dispatcher"""
         action_map = {}
@@ -171,9 +213,18 @@ class FunctionDispatcher(QObject):
         """
         self.dispatch_signal.emit(command_data)
 
+    def _get_action_priority(self, action: str) -> int:
+        """Determines priority level for an action."""
+        if action.startswith("GDI_") or action.startswith("GLITCH_") or action.startswith("SCREEN_") or action in ["THE_MASK"]:
+            return self.PRIORITY_HIGH
+        if action in ["PLAY_SOUND", "TTS_PEAK"]:
+            return self.PRIORITY_MEDIUM
+        return self.PRIORITY_LOW
+
     def _do_dispatch(self, command_data: dict):
         """
         ACTUAL dispatch logic. ALWAYS runs on the main thread via Qt signal.
+        Now routes actions to the PriorityQueue.
         """
         if not command_data or self._is_shutting_down:
             return
@@ -193,14 +244,21 @@ class FunctionDispatcher(QObject):
         
         log_info(f"Dispatching action: {action}", "DISPATCHER")
         
-        # Handle TTS (only for non-silent actions)
+        # Handle TTS (immediate, usually)
+        # We can queue this too if we want strict ordering, but TTS should generally start playing as soon as text appears.
+        # For now, let's keep TTS synchronous/immediate unless we move it to queue.
+        # Actually plan said "MEDIUM: Audio/TTS". So let's respect that.
+        
         SILENT_ACTIONS = ["MOUSE_SHAKE", "CLIPBOARD_POISON", "GLITCH_SCREEN",
                           "CAPSLOCK_TOGGLE", "ICON_SCRAMBLE", "BRIGHTNESS_FLICKER"]
         
         if speech and action not in SILENT_ACTIONS:
-            self.audio_out.play_tts(speech)
+             # Queue TTS as a separate 'virtual' action if needed, or just play it here?
+             # For best sync, let's play it here because visual actions might be queued
+             # and we want the voice to match the text appearing in chat.
+             self.audio_out.play_tts(speech)
         
-        # Special cases that need main dispatcher context
+        # Special cases that need main dispatcher context (UI/Qt stuff usually)
         if action == "SHAKE_CHAT":
             intensity = params.get("intensity", 10)
             if self.fake_ui.chat:
@@ -231,23 +289,18 @@ class FunctionDispatcher(QObject):
                     self.fake_ui.chat.shake_window(5)
             return
         
-        # Route to specialized dispatcher
+        # Determine priority and enqueue
+        priority = self._get_action_priority(action)
+        task = ActionTask(priority=priority, timestamp=time.time(), action=action, params=params, speech=speech)
+        self._action_queue.put(task)
+        log_info(f"Action {action} queued with priority {priority}", "DISPATCHER")
+
+    def _execute_action(self, action, params, speech):
+        """Executed by worker thread."""
         dispatcher = self._action_map.get(action)
         if dispatcher:
-            # HEAVY_ACTIONS: These block the thread (GDI loops, keyboard typing, etc.)
-            # Running them in a separate thread keeps the UI responsive.
-            HEAVY_ACTIONS = ["GDI_STATIC", "GDI_LINE", "GDI_FLASH", "SCREEN_INVERT", 
-                             "GHOST_TYPE", "BRIGHTNESS_FLICKER", "BRIGHTNESS_DIM",
-                             "ICON_SCRAMBLE", "SET_WALLPAPER", "CORRUPT_WINDOWS",
-                             "NOTEPAD_HIJACK", "NOTEPAD_SPAWN"]
-            
             try:
-                if action in HEAVY_ACTIONS:
-                    import threading
-                    log_info(f"Dispatching heavy action {action} asynchronously", "DISPATCHER")
-                    threading.Thread(target=dispatcher.dispatch, args=(action, params, speech), daemon=True).start()
-                else:
-                    dispatcher.dispatch(action, params, speech)
+                dispatcher.dispatch(action, params, speech)
             except Exception as e:
                 log_error(f"Dispatcher error for {action}: {e}", "DISPATCHER")
         else:
@@ -256,4 +309,10 @@ class FunctionDispatcher(QObject):
     def stop_dispatching(self):
         """Prevents any new actions from being dispatched during shutdown."""
         self._is_shutting_down = True
-        log_info("Dispatcher shutdown initiated. Ignoring future actions.", "DISPATCHER")
+        log_info("Dispatcher shutdown initiated. Waiting for workers...", "DISPATCHER")
+        # Ensure all workers wake up
+        for _ in self._workers:
+             # Put dummy items to unblock .get() if they are waiting, 
+             # though timeout handles it eventually.
+             pass
+

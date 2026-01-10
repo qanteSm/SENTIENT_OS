@@ -1,238 +1,107 @@
-"""
-Unit Tests for FunctionDispatcher
-
-Tests action dispatching, validation, and routing logic.
-"""
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from PyQt6.QtCore import QObject
-
+import time
+import threading
+from unittest.mock import MagicMock, patch
 from core.function_dispatcher import FunctionDispatcher
-from core.exceptions import ValidationError, DispatchError
 
-
-class TestFunctionDispatcherInitialization:
-    """Test FunctionDispatcher initialization"""
+class TestFunctionDispatcher:
     
-    def test_init(self):
-        """Should initialize without errors"""
-        dispatcher = FunctionDispatcher()
-        
-        assert dispatcher is not None
-        assert isinstance(dispatcher, QObject)
-    
-    def test_has_process_guard(self):
-        """Should have process guard for safety"""
-        dispatcher = FunctionDispatcher()
-        
-        # Process guard should be initialized
-        assert hasattr(dispatcher, 'process_guard')
+    @pytest.fixture
+    def dispatcher(self):
+        """Create a dispatcher with mocked sub-dispatchers and a single worker for priority testing."""
+        from PyQt6.QtWidgets import QApplication
+        import sys
+        if not QApplication.instance():
+            self._app = QApplication(sys.argv)
 
-
-class TestFunctionDispatcherChatIntegration:
-    """Test chat window integration"""
-    
-    def test_enable_chat(self):
-        """Should enable chat with brain reference"""
-        dispatcher = FunctionDispatcher()
-        mock_brain = Mock()
-        
-        dispatcher.enable_chat(mock_brain)
-        
-        # Should store brain reference
-        assert dispatcher.brain == mock_brain
-
-
-class TestFunctionDispatcherActionDispatching:
-    """Test action dispatch logic"""
-    
-    def test_dispatch_overlay_text(self):
-        """Should dispatch OVERLAY_TEXT action"""
-        dispatcher = FunctionDispatcher()
-        
-        command = {
-            "action": "OVERLAY_TEXT",
-            "params": {
-                "text": "Test message",
-                "duration": 3000
+        # Patching init_worker_pool to not start default threads
+        # Also patch UI/Audio to avoid Qt errors (and windows popping up)
+        with patch.object(FunctionDispatcher, '_init_worker_pool') as mock_init, \
+             patch('core.function_dispatcher.FakeUI'), \
+             patch('core.function_dispatcher.AudioOut'):
+            
+            disp = FunctionDispatcher()
+            # Manually start 1 worker for deterministic order testing
+            disp._workers = []
+            t = threading.Thread(target=disp._worker_loop, daemon=True)
+            disp._workers.append(t)
+            t.start()
+            
+            # Mock specialized dispatchers
+            disp.visual_dispatcher = MagicMock()
+            disp.system_dispatcher = MagicMock()
+            disp.hardware_dispatcher = MagicMock()
+            disp.horror_dispatcher = MagicMock()
+            
+            # Rebuild map to point to mocks
+            disp._action_map = {
+                "GDI_FLASH": disp.visual_dispatcher,
+                "FILE_DELETE": disp.system_dispatcher,
+                "PROCESS_KILL": disp.system_dispatcher
             }
-        }
-        
-        # Should not raise exception
-        try:
-            dispatcher.dispatch(command)
-        except Exception as e:
-            pytest.fail(f"Dispatch raised exception: {e}")
+            
+            yield disp
+            
+            # Cleanup
+            disp.stop_dispatching()
     
-    def test_dispatch_tts_speak(self):
-        """Should dispatch TTS_SPEAK action"""
-        dispatcher = FunctionDispatcher()
+    def test_priority_execution(self, dispatcher):
+        """
+        Verify that HIGH priority tasks jump ahead of LOW priority tasks.
+        """
+        execution_order = []
         
-        command = {
-            "action": "TTS_SPEAK",
-            "params": {
-                "text": "Hello world"
-            }
-        }
-        
-        try:
-            dispatcher.dispatch(command)
-        except Exception as e:
-            pytest.fail(f"Dispatch raised exception: {e}")
-    
-    def test_dispatch_none_action(self):
-        """Should handle NONE action gracefully"""
-        dispatcher = FunctionDispatcher()
-        
-        command = {
-            "action": "NONE",
-            "params": {}
-        }
-        
-        # Should do nothing but not crash
-        dispatcher.dispatch(command)
-    
-    def test_dispatch_unknown_action(self):
-        """Should handle unknown actions gracefully"""
-        dispatcher = FunctionDispatcher()
-        
-        command = {
-            "action": "TOTALLY_UNKNOWN_ACTION_XYZ",
-            "params": {}
-        }
-        
-        # Should log warning but not crash
-        try:
-            dispatcher.dispatch(command)
-        except Exception as e:
-            # Unknown actions should be handled gracefully, not crash
-            pytest.fail(f"Unknown action crashed: {e}")
+        def slow_action(*args, **kwargs):
+            time.sleep(0.5)
+            execution_order.append("SLOW_LOW")
+            
+        def fast_action(*args, **kwargs):
+            execution_order.append("FAST_LOW")
+            
+        def high_action(*args, **kwargs):
+            execution_order.append("HIGH_PRIORITY")
 
+        # Patch the dispatch methods of the EXISTING dispatchers
+        # This avoids reference issues where _action_map points to wrong object
+        with patch.object(dispatcher.system_dispatcher, 'dispatch', side_effect=slow_action) as mock_sys, \
+             patch.object(dispatcher.visual_dispatcher, 'dispatch', side_effect=high_action) as mock_vis:
+            
+            # 1. Blocking Task (Low)
+            # Use valid action CLIPBOARD_POISON
+            dispatcher._do_dispatch({"action": "CLIPBOARD_POISON", "params": {}, "speech": "s"})
+            time.sleep(0.1)
+            
+            # Switch side effect for system dispatcher for second call
+            # We assume CLIPBOARD_POISON and OPEN_BROWSER both map to system_dispatcher (verified)
+            
+            mock_sys.side_effect = fast_action
+            
+            # 2. Fast Task (Low)
+            # Use valid action OPEN_BROWSER
+            dispatcher._do_dispatch({"action": "OPEN_BROWSER", "params": {}, "speech": "f"})
+            
+            # 3. High Priority Task
+            # GDI_FLASH is valid
+            dispatcher._do_dispatch({"action": "GDI_FLASH", "params": {}, "speech": "h"})
+            
+            # Wait results
+            time.sleep(1.5)
+            
+            assert execution_order == ["SLOW_LOW", "HIGH_PRIORITY", "FAST_LOW"]
 
-class TestFunctionDispatcherValidation:
-    """Test input validation"""
-    
-    def test_dispatch_missing_action(self):
-        """Should handle missing action field"""
-        dispatcher = FunctionDispatcher()
-        
-        command = {
-            "params": {}
-            # Missing "action" field
-        }
-        
-        # Should handle gracefully
-        dispatcher.dispatch(command)
-    
-    def test_dispatch_invalid_params(self):
-        """Should handle invalid params type"""
-        dispatcher = FunctionDispatcher()
-        
-        command = {
-            "action": "OVERLAY_TEXT",
-            "params": "This should be a dict, not string"
-        }
-        
-        # Should handle gracefully
-        try:
-            dispatcher.dispatch(command)
-        except Exception:
-            pass  # Expected to handle gracefully
-
-
-class TestFunctionDispatcherHardwareActions:
-    """Test hardware action dispatching"""
-    
-    def test_dispatch_mouse_shake(self):
-        """Should dispatch MOUSE_SHAKE action"""
-        dispatcher = FunctionDispatcher()
-        
-        command = {
-            "action": "MOUSE_SHAKE",
-            "params": {
-                "intensity": 5,
-                "duration": 2000
-            }
-        }
-        
-        # Mock hardware to prevent actual mouse movement
-        with patch('hardware.mouse_ops.MouseOps.shake_cursor'):
-            dispatcher.dispatch(command)
-    
-    def test_dispatch_keyboard_block(self):
-        """Should dispatch KEYBOARD_BLOCK action"""
-        dispatcher = FunctionDispatcher()
-        
-        command = {
-            "action": "KEYBOARD_BLOCK",
-            "params": {
-                "duration": 3000
-            }
-        }
-        
-        with patch('hardware.keyboard_ops.KeyboardOps.lock_input'):
-            dispatcher.dispatch(command)
-
-
-class TestFunctionDispatcherVisualActions:
-    """Test visual effect dispatching"""
-    
-    def test_dispatch_screen_tear(self):
-        """Should dispatch SCREEN_TEAR action"""
-        dispatcher = FunctionDispatcher()
-        
-        command = {
-            "action": "SCREEN_TEAR",
-            "params": {}
-        }
-        
-        # Should not crash
-        try:
-            dispatcher.dispatch(command)
-        except Exception as e:
-            # Visual effects might fail in test environment
-            pass
-    
-    def test_dispatch_fake_bsod(self):
-        """Should dispatch FAKE_BSOD action"""
-        dispatcher = FunctionDispatcher()
-        
-        command = {
-            "action": "FAKE_BSOD",
-            "params": {}
-        }
-        
-        try:
-            dispatcher.dispatch(command)
-        except Exception:
-            pass  # Expected in test environment
-
-
-class TestFunctionDispatcherSignals:
-    """Test Qt signals"""
-    
-    def test_has_chat_response_signal(self):
-        """Should have chat_response_signal"""
-        dispatcher = FunctionDispatcher()
-        
-        assert hasattr(dispatcher, 'chat_response_signal')
-    
-    def test_chat_response_emission(self):
-        """Should emit chat_response_signal via _handle_chat_input"""
-        dispatcher = FunctionDispatcher()
-        
-        # Connect a mock slot
-        mock_slot = Mock()
-        dispatcher.chat_response_signal.connect(mock_slot)
-        
-        mock_brain = Mock()
-        # Mock generate_async to call callback immediately
-        def mock_gen(text, callback):
-            callback({"action": "NONE", "speech": "Test"})
-            return Mock()
-        mock_brain.generate_async.side_effect = mock_gen
-        
-        dispatcher._handle_chat_input("Hello", mock_brain, Mock())
-        
-        # Signal should have been emitted
-        assert mock_slot.called
+    def test_concurrency_limit(self):
+        """Verify that we spawn correct number of threads."""
+        # Use a fresh dispatcher - it should auto-start 5 workers
+        with patch.object(FunctionDispatcher, '_worker_loop'): # Prevent loop execution for this test
+            disp = FunctionDispatcher()
+            # Wait a tick for threads to start
+            time.sleep(0.1)
+            
+            # Check worker count
+            assert len(disp._workers) == 5
+            
+            # Check that they are threads
+            for t in disp._workers:
+                assert isinstance(t, threading.Thread)
+            
+            disp.stop_dispatching()

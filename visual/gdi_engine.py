@@ -33,6 +33,23 @@ class GDIEngine:
         win32gui.ReleaseDC(0, dc)
 
     @classmethod
+    def get_virtual_screen_rect(cls):
+        """Returns (x, y, w, h) for the entire virtual screen (all monitors)."""
+        if not HAS_WIN32: return (0, 0, 1920, 1080)
+        
+        # Virtual Screen Metrics
+        SM_XVIRTUALSCREEN = 76
+        SM_YVIRTUALSCREEN = 77
+        SM_CXVIRTUALSCREEN = 78
+        SM_CYVIRTUALSCREEN = 79
+        
+        x = win32api.GetSystemMetrics(SM_XVIRTUALSCREEN)
+        y = win32api.GetSystemMetrics(SM_YVIRTUALSCREEN)
+        w = win32api.GetSystemMetrics(SM_CXVIRTUALSCREEN)
+        h = win32api.GetSystemMetrics(SM_CYVIRTUALSCREEN)
+        return (x, y, w, h)
+
+    @classmethod
     def draw_static_noise(cls, area: Tuple[int, int, int, int] = None, density=0.01, duration_ms=500):
         """
         Optimized: Draws random black/white blocks (static) directly on the screen.
@@ -43,10 +60,10 @@ class GDIEngine:
             return
 
         dc = cls.get_screen_dc()
-        screen_w = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
-        screen_h = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
+        vx, vy, vw, vh = cls.get_virtual_screen_rect()
         
-        x, y, w, h = area or (0, 0, screen_w, screen_h)
+        # Default to full virtual screen if no area specified
+        x, y, w, h = area or (vx, vy, vw, vh)
         
         end_time = time.time() + (duration_ms / 1000.0)
         
@@ -83,21 +100,17 @@ class GDIEngine:
             return
 
         dc = cls.get_screen_dc()
-        w = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
-        h = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
+        x, y, w, h = cls.get_virtual_screen_rect()
         
         # PATINVERT uses the destination bits and PATTERN
         # DSTINVERT simply inverts the destination bits
         try:
-            # PATINVERT uses the destination bits and PATTERN
-            # DSTINVERT simply inverts the destination bits
-            
             # SAFE MODE: If strobe is disabled, make the inversion longer and less 'flickery'
             duration = duration_ms if Config().get("ENABLE_STROBE", False) else (duration_ms * 3)
             
-            win32gui.BitBlt(dc, 0, 0, w, h, dc, 0, 0, win32con.DSTINVERT)
+            win32gui.BitBlt(dc, x, y, w, h, dc, 0, 0, win32con.DSTINVERT)
             time.sleep(duration / 1000.0)
-            win32gui.BitBlt(dc, 0, 0, w, h, dc, 0, 0, win32con.DSTINVERT) # Revert
+            win32gui.BitBlt(dc, x, y, w, h, dc, 0, 0, win32con.DSTINVERT) # Revert
         finally:
             cls.release_dc(dc)
 
@@ -107,15 +120,14 @@ class GDIEngine:
         if not HAS_WIN32: return
         
         dc = cls.get_screen_dc()
-        w = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
-        h = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
+        vx, vy, vw, vh = cls.get_virtual_screen_rect()
         
         try:
             pen = win32gui.CreatePen(win32con.PS_SOLID, thickness, color)
             old_pen = win32gui.SelectObject(dc, pen)
             
-            x1, y1 = random.randint(0, w), random.randint(0, h)
-            x2, y2 = random.randint(0, w), random.randint(0, h)
+            x1, y1 = random.randint(vx, vx + vw), random.randint(vy, vy + vh)
+            x2, y2 = random.randint(vx, vx + vw), random.randint(vy, vy + vh)
             
             win32gui.MoveToEx(dc, x1, y1)
             win32gui.LineTo(dc, x2, y2)
@@ -131,8 +143,7 @@ class GDIEngine:
         if not HAS_WIN32: return
         
         dc = cls.get_screen_dc()
-        w = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
-        h = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
+        x, y, w, h = cls.get_virtual_screen_rect()
         
         try:
             # SAFE MODE: Red flashing is a major seizure trigger. Suppress if not enabled.
@@ -144,9 +155,9 @@ class GDIEngine:
             old_brush = win32gui.SelectObject(dc, brush)
             
             # Use PATINVERT for a ghostly flicker effect instead of solid fill
-            win32gui.PatBlt(dc, 0, 0, w, h, win32con.PATINVERT)
+            win32gui.PatBlt(dc, x, y, w, h, win32con.PATINVERT)
             time.sleep(0.05)
-            win32gui.PatBlt(dc, 0, 0, w, h, win32con.PATINVERT)
+            win32gui.PatBlt(dc, x, y, w, h, win32con.PATINVERT)
             
             win32gui.SelectObject(dc, old_brush)
             win32gui.DeleteObject(brush)
