@@ -141,24 +141,42 @@ class DroneAudioLayer:
         volume = 0.2 + (intensity / 10) * 0.3
         self.set_volume(volume)
     
-    def fade_to(self, drone_type: str, duration=3000):
+    def fade_to(self, drone_type: str, duration=2000):
         """
-        Crossfade to a different drone.
-        
-        Args:
-            drone_type: Target drone type
-            duration: Fade duration in milliseconds
+        Crossfade to a different drone smoothly.
         """
-        if not self.enabled:
+        if not self.enabled or drone_type == self.current_drone:
             return
         
-        # TODO: Implement smooth crossfade
-        # For now, just switch
-        print(f"[DRONE_AUDIO] Fading to: {drone_type}")
-        self.stop()
+        print(f"[DRONE_AUDIO] Fading from {self.current_drone} to {drone_type}")
         
-        from PyQt6.QtCore import QTimer
-        QTimer.singleShot(100, lambda: self.start_drone(drone_type))
+        steps = 10
+        step_duration = duration // steps
+        original_volume = self.volume
+        
+        def _fade_out_step(step):
+            if not self.enabled: return
+            if step > 0:
+                # Fade out current
+                new_vol = original_volume * (step / steps)
+                if self.current_sound:
+                    self.current_sound.set_volume(new_vol)
+                QTimer.singleShot(step_duration, lambda: _fade_out_step(step - 1))
+            else:
+                # Start new drone
+                self.stop()
+                self.start_drone(drone_type)
+                # Fade in new
+                self._fade_in_step(0, steps, original_volume, step_duration)
+
+        _fade_out_step(steps)
+
+    def _fade_in_step(self, step, total_steps, target_volume, step_duration):
+        if not self.enabled or not self.current_sound: return
+        if step <= total_steps:
+            new_vol = target_volume * (step / total_steps)
+            self.current_sound.set_volume(new_vol)
+            QTimer.singleShot(step_duration, lambda: self._fade_in_step(step + 1, total_steps, target_volume, step_duration))
     
     def set_act_drone(self, act_num: int):
         """

@@ -51,7 +51,7 @@ class IconOps:
                         "name": item.Name,
                         "path": item.Path
                     }
-                except:
+                except Exception:
                     continue
             
             # Save to file
@@ -61,10 +61,7 @@ class IconOps:
             print(f"[ICONS] Saved positions of {len(positions)} icons")
             
             # YENİ: StateManager'a kaydet
-            try:
-                from core.state_manager import StateManager
-                StateManager().update_state("icons_scrambled", True)
-            except:
+            except Exception:
                 pass
                 
             return True
@@ -86,7 +83,7 @@ class IconOps:
             print("[MOCK] ICON POSITIONS RESTORED")
             try:
                 os.remove(IconOps._backup_file)
-            except:
+            except Exception:
                 pass
             return
         
@@ -107,7 +104,7 @@ class IconOps:
             try:
                 from core.state_manager import StateManager
                 StateManager().remove_state("icons_scrambled")
-            except:
+            except Exception:
                 pass
                 
         except Exception as e:

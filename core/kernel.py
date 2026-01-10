@@ -237,60 +237,63 @@ class SentientKernel:
         """Graceful and robust shutdown of all systems."""
         log_info("Initiating System Shutdown...", "CLEANUP")
         
-        # Disable future signals to avoid recursion if something fails during cleanup
+        # Disable future signals 
         try:
             bus.unsubscribe("system.shutdown")
-        except: pass
+        except Exception: pass
 
         try:
-            # 0. Stop Dispatcher first to prevent "bursts" during cleanup
+            # 0. Stop Dispatcher first 
             if self.dispatcher:
+                log_info("Stopping Dispatcher...", "CLEANUP")
                 self.dispatcher.stop_dispatching()
 
-            # Cleanup Resilience Session (Signals guard to stop)
-            if self.resilience:
-                self.resilience.cleanup_session()
-                
             # 1. STOP ALL AUTONOMY (Threads first)
-            if self.silence_breaker:
-                self.silence_breaker.stop()
+            log_info("Stopping Autonomous Threads...", "CLEANUP")
+            cleanup_targets = [
+                (self.silence_breaker, "SilenceBreaker"),
+                (self.ambient_horror, "AmbientHorror"),
+                (self.drone_audio, "DroneAudio"),
+                (self.resource_guard, "ResourceGuard"),
+                (self.panic_sensor, "PanicSensor"),
+                (self.heartbeat, "Heartbeat"),
+                (self.presence_sensor, "PresenceSensor"),
+                (self.window_sensor, "WindowSensor")
+            ]
             
-            if self.ambient_horror:
-                self.ambient_horror.stop()
-            
-            if self.drone_audio:
-                self.drone_audio.stop()
-            
-            if self.resource_guard:
-                self.resource_guard.stop()
-                
-            if self.panic_sensor:
-                self.panic_sensor.stop()
-            
-            if self.heartbeat:
-                self.heartbeat.stop()
-            
-            if self.presence_sensor:
-                self.presence_sensor.stop()
-            
-            if self.window_sensor:
-                self.window_sensor.stop()
+            for target, name in cleanup_targets:
+                if target:
+                    try:
+                        target.stop()
+                        log_info(f" - {name} stopped.", "CLEANUP")
+                    except Exception as e:
+                        log_error(f" - Failed to stop {name}: {e}", "CLEANUP")
 
             # 2. HARDWARE RESTORE (Critical)
             log_info("Restoring system hardware state...", "CLEANUP")
-            WindowOps.restore_all_windows()
-            IconOps.restore_icon_positions()
-            BrightnessOps.restore_brightness()
-            WallpaperOps.restore_wallpaper()
+            try: WindowOps.restore_all_windows()
+            except Exception as e: log_error(f"Window restore failed: {e}", "CLEANUP")
+            
+            try: IconOps.restore_icon_positions()
+            except Exception as e: log_error(f"Icon restore failed: {e}", "CLEANUP")
+            
+            try: BrightnessOps.restore_brightness()
+            except Exception as e: log_error(f"Brightness restore failed: {e}", "CLEANUP")
+            
+            try: WallpaperOps.restore_wallpaper()
+            except Exception as e: log_error(f"Wallpaper restore failed: {e}", "CLEANUP")
             
             # 3. Component Cleanup
+            if self.resilience:
+                self.resilience.cleanup_session()
+                
             if self.state_manager:
                 self.state_manager.clear_all()
             
             if self.memory:
                 self.memory.shutdown()
                 
-            print("[CLEANUP] All subsystems stabilized.")
+            log_info("All subsystems stabilized.", "CLEANUP")
         except Exception as e:
             log_error(f"Error during shutdown: {e}", "CLEANUP")
         

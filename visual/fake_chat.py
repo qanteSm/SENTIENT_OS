@@ -177,7 +177,9 @@ class FakeChat(QWidget):
                     label.setText(temp_text)
                     # Auto-scroll
                     self.scroll.verticalScrollBar().setValue(self.scroll.verticalScrollBar().maximum())
-                except:
+                except Exception as e:
+                    from core.logger import log_warning
+                    log_warning(f"Chat Typewriter update failed: {e}", "VISUAL")
                     return
 
                 QTimer.singleShot(delay, next_char)
