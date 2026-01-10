@@ -164,7 +164,9 @@ class FileSystemAwareness:
             prompt_addon += "UYARI: Bu klasörlerin İSİMLERİNİ tehdit için kullanabilirsin, ama ASLA silme!\n"
         
         if files:
-            prompt_addon += f"Dosyalar: {', '.join(files[:5])}\n"
+            # Handle list of tuples (name, score)
+            file_names = [f[0] if isinstance(f, tuple) else f for f in files[:5]]
+            prompt_addon += f"Dosyalar: {', '.join(file_names)}\n"
             prompt_addon += "Örnek: 'Tatil Fotoğrafları klasörünü silmemi ister misin?'\n"
         
         return prompt_addon

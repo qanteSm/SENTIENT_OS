@@ -92,6 +92,14 @@ class Memory:
         self.load()
         self._update_session()
         self._start_auto_save()
+        
+    def update_user_profile(self, key: str, value):
+        """Updates a specific field in the user profile."""
+        if key in self.data["user_profile"]:
+            self.data["user_profile"][key] = value
+            self._dirty = True
+        else:
+            print(f"[MEMORY] Warning: Attempted to update unknown user profile key: {key}")
 
     def _get_user_name(self):
         try:

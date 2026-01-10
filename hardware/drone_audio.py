@@ -13,6 +13,7 @@ FEATURES:
 
 import os
 from pathlib import Path
+from PyQt6.QtCore import QTimer
 
 try:
     import pygame

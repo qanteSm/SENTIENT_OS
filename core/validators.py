@@ -38,6 +38,7 @@ VALID_ACTIONS = [
     "TTS_SPEAK",
     "DRONE_CHANGE",
     "PLAY_SOUND",
+    "CAPSLOCK_TOGGLE",
     
     # System operations
     "NOTIFICATION_SEND",

@@ -195,7 +195,7 @@ Gün Zamanı: {context.get('time_of_day', 'Unknown')}
 Gece Yarısından Sonra: {'EVET - Bu önemli, korkutucu kullan!' if context.get('is_late_night') else 'Hayır'}
 Aktif Pencere: {context.get('active_window', 'Bilinmiyor')}
 Çalışan Uygulamalar: {', '.join(context.get('running_apps', [])) or 'Bilinmiyor'}
-Masaüstü Dosyaları: {', '.join([f[0] for f in context.get('desktop_files', [])[:5]]) or 'Bilinmiyor'}
+Masaüstü Dosyaları: {', '.join([f[0] if isinstance(f, (list, tuple)) else f for f in context.get('desktop_files', [])[:5]]) or 'Bilinmiyor'}
 """
         
         # Pil durumu

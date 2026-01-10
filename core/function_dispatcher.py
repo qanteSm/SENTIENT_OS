@@ -244,21 +244,29 @@ class FunctionDispatcher(QObject):
         
         log_info(f"Dispatching action: {action}", "DISPATCHER")
         
-        # Handle TTS (immediate, usually)
-        # We can queue this too if we want strict ordering, but TTS should generally start playing as soon as text appears.
-        # For now, let's keep TTS synchronous/immediate unless we move it to queue.
-        # Actually plan said "MEDIUM: Audio/TTS". So let's respect that.
-        
+        # Handle TTS (immediate)
         SILENT_ACTIONS = ["MOUSE_SHAKE", "CLIPBOARD_POISON", "GLITCH_SCREEN",
                           "CAPSLOCK_TOGGLE", "ICON_SCRAMBLE", "BRIGHTNESS_FLICKER"]
         
         if speech and action not in SILENT_ACTIONS:
-             # Queue TTS as a separate 'virtual' action if needed, or just play it here?
-             # For best sync, let's play it here because visual actions might be queued
-             # and we want the voice to match the text appearing in chat.
              self.audio_out.play_tts(speech)
         
+        # --- THREAD SAFETY CHECK ---
+        # Identify actions that interact with QWidgets or GUI elements.
+        # These MUST be executed on the Main Thread.
+        UI_ACTIONS = [
+            # Visual Dispatcher (OverlayManager uses QWidgets)
+            "OVERLAY_TEXT", "FLASH_COLOR", "SHAKE_SCREEN", "SHAKE_CHAT",
+            "ICON_SCRAMBLE", "SCRAMBLE_ICONS",
+            
+            # Fake UI (QWidgets)
+            "WINDOWS_ERROR", "FAKE_BSOD", "FAKE_UPDATE", 
+            "FAKE_NOTIFICATION", "NOTIFICATION_SEND",
+        ]
+        
         # Special cases that need main dispatcher context (UI/Qt stuff usually)
+        # Note: These are now covered by UI_ACTIONS check or below special blocks
+        
         if action == "SHAKE_CHAT":
             intensity = params.get("intensity", 10)
             if self.fake_ui.chat:
@@ -288,12 +296,18 @@ class FunctionDispatcher(QObject):
                 if self.fake_ui.chat:
                     self.fake_ui.chat.shake_window(5)
             return
-        
-        # Determine priority and enqueue
-        priority = self._get_action_priority(action)
-        task = ActionTask(priority=priority, timestamp=time.time(), action=action, params=params, speech=speech)
-        self._action_queue.put(task)
-        log_info(f"Action {action} queued with priority {priority}", "DISPATCHER")
+
+        # EXECUTION ROUTING
+        if action in UI_ACTIONS:
+            # Execute IMMEDIATELY on Main Thread
+            log_info(f"Executing UI action {action} on Main Thread", "DISPATCHER")
+            self._execute_action(action, params, speech)
+        else:
+            # Queue for Worker Thread
+            priority = self._get_action_priority(action)
+            task = ActionTask(priority=priority, timestamp=time.time(), action=action, params=params, speech=speech)
+            self._action_queue.put(task)
+            log_info(f"Action {action} queued with priority {priority}", "DISPATCHER")
 
     def _execute_action(self, action, params, speech):
         """Executed by worker thread."""

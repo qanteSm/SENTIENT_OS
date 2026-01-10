@@ -138,9 +138,14 @@ class IconOps:
             elif pattern == "random":
                 mask.capture_and_mask()
             
-            # Also use GDI for additional noise
+            # Also use GDI for additional noise (in background thread to avoid UI freeze)
             from visual.gdi_engine import GDIEngine
-            GDIEngine.draw_static_noise(duration_ms=1000, density=0.02)
+            import threading
+            threading.Thread(
+                target=GDIEngine.draw_static_noise, 
+                kwargs={"duration_ms": 1000, "density": 0.02},
+                daemon=True
+            ).start()
             
         except Exception as e:
             print(f"[ICONS] Scramble failed: {e}")

@@ -48,5 +48,5 @@ class LocalizationManager:
             return default or key
 
 # Global instance helper
-def tr(key: str) -> str:
-    return LocalizationManager().get(key)
+def tr(key: str, default: str = None) -> str:
+    return LocalizationManager().get(key, default)

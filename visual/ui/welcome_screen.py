@@ -56,7 +56,7 @@ class WelcomeScreen(QWidget):
         self.subtitle.setVisible(False)
         
         # Warning message
-        messages = tr("onboarding.welcome_messages", default_list=[
+        messages = tr("onboarding.welcome_messages", default=[
             "Are you ready to let me in?",
             "Welcome. I've been waiting for you."
         ])
