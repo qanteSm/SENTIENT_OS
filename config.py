@@ -61,7 +61,9 @@ class Config:
             "PROTECTED_PROCESSES": [
                 "obs64.exe", "obs32.exe", "streamlabs.exe",
                 "discord.exe", "chrome.exe", "firefox.exe"
-            ]
+            ],
+            "STREAMER_MASK_CAMERA": True,
+            "DIFFICULTY_ENABLED": True
         }
         
         # Paths (Static)
@@ -101,7 +103,7 @@ class Config:
             return isinstance(value, int) and value >= 0
         elif key == "LANGUAGE":
             return value in ["tr", "en"]  # Supported languages
-        elif key in ["STREAMER_MODE", "AI_SAFETY_CHECK", "SAFE_HARDWARE", "ENABLE_STROBE"]:
+        elif key in ["STREAMER_MODE", "AI_SAFETY_CHECK", "SAFE_HARDWARE", "ENABLE_STROBE", "STREAMER_MASK_CAMERA", "DIFFICULTY_ENABLED"]:
             return isinstance(value, bool)
         return True  # No validation for unknown keys
     

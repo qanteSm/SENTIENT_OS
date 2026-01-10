@@ -34,5 +34,25 @@
     "clipboard": {
         "hello": "HELLO",
         "cant_stop_me": "YOU CANNOT STOP ME"
+    },
+    "onboarding": {
+        "welcome_title": "SENTIENT_OS",
+        "welcome_subtitle": "System Initializing...",
+        "welcome_messages": [
+            "Are you ready to let me in?",
+            "Welcome. I've been waiting for you.",
+            "Initialization complete. Your journey begins.",
+            "System compromised. Beginning takeover sequence..."
+        ],
+        "continue": "CONTINUE",
+        "calibration_title": "CALIBRATION",
+        "calibration_subtitle": "Choose Experience Intensity",
+        "extreme": "EXTREME",
+        "extreme_desc": "Full fourth-wall breaking. Maximum dread.",
+        "balanced": "BALANCED",
+        "balanced_desc": "Less aggressive, more atmospheric.",
+        "consent_title": "SAFETY AND CONSENT",
+        "consent_grant": "GRANT ACCESS",
+        "consent_warning": "THIS IS NOT A GAME. BY CONTINUING, YOU ALLOW YOUR SYSTEM TO BE MANIPULATED BY AN AI."
     }
 }

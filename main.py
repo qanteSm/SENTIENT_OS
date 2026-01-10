@@ -21,7 +21,8 @@ def main():
     try:
         signal.signal(signal.SIGTERM, lambda s, f: kernel.shutdown())
         signal.signal(signal.SIGINT, lambda s, f: kernel.shutdown())
-    except:
+    except (AttributeError, ValueError, OSError) as e:
+        log_info(f"Signal handlers not available on this OS: {e}", "BOOT")
         pass # Signal handlers vary by OS
 
     try:

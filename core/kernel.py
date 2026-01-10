@@ -29,6 +29,7 @@ from visual.ambient_horror import AmbientHorror
 from visual.ui.onboarding_manager import OnboardingManager
 from story.silence_breaker import SilenceBreaker
 from hardware.drone_audio import get_drone_audio
+from core.dynamic_difficulty import DynamicDifficulty
 
 class SentientKernel:
     """
@@ -79,10 +80,13 @@ class SentientKernel:
             
             # Onboarding (replaces simple consent)
             self.onboarding_manager = None
+            
+            # Dynamic Difficulty
+            self.difficulty = None
 
     def boot(self):
         """Initializes the application and shows the mandatory consent screen."""
-        print(f"\n[KERNEL] Booting {Config().get('APP_NAME', 'SENTIENT_OS')} v{Config().get('VERSION', '0.8.0')}...")
+        log_info(f"Booting {Config().get('APP_NAME', 'SENTIENT_OS')} v{Config().get('VERSION', '0.8.0')}...", "KERNEL")
         
         # 1. Initialize Qt Application
         self.app = QApplication(self.app_argv)
@@ -99,7 +103,7 @@ class SentientKernel:
         # No horror effects or        # Check if DEV_MODE - skip onboarding for faster testing
         dev_mode_file = os.path.join(os.path.dirname(__file__), "..", "DEV_MODE.txt")
         if os.path.exists(dev_mode_file):
-            print("[DEV] Skipping onboarding - starting game directly...")
+            log_info("Skipping onboarding - starting game directly...", "DEV")
             self.init_core_systems()
         else:
             # Onboarding (replaces simple consent)
@@ -177,6 +181,11 @@ class SentientKernel:
         # 7. Story Engine
         log_info("Initializing Story Engine...", "KERNEL")
         self.story_manager = StoryManager(self.dispatcher, self.memory, self.brain)
+        
+        # 7.0 Initialize Dynamic Difficulty
+        self.difficulty = DynamicDifficulty(self.memory, self.story_manager)
+        self.story_manager.set_difficulty_system(self.difficulty)
+        self.dispatcher.difficulty = self.difficulty
         
         # 7.1 Initialize Ambient Horror
         self.ambient_horror = AmbientHorror(self.dispatcher)
@@ -258,7 +267,8 @@ class SentientKernel:
                 (self.panic_sensor, "PanicSensor"),
                 (self.heartbeat, "Heartbeat"),
                 (self.presence_sensor, "PresenceSensor"),
-                (self.window_sensor, "WindowSensor")
+                (self.window_sensor, "WindowSensor"),
+                (self.difficulty, "DynamicDifficulty")
             ]
             
             for target, name in cleanup_targets:

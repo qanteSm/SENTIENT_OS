@@ -64,7 +64,8 @@ class StateManager:
             try:
                 os.remove(self._state_file)
                 log_info("System state cleared successfully.", "STATE")
-            except:
+            except (OSError, PermissionError) as e:
+                log_error(f"Failed to remove state file: {e}", "STATE")
                 pass
 
     def emergency_save(self, context=None):

@@ -36,7 +36,8 @@ class CrashHandler:
     def install():
         """Install the global exception hook"""
         sys.excepthook = CrashHandler._handle_exception
-        print("[CRASH] Global crash handler installed")
+        from core.logger import log_info
+        log_info("Global crash handler installed", "CRASH_HANDLER")
     
     @staticmethod
     def _handle_exception(exc_type, exc_value, exc_traceback):
@@ -46,7 +47,8 @@ class CrashHandler:
         """
         # Prevent recursive crash handling
         if CrashHandler._recovery_in_progress:
-            print("[CRASH] Recovery already in progress, aborting")
+            from core.logger import log_warning
+            log_warning("Recovery already in progress, aborting", "CRASH_HANDLER")
             sys.__excepthook__(exc_type, exc_value, exc_traceback)
             return
         
@@ -57,11 +59,8 @@ class CrashHandler:
             exc_type, exc_value, exc_traceback
         ))
         
-        print(f"\n{'='*60}")
-        print("[CRASH] UNHANDLED EXCEPTION CAUGHT")
-        print(f"{'='*60}")
-        print(error_msg)
-        print(f"{'='*60}\n")
+        from core.logger import log_critical
+        log_critical(f"UNHANDLED EXCEPTION CAUGHT:\n{error_msg}", "CRASH_HANDLER")
         
         # Log to file
         CrashHandler._log_error(error_msg)
@@ -70,20 +69,23 @@ class CrashHandler:
         try:
             CrashHandler._emergency_save()
         except Exception as save_error:
-            print(f"[CRASH] Failed to save state: {save_error}")
+            from core.logger import log_error
+            log_error(f"Failed to save state: {save_error}", "CRASH_HANDLER")
         
         # Show fake crash screen (horror moment)
         try:
             CrashHandler._show_fake_crash(error_msg)
         except Exception as ui_error:
-            print(f"[CRASH] Failed to show crash UI: {ui_error}")
+            from core.logger import log_error
+            log_error(f"Failed to show crash UI: {ui_error}", "CRASH_HANDLER")
         
         # Schedule auto-recovery
         if QApplication.instance():
             QTimer.singleShot(3000, CrashHandler._auto_recover)
         else:
             # No Qt app, just exit
-            print("[CRASH] No Qt application, exiting...")
+            from core.logger import log_error
+            log_error("No Qt application, exiting...", "CRASH_HANDLER")
             sys.exit(1)
     
     @staticmethod
@@ -92,8 +94,10 @@ class CrashHandler:
         try:
             from core.logger import log_error
             log_error(f"CRASH:\n{error_msg}", "CRASH_HANDLER")
-        except:
-            # Fallback to simple file logging
+        except (ImportError, AttributeError) as e:
+            # Fallback to simple file logging if logger module fails
+            # Using print here as a last resort since logger failed
+            print(f"[CRASH] Logger unavailable ({e}), using fallback file logging")
             try:
                 crash_log = Path("logs/crash.log")
                 crash_log.parent.mkdir(exist_ok=True)
@@ -105,8 +109,8 @@ class CrashHandler:
                     f.write(f"{'='*60}\n")
                     f.write(error_msg)
                     f.write(f"\n{'='*60}\n\n")
-            except Exception as e:
-                print(f"[CRASH] Cannot log error: {e}")
+            except OSError as file_error:
+                print(f"[CRASH] Cannot log error to file: {file_error}")
     
     @staticmethod
     def _emergency_save():
@@ -117,7 +121,8 @@ class CrashHandler:
             state.emergency_save("CRASH_RECOVERY")
             print("[CRASH] Emergency checkpoint saved")
         except Exception as e:
-            print(f"[CRASH] Emergency save failed: {e}")
+            from core.logger import log_error
+            log_error(f"Emergency save failed: {e}", "CRASH_HANDLER")
     
     @staticmethod
     def _show_fake_crash(error_msg: str):
@@ -148,7 +153,8 @@ class CrashHandler:
                 )
                 print("[CRASH] Fake crash screen displayed via Main Thread")
             except Exception as e:
-                print(f"[CRASH] UI Thread Error: {e}")
+                from core.logger import log_error
+                log_error(f"UI Thread Error: {e}", "CRASH_HANDLER")
 
         # Use QTimer.singleShot(0) to ensure the UI call is queued on the main thread
         app = QApplication.instance()
@@ -157,14 +163,16 @@ class CrashHandler:
             # singleShot safely queues the lambda to the main event loop.
             QTimer.singleShot(0, _trigger_ui)
         else:
-            print("[CRASH] No QApplication instance, cannot show UI")
+            from core.logger import log_error
+            log_error("No QApplication instance, cannot show UI", "CRASH_HANDLER")
     
     @staticmethod
     def _auto_recover():
         """
         Attempt automatic recovery from checkpoint.
         """
-        print("[CRASH] Attempting auto-recovery...")
+        from core.logger import log_info
+        log_info("Attempting auto-recovery...", "CRASH_HANDLER")
         
         try:
             from core.kernel import SentientKernel
@@ -173,7 +181,7 @@ class CrashHandler:
             # Try to load emergency checkpoint
             state = StateManager()
             if state.has_emergency_checkpoint():
-                print("[CRASH] Emergency checkpoint found, restoring...")
+                log_info("Emergency checkpoint found, restoring...", "CRASH_HANDLER")
                 state.restore_from("CRASH_RECOVERY")
             
             # Restart kernel in recovery mode
@@ -185,13 +193,14 @@ class CrashHandler:
                 print("[CRASH] recovery_boot() not available, attempting normal boot")
                 # Don't call boot() again - would cause infinite loop
                 # Instead, just clean up and exit
-                print("[CRASH] Recovery not possible, exiting gracefully")
+                log_error("Recovery not possible, exiting gracefully", "CRASH_HANDLER")
                 if QApplication.instance():
                     QApplication.instance().quit()
         
         except Exception as recovery_error:
-            print(f"[CRASH] Recovery failed: {recovery_error}")
-            print("[CRASH] Exiting application...")
+            from core.logger import log_error
+            log_error(f"Recovery failed: {recovery_error}", "CRASH_HANDLER")
+            log_info("Exiting application...", "CRASH_HANDLER")
             
             if QApplication.instance():
                 QApplication.instance().quit()

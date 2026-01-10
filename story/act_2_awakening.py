@@ -2,6 +2,7 @@ from PyQt6.QtCore import QObject, QTimer, pyqtSignal
 import random
 from core.function_dispatcher import FunctionDispatcher
 from core.gemini_brain import GeminiBrain
+from core.logger import log_info, log_error, log_debug
 
 class Act2Awakening(QObject):
     """
@@ -28,7 +29,7 @@ class Act2Awakening(QObject):
         self.ai_response_ready.connect(self._handle_ai_response)
 
     def start(self):
-        print("[ACT 2] Awakening Phase Started (10 minutes)")
+        log_info("Awakening Phase Started (10 minutes)", "ACT 2")
         
         # DENSIFIED event timeline - aggressive takeover
         events = [
@@ -126,7 +127,8 @@ class Act2Awakening(QObject):
                     p_data = json.loads(data)
                     params.update(p_data)
                     speech = ""
-                except:
+                except (json.JSONDecodeError, ValueError) as e:
+                    log_error(f"JSON parse failed: {e}", "ACT 2")
                     speech = data
             else:
                 speech = data
@@ -141,7 +143,7 @@ class Act2Awakening(QObject):
             self.dispatcher.dispatch(response)
 
     def finish(self):
-        print("[ACT 2] Finished.")
+        log_info("Finished.", "ACT 2")
         self.stop()
         self.act_finished.emit()
 
@@ -151,7 +153,8 @@ class Act2Awakening(QObject):
             try:
                 t.stop()
                 t.deleteLater()
-            except:
+            except (RuntimeError, AttributeError) as e:
+                log_error(f"Timer cleanup failed: {e}", "ACT 2")
                 pass
         self.timers.clear()
-        print("[ACT 2] Timers cleaned up")
+        log_info("Timers cleaned up", "ACT 2")

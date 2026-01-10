@@ -125,10 +125,17 @@ class TestMemoryDiscoveredInfo:
         """Should track discovered desktop files"""
         memory = Memory()
         
-        memory.record_discovered_info("desktop_file", "test.txt")
+        memory.record_discovered_info("desktop_file", ("test.txt", 10))
         
         files = memory.data["discovered_info"]["desktop_files_seen"]
-        assert "test.txt" in files
+        # Now it's a list of dicts or strings (robust)
+        # Check if any entry has the name
+        def match(f):
+            if isinstance(f, dict):
+                return f.get("name") == "test.txt"
+            return str(f) == "test.txt"
+            
+        assert any(match(f) for f in files)
     
     def test_record_hostname(self):
         """Should track hostname"""

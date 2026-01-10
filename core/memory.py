@@ -242,10 +242,49 @@ class Memory:
         discovered = self.data["discovered_info"]
         
         if info_type == "desktop_file":
-            if value not in discovered["desktop_files_seen"]:
-                discovered["desktop_files_seen"].append(value)
-                # Son 20 dosya
-                discovered["desktop_files_seen"] = discovered["desktop_files_seen"][-20:]
+            # Backward compatibility: value might be a string or (filename, score)
+            if isinstance(value, str):
+                filename = value
+                from core.file_awareness import FileSystemAwareness
+                score = FileSystemAwareness.score_file(filename)
+            else:
+                filename, score = value
+            
+            # Check if exists
+            exists = False
+            for entry in discovered["desktop_files_seen"]:
+                if isinstance(entry, dict):
+                    if entry.get("name") == filename:
+                        exists = True
+                        break
+                elif str(entry) == filename:
+                    exists = True
+                    break
+            
+                # Legacy Sanitization: Convert strings to dicts
+                sanitized = []
+                for entry in discovered["desktop_files_seen"]:
+                    if isinstance(entry, dict):
+                        sanitized.append(entry)
+                    else:
+                        from core.file_awareness import FileSystemAwareness
+                        sanitized.append({
+                            "name": str(entry),
+                            "score": FileSystemAwareness.score_file(str(entry)),
+                            "timestamp": time.time()
+                        })
+                
+                discovered["desktop_files_seen"] = sanitized
+                
+                discovered["desktop_files_seen"].append({
+                    "name": filename,
+                    "score": score,
+                    "timestamp": time.time()
+                })
+                # Sort by score descending
+                discovered["desktop_files_seen"].sort(key=lambda x: x.get("score", 0), reverse=True)
+                # Keep top 20
+                discovered["desktop_files_seen"] = discovered["desktop_files_seen"][:20]
         
         elif info_type == "app":
             if value not in discovered["apps_detected"]:
@@ -265,8 +304,17 @@ class Memory:
         parts = []
         
         if discovered["desktop_files_seen"]:
-            files = ", ".join(discovered["desktop_files_seen"][-3:])
-            parts.append(f"Masaüstü dosyaları: {files}")
+            # Prioritize top 3 high score files
+            # Robustness: Handle both dict (new) and string (legacy)
+            files = []
+            for f in discovered["desktop_files_seen"][:3]:
+                if isinstance(f, dict):
+                    files.append(f["name"])
+                else:
+                    files.append(str(f))
+            
+            files_str = ", ".join(files)
+            parts.append(f"Masaüstü dosyaları (Önemli): {files_str}")
         
         if discovered["apps_detected"]:
             apps = ", ".join(discovered["apps_detected"][-3:])
@@ -401,7 +449,8 @@ class Memory:
                 try:
                     import shutil
                     shutil.copy2(self.filepath, backup_path)
-                except:
+                except (OSError, IOError) as backup_error:
+                    print(f"[MEMORY] Backup creation failed: {backup_error}")
                     pass
             
             temp_path = self.filepath + ".tmp"

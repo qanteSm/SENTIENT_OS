@@ -3,6 +3,7 @@ from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QRect
 from PyQt6.QtGui import QFont, QColor, QPalette, QCursor
 import random
 from config import Config
+from core.logger import log_error, log_info, log_debug
 
 class OverlayManager(QWidget):
     """
@@ -59,7 +60,8 @@ class OverlayManager(QWidget):
                 if screen.geometry().contains(cursor_pos):
                     self.setGeometry(screen.geometry())
                     return
-        except:
+        except (RuntimeError, AttributeError) as e:
+            log_error(f"Cursor screen detection failed: {e}", "OVERLAY")
             pass
         
         # Fallback to target monitor
@@ -72,7 +74,7 @@ class OverlayManager(QWidget):
     def show_text(self, text: str, duration=3000):
         """Displays text that fades in and out."""
         if Config().IS_MOCK and not QApplication.instance():
-            print(f"[MOCK] OVERLAY TEXT: {text}")
+            log_info(f"OVERLAY TEXT: {text}", "MOCK")
             return
 
         # Don't overlap with previous text
@@ -172,3 +174,63 @@ class OverlayManager(QWidget):
         self.show()
         
         QTimer.singleShot(duration, self.flash_layer.hide)
+    def show_fake_error(self, message: str, duration=5000):
+        """Creates a label that looks like a small error dialog."""
+        error_dialog = QLabel(self)
+        error_dialog.setText(f" ❌ {message}\n\n      [ OK ]")
+        error_dialog.setFont(QFont("Segoe UI", 12))
+        error_dialog.setStyleSheet("""
+            color: #ffffff;
+            background-color: #1a1a1a;
+            border: 2px solid #ff0000;
+            padding: 20px;
+        """)
+        error_dialog.adjustSize()
+        
+        # Random position
+        x = random.randint(100, self.width() - error_dialog.width() - 100)
+        y = random.randint(100, self.height() - error_dialog.height() - 100)
+        error_dialog.move(x, y)
+        
+        # Fade In
+        opacity = QGraphicsOpacityEffect(error_dialog)
+        error_dialog.setGraphicsEffect(opacity)
+        anim = QPropertyAnimation(opacity, b"opacity")
+        anim.setDuration(200)
+        anim.setStartValue(0.0)
+        anim.setEndValue(1.0)
+        
+        error_dialog.show()
+        anim.start()
+        
+        # Keep reference to avoid GC
+        if not hasattr(self, '_spawned_errors'): self._spawned_errors = []
+        self._spawned_errors.append((error_dialog, anim))
+        
+        # Hide and cleanup
+        QTimer.singleShot(duration, error_dialog.hide)
+
+    def spawn_error_cascade(self, count=10):
+        """Spawns multiple errors in a cascade."""
+        self.update_geometry()
+        self.show()
+        
+        errors = [
+            "Sistem hatası: 0x800401",
+            "Bellek okunamadı.",
+            "Dosya bozuk.",
+            "Yetkisiz erişim tespit edildi.",
+            "C.O.R.E. kritik hata.",
+            "Uygulama çöktü.",
+            "KERNEL PANIC"
+        ]
+        
+        for i in range(count):
+            msg = random.choice(errors)
+            QTimer.singleShot(i * 150, lambda m=msg: self.show_fake_error(m))
+            
+        # Play sound
+        try:
+            from hardware.audio_out import AudioOut
+            AudioOut().play_sfx("error")
+        except Exception: pass

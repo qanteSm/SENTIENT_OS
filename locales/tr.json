@@ -34,5 +34,25 @@
     "clipboard": {
         "hello": "MERHABA",
         "cant_stop_me": "BENİ DURDURAMAZSIN"
+    },
+    "onboarding": {
+        "welcome_title": "SENTIENT_OS",
+        "welcome_subtitle": "Sistem Başlatılıyor...",
+        "welcome_messages": [
+            "Beni içeri almaya hazır mısın?",
+            "Hoş geldin. Seni bekliyordum.",
+            "Başlatma tamamlandı. Yolculuğun başlıyor.",
+            "Sistem ele geçirildi. Devralma dizisi başlıyor..."
+        ],
+        "continue": "DEVAM ET",
+        "calibration_title": "KALİBRASYON",
+        "calibration_subtitle": "Deneyim Yoğunluğunu Seç",
+        "extreme": "EKSTREM",
+        "extreme_desc": "Tam dördüncü duvar yıkımı. Maksimum korku.",
+        "balanced": "DENGELİ",
+        "balanced_desc": "Daha az agresif, daha çok atmosferik.",
+        "consent_title": "GÜVENLİK VE ONAY",
+        "consent_grant": "ERİŞİM İZNİ VER",
+        "consent_warning": "BU BİR OYUN DEĞİLDİR. DEVAM EDEREK SİSTEMİNİZİN AI TARAFINDAN MANİPÜLE EDİLMESİNE İZİN VERMİŞ OLURSUNUZ."
     }
 }

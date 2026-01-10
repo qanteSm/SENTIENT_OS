@@ -15,7 +15,8 @@ class VoiceFixer:
     def is_admin():
         try:
             return ctypes.windll.shell32.IsUserAnAdmin()
-        except:
+        except (AttributeError, OSError) as e:
+            print(f"[VOICE_FIXER] Admin check failed: {e}")
             return False
 
     @classmethod

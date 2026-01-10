@@ -7,6 +7,7 @@ import json
 import time
 import shutil
 from config import Config
+from core.logger import log_info, log_error, log_warning
 
 class CheckpointManager:
     """
@@ -52,14 +53,14 @@ class CheckpointManager:
             with open(filepath, 'w', encoding='utf-8') as f:
                 json.dump(checkpoint_data, f, indent=2, ensure_ascii=False)
             
-            print(f"[CHECKPOINT] Created: {name} at {filepath}")
+            log_info(f"Created: {name} at {filepath}", "CHECKPOINT")
             
             # Cleanup old checkpoints
             self._cleanup_old()
             
             return True
         except Exception as e:
-            print(f"[CHECKPOINT] Failed to create: {e}")
+            log_error(f"Failed to create: {e}", "CHECKPOINT")
             return False
     
     def get_latest(self):
@@ -75,7 +76,7 @@ class CheckpointManager:
             with open(latest["path"], 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
-            print(f"[CHECKPOINT] Failed to load latest: {e}")
+            log_error(f"Failed to load latest: {e}", "CHECKPOINT")
             return None
     
     def restore_latest(self):
@@ -85,16 +86,16 @@ class CheckpointManager:
         """
         checkpoint = self.get_latest()
         if not checkpoint:
-            print("[CHECKPOINT] No checkpoints found to restore")
+            log_warning("No checkpoints found to restore", "CHECKPOINT")
             return False
         
         try:
             self.memory.data = checkpoint["data"]
             meta = checkpoint.get("_checkpoint_meta", {})
-            print(f"[CHECKPOINT] Restored from: {meta.get('name', 'unknown')}")
+            log_info(f"Restored from: {meta.get('name', 'unknown')}", "CHECKPOINT")
             return True
         except Exception as e:
-            print(f"[CHECKPOINT] Restore failed: {e}")
+            log_error(f"Restore failed: {e}", "CHECKPOINT")
             return False
     
     def _list_checkpoints(self):
@@ -120,11 +121,10 @@ class CheckpointManager:
                         except ValueError:
                             pass
             
-            # Sort by timestamp
             checkpoints.sort(key=lambda x: x["timestamp"])
             
         except Exception as e:
-            print(f"[CHECKPOINT] Failed to list: {e}")
+            log_error(f"Failed to list: {e}", "CHECKPOINT")
         
         return checkpoints
     
@@ -138,8 +138,9 @@ class CheckpointManager:
             for cp in to_remove:
                 try:
                     os.remove(cp["path"])
-                    print(f"[CHECKPOINT] Cleaned up old: {cp['name']}")
-                except:
+                    log_info(f"Cleaned up old: {cp['name']}", "CHECKPOINT")
+                except (OSError, PermissionError) as e:
+                    log_error(f"Failed to remove {cp['name']}: {e}", "CHECKPOINT")
                     pass
     
     def has_checkpoints(self):

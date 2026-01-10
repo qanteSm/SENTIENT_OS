@@ -98,7 +98,8 @@ class MouseOps:
                 y_offset = random.randint(-8, 8)
                 try:
                     mouse.move(x_offset, y_offset, absolute=False, duration=0)
-                except:
+                except (Exception) as e:
+                    print(f"[MOUSE] Move failed: {e}")
                     pass
                 time.sleep(0.04)
             MouseOps._shaking = False

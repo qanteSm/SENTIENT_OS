@@ -66,5 +66,6 @@ class NotepadOps:
         try:
             app = application.Application().connect(title_re=".*Notepad.*|.*Not Defteri.*")
             app.kill()
-        except:
+        except (Exception) as e:
+            print(f"[NOTEPAD] Close failed: {e}")
             pass

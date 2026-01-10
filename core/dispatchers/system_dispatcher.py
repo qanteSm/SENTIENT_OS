@@ -57,6 +57,7 @@ class SystemDispatcher(BaseDispatcher):
             "WALLPAPER_CHANGE",
             "ICON_SCRAMBLE",
             "NOTIFICATION_SEND",
+            "WINDOWS_ERROR",
         ]
     
     def dispatch(self, action: str, params: Dict[str, Any], speech: str = ""):
@@ -107,3 +108,9 @@ class SystemDispatcher(BaseDispatcher):
         elif action == "OPEN_BROWSER":
             url = params.get("url", "https://google.com")
             self.browser.open_url(url)
+            
+        elif action == "WINDOWS_ERROR":
+            title = params.get("title", "SYSTEM ERROR")
+            message = params.get("message", "A critical error has occurred.")
+            from visual.fake_ui import FakeUI
+            FakeUI().show_system_failure(title=title, message=message, **params)

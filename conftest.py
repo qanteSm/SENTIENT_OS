@@ -28,7 +28,8 @@ def reset_singletons():
         if hasattr(Memory, '_instance'):
             Memory._instance = None
             Memory._initialized = False
-    except:
+    except (ImportError, AttributeError) as e:
+        # Memory module not available in this test context
         pass
     
     yield

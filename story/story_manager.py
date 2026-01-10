@@ -7,6 +7,7 @@ from story.act_1_infection import Act1Infection
 from story.act_2_awakening import Act2Awakening
 from story.act_3_torment import Act3Torment
 from story.act_4_exorcism import Act4Exorcism
+from core.logger import log_info, log_error, log_warning
 
 class StoryManager(QObject):
     """
@@ -37,6 +38,7 @@ class StoryManager(QObject):
         self.ambient_horror = None  # NEW: Ambient horror system
         self.drone_audio = None  # NEW: Drone audio system
         self._is_transitioning = False  # NEW: Transition lock
+        self.difficulty = None
         
         # Load saved act or start from 1
         self.current_act_num = self.memory.get_act()
@@ -46,25 +48,30 @@ class StoryManager(QObject):
         # 1. Check for crash recovery
         if self.checkpoint_manager.has_checkpoints():
             info = self.checkpoint_manager.get_checkpoint_info()
-            print(f"[RECOVERY] Found checkpoint: {info['latest_name']} at {info['latest_time']}")
+            log_info(f"Found checkpoint: {info['latest_name']} at {info['latest_time']}", "RECOVERY")
             
             # Auto-restore if was in middle of act
             self.checkpoint_manager.restore_latest()
             self.current_act_num = self.memory.get_act()
-            print(f"[RECOVERY] Resuming at Act {self.current_act_num}")
+            log_info(f"Resuming at Act {self.current_act_num}", "RECOVERY")
 
-        print(f"[STORY] Starting Story at Act {self.current_act_num}")
+        log_info(f"Starting Story at Act {self.current_act_num}", "STORY")
         self._load_act(self.current_act_num)
     
     def set_ambient_horror(self, ambient_horror):
         """Set ambient horror system and start it"""
         self.ambient_horror = ambient_horror
-        print("[STORY] Ambient horror system connected")
+        log_info("Ambient horror system connected", "STORY")
     
     def set_drone_audio(self, drone_audio):
         """Set drone audio system"""
         self.drone_audio = drone_audio
-        print("[STORY] Drone audio system connected")
+        log_info("Drone audio system connected", "STORY")
+        
+    def set_difficulty_system(self, difficulty):
+        """Set dynamic difficulty system"""
+        self.difficulty = difficulty
+        log_info("Dynamic difficulty system connected", "STORY")
 
     def _load_act(self, act_num: int):
         """Initializes and starts the specific Act class."""
@@ -72,7 +79,8 @@ class StoryManager(QObject):
             # Cleanup previous act if needed
             try:
                 self.current_act_instance.stop()
-            except:
+            except (RuntimeError, AttributeError) as e:
+                log_error(f"Previous act cleanup failed: {e}", "STORY")
                 pass
 
         if act_num == 1:
@@ -84,7 +92,7 @@ class StoryManager(QObject):
         elif act_num == 4:
             self.current_act_instance = Act4Exorcism(self.dispatcher, self.brain)
         else:
-            print("[STORY] Act number out of bounds or End of Story.")
+            log_warning("Act number out of bounds or End of Story.", "STORY")
             self._end_game()
             return
 
@@ -111,7 +119,7 @@ class StoryManager(QObject):
     def next_act(self):
         """Advances to the next act with dramatic transition."""
         if self._is_transitioning:
-            print("[STORY] Already transitioning, ignoring call.")
+            log_info("Already transitioning, ignoring call.", "STORY")
             return
             
         next_act_num = self.current_act_num + 1
@@ -121,7 +129,7 @@ class StoryManager(QObject):
             return
         
         self._is_transitioning = True
-        print(f"[STORY] Transitioning to Act {next_act_num}...")
+        log_info(f"Transitioning to Act {next_act_num}...", "STORY")
         
         # Stop ambient systems during transition
         if self.ambient_horror:
@@ -167,7 +175,7 @@ class StoryManager(QObject):
         act_name = self.ACT_NAMES.get(act_num, "???")
         title_text = f"ACT {act_num}: {act_name}"
         
-        print(f"[STORY] Showing: {title_text}")
+        log_info(f"Showing: {title_text}", "STORY")
         if self.dispatcher.overlay:
             self.dispatcher.overlay.show_text(title_text, 3000)
         

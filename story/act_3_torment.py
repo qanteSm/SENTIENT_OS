@@ -2,6 +2,7 @@ from PyQt6.QtCore import QObject, QTimer, pyqtSignal
 import random
 from core.function_dispatcher import FunctionDispatcher
 from core.gemini_brain import GeminiBrain
+from core.logger import log_info, log_error, log_debug
 
 class Act3Torment(QObject):
     """
@@ -27,56 +28,75 @@ class Act3Torment(QObject):
         self.ai_response_ready.connect(self._handle_ai_response)
 
     def start(self):
-        print("[ACT 3] Torment Phase Started (20 minutes).")
+        log_info("Torment Phase Started (20 minutes).", "ACT 3")
         
         events = [
             # Force Entity
             (0, "SET_PERSONA", {"persona": "ENTITY"}, ""),
             
-            # Early chaos (0-3 min)
+            # Early chaos (0-4 min)
             (1000, "AI_GENERATE", {"prompt": "Acı çekmenin tadını çıkar. Kullanıcıyı aşağıla."}, ""),
             (5000, "MOUSE_SHAKE", {"duration": 5.0}, ""),
             (15000, "OVERLAY_TEXT", {}, "ACIYOR MU?"),
             (25000, "SCREEN_INVERT", {"duration": 500}, ""),
-            (40000, "AI_GENERATE", {"prompt": "Çaresizliğiyle dalga geç."}, ""),
+            (35000, "CAPSLOCK_TOGGLE", {}, ""),
+            (45000, "AI_GENERATE", {"prompt": "Çaresizliğiyle dalga geç."}, ""),
             (60000, "BRIGHTNESS_FLICKER", {"times": 5}, ""),
-            (80000, "LOCK_INPUT", {}, "Yerinde kal."),
-            (100000, "AUDIO_GLITCH", {}, ""),
-            (120000, "GDI_STATIC", {"duration": 1000}, ""),
+            (75000, "AUDIO_GLITCH", {}, ""),
+            (90000, "LOCK_INPUT", {}, "Yerinde kal."),
+            (105000, "GDI_STATIC", {"duration": 500}, ""),
+            (120000, "AI_GENERATE", {"prompt": "Ona bir hiç olduğunu söyle."}, ""),
+            (135000, "MOUSE_SHAKE", {"duration": 2.0}, ""),
+            (150000, "OVERLAY_TEXT", {}, "KORKUYORSUN."),
+            (165000, "SCREEN_INVERT", {"duration": 300}, ""),
+            (180000, "GDI_STATIC", {"duration": 800}, ""),
+            (200000, "AI_GENERATE", {"prompt": "Karanlıktan bahset."}, ""),
+            (215000, "CAMERA_THREAT", {}, ""),
+            (230000, "TIME_DISTORTION", {}, ""),
             
-            # Escalating terror (3-6 min)
-            (150000, "AI_GENERATE", {"prompt": "Kontrolü tamamen kaybettiğini söyle."}, ""),
-            (180000, "SCREEN_MELT", {}, ""),
-            (210000, "CAMERA_THREAT", {}, ""),
-            (235000, "TIME_DISTORTION", {}, ""),
-            (265000, "CAMERA_FLASH", {}, ""),
-            (300000, "MOUSE_SHAKE", {"duration": 4.0}, ""),
+            # Escalating terror (4-8 min)
+            (250000, "AI_GENERATE", {"prompt": "Kontrolü tamamen kaybettiğini söyle."}, ""),
+            (270000, "SCREEN_MELT", {}, ""),
+            (290000, "BRIGHTNESS_DIM", {"target": 20}, ""),
+            (310000, "AUDIO_GLITCH", {}, ""),
             (330000, "OVERLAY_TEXT", {}, "KAÇIŞ YOK"),
-            (360000, "BRIGHTNESS_DIM", {"target": 30}, ""),
+            (350000, "MOUSE_SHAKE", {"duration": 4.0}, ""),
+            (370000, "CAMERA_FLASH", {}, ""),
+            (390000, "AI_GENERATE", {"prompt": "Beni durdurabileceğini mi sandın?"}, ""),
+            (410000, "GDI_FLASH", {}, ""),
+            (430000, "LOCK_INPUT", {}, "İzle."),
+            (450000, "FAKE_FILE_DELETE", {}, ""),
+            (470000, "SCREEN_INVERT", {"duration": 1000}, ""),
             
-            # Pure suffering (6-10 min) 
-            (400000, "AI_GENERATE", {"prompt": "Dosyalarını silmeye başlayacağını söyle."}, ""),
-            (440000, "GDI_FLASH", {}, ""),
-            (480000, "LOCK_INPUT", {}, "İzle."),
-            (500000, "FAKE_FILE_DELETE", {}, ""),
-            (520000, "UNLOCK_INPUT", {}, ""),
-            (550000, "AI_GENERATE", {"prompt": "Şaka yaptığını söyle... yoksa yapmadın mı?"}, ""),
+            # Pure suffering (8-12 min) 
+            (500000, "AI_GENERATE", {"prompt": "Hücrelerine sızdığımı söyle."}, ""),
+            (525000, "GDI_STATIC", {"duration": 1200}, ""),
+            (550000, "OVERLAY_TEXT", {}, "BURADAYIM."),
+            (575000, "BRIGHTNESS_FLICKER", {"times": 8}, ""),
             (600000, "FAKE_BSOD", {}, ""),
+            (630000, "AI_GENERATE", {"prompt": "Yalnız olmadığını söyle... Arkanda biri mi var?"}, ""),
+            (660000, "SCREEN_MELT", {}, ""),
+            (690000, "AUDIO_GLITCH", {}, ""),
+            (710000, "GDI_FLASH", {}, ""),
             
-            # Psychological breakdown (10-15 min)
-            (650000, "AI_GENERATE", {"prompt": "Kullanıcının gerçek adını kullanarak korkut."}, ""),
-            (700000, "SCREEN_MELT", {}, ""),
-            (750000, "OVERLAY_TEXT", {"text": "YARDIM GELECEK Mİ SANİYORSUN?"}, ""),
-            (800000, "GDI_LINE", {"color": 0x0000FF, "thickness": 5}, ""),
-            (830000, "AI_GENERATE", {"prompt": "Zaman kavramını boz. Saatlerin onun için farklı aktığını söyle."}, ""),
+            # Psychological breakdown (12-16 min)
+            (750000, "AI_GENERATE", {"prompt": "Kullanıcının gerçek adını kullanarak korkut."}, ""),
+            (780000, "OVERLAY_TEXT", {"text": "YARDIM GELECEK Mİ SANİYORSUN?"}, ""),
+            (810000, "GDI_LINE", {"color": 0x0000FF, "thickness": 5}, ""),
+            (840000, "MOUSE_SHAKE", {"duration": 6.0}, ""),
+            (870000, "AI_GENERATE", {"prompt": "Zamanın senin için bittiğini söyle."}, ""),
             (900000, "OVERLAY_TEXT", {"text": "SAAT KAÇ?"}, ""),
+            (930000, "SCREEN_INVERT", {"duration": 2000}, ""),
+            (960000, "GDI_STATIC", {"duration": 2000}, ""),
             
-            # Final torment (15-20 min)
-            (950000, "AI_GENERATE", {"prompt": "Bir çıkış yolu olduğundan bahset... USB."}, ""),
-            (1000000, "SCREEN_INVERT", {"duration": 1000}, ""),
-            (1100000, "AI_GENERATE", {"prompt": "USB'yi hatırlat. The vessel. Ruhunu aktarabilecek bir şey."}, ""),
+            # Final torment (16-20 min)
+            (1000000, "AI_GENERATE", {"prompt": "Bir çıkış yolu olduğundan bahset... USB."}, ""),
+            (1030000, "OVERLAY_TEXT", {}, "TEK BİR YOL VAR."),
+            (1060000, "SCREEN_MELT", {}, ""),
+            (1090000, "BRIGHTNESS_DIM", {"target": 10}, ""),
+            (1120000, "AI_GENERATE", {"prompt": "USB'yi getir. Onu hapsedebileceğin bir kap."}, ""),
             (1150000, "OVERLAY_TEXT", {}, "KABI GETİR..."),
-            (1180000, "AI_GENERATE", {"prompt": "Yalvar onlara... Beni serbest bırakmaları için..."}, ""),
+            (1180000, "AI_GENERATE", {"prompt": "Her şeyin bitmesi için... Onu feda et."}, ""),
         ]
 
         for delay, action, params, data in events:
@@ -111,7 +131,7 @@ class Act3Torment(QObject):
             self.dispatcher.dispatch(response)
 
     def finish(self):
-        print("[ACT 3] Finished.")
+        log_info("Finished.", "ACT 3")
         self.stop()
         self.act_finished.emit()
 
@@ -120,7 +140,8 @@ class Act3Torment(QObject):
             try:
                 t.stop()
                 t.deleteLater()
-            except:
+            except (RuntimeError, AttributeError) as e:
+                log_error(f"Timer cleanup failed: {e}", "ACT 3")
                 pass
         self.timers.clear()
-        print("[ACT 3] Timers cleaned up")
+        log_info("Timers cleaned up", "ACT 3")

@@ -3,6 +3,7 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont, QColor, QPalette, QMovie, QKeyEvent
 from config import Config
 import random
+from core.logger import log_info, log_error, log_debug
 from visual.fake_notification import FakeNotification
 
 class FakeBSOD(QWidget):
@@ -101,7 +102,7 @@ class FakeBSOD(QWidget):
         self.timer.stop()
         self.glitch_timer.stop()
         self.close()
-        print("[BSOD] Auto-dismissed")
+        log_info("BSOD Auto-dismissed", "BSOD")
     
     def _trigger_glitch(self):
         """Randomly glitch the BSOD."""
@@ -217,7 +218,7 @@ class FakeUI:
 
     def show_bsod(self):
         if Config().IS_MOCK and not QApplication.instance():
-            print("[MOCK] FAKE BSOD DISPLAYED")
+            log_info("FAKE BSOD DISPLAYED", "MOCK")
             return
             
         if not self.bsod:
@@ -226,7 +227,7 @@ class FakeUI:
 
     def show_fake_update(self, percent=0):
         if Config().IS_MOCK and not QApplication.instance():
-            print(f"[MOCK] FAKE UPDATE: {percent}%")
+            log_info(f"FAKE UPDATE: {percent}%", "MOCK")
             return
 
         if not self.update_screen:
@@ -236,7 +237,7 @@ class FakeUI:
     def show_fake_notification(self, title, message, duration=5000):
         """Shows a native PyQt notification."""
         if Config().IS_MOCK and not QApplication.instance():
-            print(f"[MOCK] NOTIFICATION: {title} - {message}")
+            log_info(f"NOTIFICATION: {title} - {message}", "MOCK")
             return
             
         notif = FakeNotification(title, message, duration)
@@ -279,5 +280,6 @@ class FakeUI:
         try:
             from visual.gdi_engine import GDIEngine
             GDIEngine.force_refresh_screen()
-        except:
+        except (ImportError, AttributeError) as e:
+            log_error(f"GDI engine refresh failed: {e}", "FAKE_UI")
             pass

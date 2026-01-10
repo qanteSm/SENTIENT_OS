@@ -61,6 +61,9 @@ class IconOps:
             print(f"[ICONS] Saved positions of {len(positions)} icons")
             
             # YENİ: StateManager'a kaydet
+            try:
+                from core.state_manager import StateManager
+                StateManager().update_state("icons_scrambled", True)
             except Exception:
                 pass
                 

@@ -2,6 +2,7 @@ from PyQt6.QtCore import QObject, QTimer, pyqtSignal
 from core.localization_manager import tr
 from core.function_dispatcher import FunctionDispatcher
 from core.gemini_brain import GeminiBrain
+from core.logger import log_info, log_error, log_debug
 
 class Act1Infection(QObject):
     # ... (class docstring kept as is) ...
@@ -19,7 +20,7 @@ class Act1Infection(QObject):
         self.ai_response_ready.connect(self._handle_ai_response)
 
     def start(self):
-        print("[ACT 1] Infection Phase Started (8 minutes)")
+        log_info("Infection Phase Started (8 minutes)", "ACT 1")
         
         # DENSIFIED event timeline - using Localized Strings
         events = [
@@ -29,45 +30,54 @@ class Act1Infection(QObject):
             # Phase 1: Uncertainty (0-2min)
             (5000, "OVERLAY_TEXT", {}, "..."),
             (15000, "MOUSE_SHAKE", {"duration": 0.5}, ""),
-            (25000, "AI_GENERATE", {}, f"prompt:{tr('system.scanning_prompt')}"),
+            (22000, "CLIPBOARD_POISON", {"text": "Yardım mı lazım?"}, ""),
+            (30000, "AI_GENERATE", {}, f"prompt:{tr('system.scanning_prompt')}"),
             (40000, "OVERLAY_TEXT", {}, tr("system.scanning")),
+            (48000, "BRIGHTNESS_FLICKER", {"times": 1}, ""),
             (55000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_info") + '", "message":"' + tr("system.background_update") + '"}'),
-            (70000, "BRIGHTNESS_FLICKER", {"times": 1}, ""),
+            (65000, "MOUSE_SHAKE", {"duration": 0.3}, ""),
+            (75000, "BRIGHTNESS_FLICKER", {"times": 1}, ""),
             (85000, "OVERLAY_TEXT", {}, tr("act1.i_see_you")),
-            (100000, "CLIPBOARD_POISON", {"text": tr("clipboard.hello")}, ""),
-            (115000, "MOUSE_SHAKE", {"duration": 0.3}, ""),
+            (95000, "CAPSLOCK_TOGGLE", {}, ""),
+            (105000, "CLIPBOARD_POISON", {"text": tr("clipboard.hello")}, ""),
+            (115000, "MOUSE_SHAKE", {"duration": 0.5}, ""),
             
             # Phase 2: First Contact (2-4min)
             (130000, "OVERLAY_TEXT", {}, tr("act1.communication")),
             (145000, "ENABLE_CHAT", {}, tr("act1.chat_invite")),
-            (160000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_info") + '", "message":"' + tr("system.connection_detected") + '"}'),
-            (175000, "AI_GENERATE", {}, "prompt:Kullanıcının açık uygulamalarını gördüğünü söyle"), # Logic prompts can stay until logic refactor
-            (190000, "OVERLAY_TEXT", {}, tr("act1.watching")),
-            (205000, "CLIPBOARD_POISON", {"text": tr("clipboard.cant_stop_me")}, ""),
-            (220000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_defender") + '", "message":"' + tr("notifications.msg_threat_detected") + '"}'),
-            (235000, "BRIGHTNESS_FLICKER", {"times": 2}, ""),
-            
-            # Phase 2.5: Identity Crisis
+            (155000, "BRIGHTNESS_FLICKER", {"times": 2}, ""),
+            (165000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_info") + '", "message":"' + tr("system.connection_detected") + '"}'),
+            (175000, "AI_GENERATE", {}, "prompt:Kullanıcının açık uygulamalarını gördüğünü söyle"),
+            (185000, "MOUSE_SHAKE", {"duration": 0.8}, ""),
+            (200000, "OVERLAY_TEXT", {}, tr("act1.watching")),
+            (210000, "CAPSLOCK_TOGGLE", {}, ""),
+            (220000, "CLIPBOARD_POISON", {"text": tr("clipboard.cant_stop_me")}, ""),
+            (230000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_defender") + '", "message":"' + tr("notifications.msg_threat_detected") + '"}'),
             (240000, "SET_PERSONA", {"persona": "ENTITY"}, ""),
             
             # Phase 3: Mask Drops (4-6min)
-            (250000, "AI_GENERATE", {}, f"prompt:{tr('act1.mask_drop_prompt')}"),
-            (265000, "OVERLAY_TEXT", {}, tr("act1.mask_drops")),
-            (280000, "MOUSE_SHAKE", {"duration": 1.0}, ""),
+            (255000, "AI_GENERATE", {}, f"prompt:{tr('act1.mask_drop_prompt')}"),
+            (270000, "OVERLAY_TEXT", {}, tr("act1.mask_drops")),
+            (285000, "MOUSE_SHAKE", {"duration": 1.0}, ""),
             (295000, "NOTEPAD_HIJACK", {"text": tr("act1.you_are_mine"), "delay": 0.15}, ""),
+            (305000, "BRIGHTNESS_FLICKER", {"times": 3}, ""),
             (315000, "CORRUPT_WINDOWS", {}, ""),
-            (330000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_error") + '", "message":"' + tr("notifications.msg_files_changed") + '"}'),
-            (345000, "MOUSE_SHAKE", {"duration": 1.5}, ""),
-            (360000, "OVERLAY_TEXT", {}, tr("act1.fear_begins")),
+            (325000, "GDI_FLASH", {}, ""),
+            (335000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_error") + '", "message":"' + tr("notifications.msg_files_changed") + '"}'),
+            (345000, "MOUSE_SHAKE", {"duration": 2.0}, ""),
+            (355000, "OVERLAY_TEXT", {}, tr("act1.fear_begins")),
             
             # Phase 4: Pure Dread (6-8min)
             (375000, "AI_GENERATE", {}, "prompt:Dosyalarının ne kadar lezzetli olduğundan bahset"),
-            (390000, "BRIGHTNESS_FLICKER", {"times": 3}, ""),
+            (385000, "CAPSLOCK_TOGGLE", {}, ""),
+            (395000, "BRIGHTNESS_FLICKER", {"times": 4}, ""),
             (405000, "FAKE_BSOD", {}, ""),
+            (415000, "GLITCH_SCREEN", {}, ""),
             (425000, "OVERLAY_TEXT", {}, tr("act1.not_over")),
-            (440000, "BRIGHTNESS_DIM", {"target": 30}, ""),
-            (455000, "OVERLAY_TEXT", {}, tr("act1.act2_start")),
-            (470000, "MOUSE_SHAKE", {"duration": 0.5}, ""),
+            (435000, "MOUSE_SHAKE", {"duration": 1.5}, ""),
+            (445000, "BRIGHTNESS_DIM", {"target": 15}, ""),
+            (460000, "OVERLAY_TEXT", {}, tr("act1.act2_start")),
+            (475000, "MOUSE_SHAKE", {"duration": 2.5}, ""),
         ]
 
         for delay, action, params, data in events:
@@ -116,7 +126,8 @@ class Act1Infection(QObject):
                     p_data = json.loads(data)
                     params.update(p_data)
                     speech = ""
-                except:
+                except (json.JSONDecodeError, ValueError) as e:
+                    log_error(f"JSON parse failed: {e}", "ACT 1")
                     speech = data
             else:
                 speech = data
@@ -134,7 +145,7 @@ class Act1Infection(QObject):
             self.dispatcher.dispatch(response)
 
     def finish(self):
-        print("[ACT 1] Finished.")
+        log_info("Finished.", "ACT 1")
         self.stop()  # Clean up timers before finishing
         self.act_finished.emit()
 
@@ -144,8 +155,9 @@ class Act1Infection(QObject):
             try:
                 t.stop()
                 t.deleteLater()  # Qt nesnesini sil
-            except:
+            except (RuntimeError, AttributeError) as e:
+                log_error(f"Timer cleanup failed: {e}", "ACT 1")
                 pass
         self.timers.clear()
         self.threads.clear()
-        print("[ACT 1] Timers cleaned up")
+        log_info("Timers cleaned up", "ACT 1")

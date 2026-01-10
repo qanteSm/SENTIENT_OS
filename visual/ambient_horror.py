@@ -14,6 +14,7 @@ FEATURES:
 from PyQt6.QtCore import QObject, QTimer
 import random
 from config import Config
+from core.logger import log_info, log_error, log_debug
 
 
 class AmbientHorror(QObject):
@@ -73,13 +74,13 @@ class AmbientHorror(QObject):
         
         self._running = True
         self._schedule_next()
-        print(f"[AMBIENT] Ambient Horror started (intensity: {self.intensity})")
+        log_info(f"Ambient Horror started (intensity: {self.intensity})", "AMBIENT")
     
     def stop(self):
         """Stop ambient horror effects"""
         self._running = False
         self.timer.stop()
-        print("[AMBIENT] Ambient Horror stopped")
+        log_info("Ambient Horror stopped", "AMBIENT")
     
     def set_intensity(self, level: int):
         """
@@ -89,7 +90,7 @@ class AmbientHorror(QObject):
             level: 1 (barely noticeable) to 10 (constant dread)
         """
         self.intensity = max(1, min(10, level))
-        print(f"[AMBIENT] Intensity set to {self.intensity}")
+        log_info(f"Intensity set to {self.intensity}", "AMBIENT")
     
     def _schedule_next(self):
         """Schedule the next ambient effect"""
@@ -125,7 +126,7 @@ class AmbientHorror(QObject):
         # Select and dispatch random effect
         action, params = random.choice(pool)
         
-        print(f"[AMBIENT] Triggering: {action}")
+        log_debug(f"Triggering: {action}", "AMBIENT")
         self.dispatcher.dispatch({
             "action": action,
             "params": params,

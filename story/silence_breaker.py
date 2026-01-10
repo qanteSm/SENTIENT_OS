@@ -8,6 +8,7 @@ from feeling like game has frozen or stopped working.
 import time
 import random
 from PyQt6.QtCore import QObject, QTimer
+from core.logger import log_info, log_error, log_debug
 
 
 class SilenceBreaker(QObject):
@@ -27,6 +28,9 @@ class SilenceBreaker(QObject):
         ("MOUSE_SHAKE", {"duration": 0.3}),
         ("FLASH_COLOR", {"color": "#000000", "opacity": 0.08, "duration": 150}),
         ("GDI_STATIC", {"duration": 200, "density": 0.005}),
+        ("CAPSLOCK_TOGGLE", {}),
+        ("FAKE_NOTIFICATION", {"title": "Sistem", "message": "Gereksiz dosyalar temizleniyor..."}),
+        ("SCREEN_INVERT", {"duration": 100}),
     ]
     
     def __init__(self, dispatcher):
@@ -44,13 +48,13 @@ class SilenceBreaker(QObject):
         self._running = True
         self.last_event_time = time.time()
         self.check_timer.start(self.CHECK_INTERVAL * 1000)
-        print(f"[SILENCE_BREAKER] Started (threshold: {self.SILENCE_THRESHOLD}s)")
+        log_info(f"Started (threshold: {self.SILENCE_THRESHOLD}s)", "SILENCE_BREAKER")
     
     def stop(self):
         """Stop monitoring"""
         self._running = False
         self.check_timer.stop()
-        print("[SILENCE_BREAKER] Stopped")
+        log_info("Stopped", "SILENCE_BREAKER")
     
     def reset(self):
         """Reset silence timer (call after any significant event)"""
@@ -64,7 +68,7 @@ class SilenceBreaker(QObject):
         elapsed = time.time() - self.last_event_time
         
         if elapsed > self.SILENCE_THRESHOLD:
-            print(f"[SILENCE_BREAKER] Silence detected ({elapsed:.0f}s), breaking...")
+            log_info(f"Silence detected ({elapsed:.0f}s), breaking...", "SILENCE_BREAKER")
             self._break_silence()
             self.reset()
     
@@ -78,4 +82,4 @@ class SilenceBreaker(QObject):
             "speech": ""
         })
         
-        print(f"[SILENCE_BREAKER] Triggered: {action}")
+        log_debug(f"Triggered: {action}", "SILENCE_BREAKER")

@@ -9,6 +9,8 @@ from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout
 from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, pyqtSignal
 from PyQt6.QtGui import QFont, QPalette, QColor
 import random
+from core.localization_manager import tr
+from core.logger import log_info, log_debug
 
 
 class WelcomeScreen(QWidget):
@@ -37,29 +39,28 @@ class WelcomeScreen(QWidget):
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         # Logo/Title
-        self.title = QLabel("SENTIENT_OS")
+        self.title = QLabel(tr("onboarding.welcome_title"))
         self.title.setFont(QFont("Courier New", 72, QFont.Weight.Bold))
         self.title.setStyleSheet("""
             color: #00FF00;
-            text-shadow: 0 0 20px #00FF00, 0 0 40px #00FF00;
+            text-shadow: 0 0 10px #00FF00, 0 0 20px #00FF00, 0 0 40px #00FF00;
         """)
         self.title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.title.setVisible(False)
         
         # Subtitle
-        self.subtitle = QLabel("System Initialization...")
+        self.subtitle = QLabel(tr("onboarding.welcome_subtitle"))
         self.subtitle.setFont(QFont("Courier New", 24))
-        self.subtitle.setStyleSheet("color: #00AA00;")
+        self.subtitle.setStyleSheet("color: #008800; letter-spacing: 5px;")
         self.subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.subtitle.setVisible(False)
         
         # Warning message
-        messages = [
+        messages = tr("onboarding.welcome_messages", default_list=[
             "Are you ready to let me in?",
-            "Welcome. I've been waiting for you.",
-            "Initialization complete. Your journey begins.",
-            "System compromised. Beginning takeover sequence...",
-        ]
+            "Welcome. I've been waiting for you."
+        ])
+        if isinstance(messages, str): messages = [messages]
         self.message = QLabel(random.choice(messages))
         self.message.setFont(QFont("Courier New", 18))
         self.message.setStyleSheet("color: #FF3333;")
@@ -67,20 +68,20 @@ class WelcomeScreen(QWidget):
         self.message.setVisible(False)
         
         # Continue button
-        self.btn_continue = QPushButton("CONTINUE")
+        self.btn_continue = QPushButton(tr("onboarding.continue"))
         self.btn_continue.setFont(QFont("Courier New", 16, QFont.Weight.Bold))
         self.btn_continue.setStyleSheet("""
             QPushButton {
-                background-color: #001100;
+                background-color: transparent;
                 color: #00FF00;
                 border: 2px solid #00FF00;
-                padding: 15px 40px;
-                text-shadow: 0 0 10px #00FF00;
+                padding: 15px 60px;
+                border-radius: 0px;
             }
             QPushButton:hover {
-                background-color: #003300;
+                background-color: rgba(0, 255, 0, 0.1);
                 border: 2px solid #00FF00;
-                box-shadow: 0 0 20px #00FF00;
+                text-shadow: 0 0 10px #00FF00;
             }
         """)
         self.btn_continue.clicked.connect(self._on_continue)
@@ -111,7 +112,11 @@ class WelcomeScreen(QWidget):
         QTimer.singleShot(5000, self._show_button)
         
         # Add glitch effect to title
-        QTimer.singleShot(1500, self._glitch_title)
+        self.glitch_timer = QTimer()
+        self.glitch_timer.timeout.connect(self._glitch_title)
+        self.glitch_timer.start(3000)
+        
+        log_info("Welcome screen shown", "UI")
     
     def _show_title(self):
         """Fade in title"""
@@ -130,12 +135,25 @@ class WelcomeScreen(QWidget):
         self.btn_continue.setVisible(True)
     
     def _glitch_title(self):
-        """Apply glitch effect to title"""
-        original = "SENTIENT_OS"
-        glitched = "S̴E̵N̷T̸I̴E̵N̷T̸_̴O̵S̷"
+        """Apply more sophisticated glitch effect to title"""
+        original = tr("onboarding.welcome_title")
+        glitch_chars = ["$", "@", "#", "&", "%", "!", "?", "0", "1"]
         
-        self.title.setText(glitched)
-        QTimer.singleShot(100, lambda: self.title.setText(original))
+        def run_glitch(steps):
+            if steps <= 0:
+                self.title.setText(original)
+                return
+            
+            # Replace random characters
+            temp = list(original)
+            for _ in range(random.randint(1, 3)):
+                idx = random.randint(0, len(temp)-1)
+                temp[idx] = random.choice(glitch_chars)
+            
+            self.title.setText("".join(temp))
+            QTimer.singleShot(50, lambda: run_glitch(steps - 1))
+            
+        run_glitch(random.randint(3, 8))
     
     def _on_continue(self):
         """Handle continue button click"""

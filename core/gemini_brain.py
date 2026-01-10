@@ -15,6 +15,7 @@ from PyQt6.QtCore import QObject, pyqtSignal
 from core.context_observer import ContextObserver
 from core.privacy_filter import PrivacyFilter
 from core.file_awareness import FileSystemAwareness
+from core.logger import log_info, log_error, log_warning, log_debug
 
 # Custom exceptions
 from core.exceptions import (
@@ -55,21 +56,21 @@ class GeminiBrain:
         self._cache_ttl = 300  # 5 minutes
         
         if not self.api_key and not self.mock_mode:
-            print("[BRAIN] No API Key found. Reverting to Mock Mode.")
+            log_warning("No API Key found. Reverting to Mock Mode.", "BRAIN")
             self.mock_mode = True
 
         if not self.mock_mode:
             try:
                 genai.configure(api_key=self.api_key)
                 self.model = genai.GenerativeModel('gemini-2.5-flash')
-                print("[BRAIN] Gemini Connected.")
+                log_info("Gemini Connected.", "BRAIN")
             except (ConnectionError, TimeoutError) as e:
                 raise APIConnectionError(
                     "Failed to connect to Gemini API",
                     details={"error": str(e)}
                 )
             except Exception as e:
-                print(f"[BRAIN] Initialization error: {e}. Reverting to Mock Mode.")
+                log_error(f"Initialization error: {e}. Reverting to Mock Mode.", "BRAIN")
                 self.mock_mode = True
 
         # Personality Management
@@ -175,9 +176,9 @@ CEVAP FORMATI (SADECE JSON):
         """Switches the active AI personality."""
         if persona_name in self.personas:
             self.current_persona = persona_name
-            print(f"[BRAIN] Persona switched to: {persona_name}")
+            log_info(f"Persona switched to: {persona_name}", "BRAIN")
         else:
-            print(f"[BRAIN] Invalid persona: {persona_name}")
+            log_error(f"Invalid persona: {persona_name}", "BRAIN")
 
     def _build_dynamic_prompt(self, user_input: str) -> str:
         """Dinamik prompt oluştur - tam bağlam ile."""
@@ -194,7 +195,7 @@ Gün Zamanı: {context.get('time_of_day', 'Unknown')}
 Gece Yarısından Sonra: {'EVET - Bu önemli, korkutucu kullan!' if context.get('is_late_night') else 'Hayır'}
 Aktif Pencere: {context.get('active_window', 'Bilinmiyor')}
 Çalışan Uygulamalar: {', '.join(context.get('running_apps', [])) or 'Bilinmiyor'}
-Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bilinmiyor'}
+Masaüstü Dosyaları: {', '.join([f[0] for f in context.get('desktop_files', [])[:5]]) or 'Bilinmiyor'}
 """
         
         # Pil durumu
@@ -237,8 +238,9 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
                 parts.append(f"\n=== GEÇMİŞ VE DAVRANIŞ ===\n{memory_context}")
             
             # Keşfedilen bilgileri kaydet
-            for file in context.get('desktop_files', []):
-                self.memory.record_discovered_info("desktop_file", file)
+            for file_data in context.get('desktop_files', []):
+                # file_data is (filename, score)
+                self.memory.record_discovered_info("desktop_file", file_data)
             for app in context.get('running_apps', []):
                 self.memory.record_discovered_info("app", app)
             if network.get('hostname'):
@@ -268,36 +270,28 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
         return final_prompt
 
     def generate_response(self, user_input: str, context: dict = None) -> dict:
-        """
-        Gemini'den yanıt al - tam bağlam ile.
-        
-        IMPROVED:
-        - Response caching for repeated queries
-        - Automatic offline mode on connection failures
-        - Graceful degradation
-        """
-        print(f"[BRAIN] generate_response called with: {user_input[:50]}...")
+        log_debug(f"generate_response called for: {user_input[:50]}...", "BRAIN")
         
         # Check cache first
         cache_key = self._get_cache_key(user_input, context or {})
         cached = self._get_cached_response(cache_key)
         if cached:
-            print("[BRAIN] Using cached response")
+            log_debug("Using cached response", "BRAIN")
             return cached
         
         # Offline mode check
         if self._offline_mode:
-            print("[BRAIN] In offline mode, using backup brain")
+            log_warning("In offline mode, using backup brain", "BRAIN")
             return self._offline_response(user_input, context)
         
         if self.mock_mode:
-            print("[BRAIN] Using mock mode (Backup Brain)")
+            log_info("Using mock mode (Backup Brain)", "BRAIN")
             return self._backup_response(context)
         
         try:
             full_prompt = self._build_dynamic_prompt(user_input)
             
-            print(f"[BRAIN] Sending to Gemini API...")
+            log_info("Sending request to Gemini API...", "BRAIN")
             try:
                 response = self.model.generate_content(full_prompt)
             except (ConnectionError, TimeoutError) as e:
@@ -306,7 +300,7 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
                     details={"error": str(e), "input": user_input[:50]}
                 )
             
-            print(f"[BRAIN] Received response from Gemini")
+            log_debug("Received response from Gemini", "BRAIN")
             
             # Success - reset failure counter
             self._connection_failures = 0
@@ -332,19 +326,19 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
             return result
             
         except (APIConnectionError, AIResponseError) as e:
-            print(f"[BRAIN] {type(e).__name__}: {e.message}")
+            log_error(f"{type(e).__name__}: {e.message}", "BRAIN")
             self._connection_failures += 1
             
             # Switch to offline mode after max failures
             if self._connection_failures >= self._max_failures:
-                print(f"[BRAIN] Too many failures ({self._connection_failures}), switching to OFFLINE MODE")
+                log_critical(f"Too many failures ({self._connection_failures}), switching to OFFLINE MODE", "BRAIN")
                 self._offline_mode = True
                 return self._offline_response(user_input, context)
             
-            print(f"[BRAIN] Failure {self._connection_failures}/{self._max_failures}, using backup...")
+            log_warning(f"Failure {self._connection_failures}/{self._max_failures}, using backup...", "BRAIN")
             return self._backup_response(context)
         except Exception as e:
-            print(f"[BRAIN] Unexpected error: {e}")
+            log_error(f"Unexpected error: {e}", "BRAIN")
             return self._backup_response(context)
 
     def _get_cache_key(self, user_input: str, context: dict) -> str:
@@ -423,18 +417,18 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
         print(f"[BRAIN] Starting async generation for: {user_input[:50]}")
         
         def worker():
-            print(f"[WORKER] Thread started, generating response...")
+            log_debug("Worker thread started", "BRAIN")
             try:
                 response = self.generate_response(user_input, context)
-                print(f"[WORKER] Generation complete: {response}")
+                log_debug("Generation complete", "BRAIN")
                 callback(response)
             except Exception as e:
-                print(f"[WORKER] Error: {e}")
+                log_error(f"Worker Error: {e}", "BRAIN")
                 callback({"action": "NONE", "speech": f"Hata: {str(e)}", "params": {}})
         
         thread = threading.Thread(target=worker, daemon=True)
         thread.start()
-        print(f"[BRAIN] Background thread started")
+        log_info("Background thread started", "BRAIN")
         return thread
 
     def generate_autonomous_thought(self, prompt_type: str = None) -> dict:
@@ -484,13 +478,13 @@ Masaüstü Dosyaları: {', '.join(context.get('desktop_files', [])[:5]) or 'Bili
             decision = response.text.strip().upper()
             is_safe = "YES" in decision
             if not is_safe:
-                print(f"[BRAIN] Safety Check REJECTED snippet from {filename}")
+                log_warning(f"Safety Check REJECTED snippet from {filename}", "BRAIN")
             return is_safe
         except APIConnectionError as e:
-            print(f"[BRAIN] Safety check failed (API error): {e.message}")
+            log_error(f"Safety check failed (API error): {e.message}", "BRAIN")
             return True  # Fail-safe: allow on connection error
         except Exception as e:
-            print(f"[BRAIN] Safety check failed (unexpected): {e}")
+            log_error(f"Safety check failed (unexpected): {e}", "BRAIN")
             return True  # Fail-safe
 
     def _mock_response(self, user_input: str) -> dict:

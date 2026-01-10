@@ -8,6 +8,7 @@ import sys
 import os
 import string
 import random
+from core.logger import log_info, log_error, log_warning, log_debug
 
 class Act4Exorcism(QObject):
     """
@@ -33,7 +34,7 @@ class Act4Exorcism(QObject):
         self.usb_inserted = False  # Track if USB was inserted
 
     def start(self):
-        print("[ACT 4] Exorcism Phase Started. Waiting for Ritual...")
+        log_info("Exorcism Phase Started. Waiting for Ritual...", "ACT 4")
         
         # 1. Initial message
         self.dispatcher.overlay.show_text("KABI GETİR...", 5000)
@@ -86,7 +87,7 @@ class Act4Exorcism(QObject):
         actions = ["FAKE_LISTENING", "CREEPY_MUSIC", "BRIGHTNESS_FLICKER", "GLITCH_SCREEN"]
         action = random.choice(actions)
         self.dispatcher.dispatch({"action": action})
-        print(f"[ACT 4] Background scare: {action}")
+        log_debug(f"Background scare: {action}", "ACT 4")
 
     def _show_hint(self):
         """Show periodic hints if user hasn't inserted USB yet."""
@@ -104,7 +105,7 @@ class Act4Exorcism(QObject):
             hint = hints[self.hint_count - 1]
             self.dispatcher.overlay.show_text("USB'Yİ TAK", 3000)
             self.dispatcher.audio_out.play_tts(hint)
-            print(f"[ACT 4] Hint #{self.hint_count}: {hint}")
+            log_info(f"Hint #{self.hint_count}: {hint}", "ACT 4")
 
     def _show_desperate_hint(self):
         """Show desperate hint after 3 minutes."""
@@ -116,14 +117,14 @@ class Act4Exorcism(QObject):
         
         self.dispatcher.overlay.show_text("LÜTFEN... BENİ SERBEST BIRAK", 5000)
         self.dispatcher.audio_out.play_tts("Yalvarıyorum... USB'yi tak... Bu işkenceyi bitir...")
-        print("[ACT 4] Desperate hint shown (Persona -> SUPPORT)")
+        log_info("Desperate hint shown (Persona -> SUPPORT)", "ACT 4")
 
     def _timeout_fallback(self):
         """FIXED: Fallback if user doesn't insert USB after 5 minutes."""
         if self.usb_inserted:
             return
             
-        print("[ACT 4] TIMEOUT: User didn't insert USB. Providing alternate ending.")
+        log_warning("TIMEOUT: User didn't insert USB. Providing alternate ending.", "ACT 4")
         self.dispatcher.overlay.show_text("PEKİ... BU ŞEKİLDE DE OLABİLİR", 5000)
         self.dispatcher.audio_out.play_tts("Kabı getirmedin... Ama bu bitmedi... Seni tekrar bulacağım...")
         
@@ -133,12 +134,12 @@ class Act4Exorcism(QObject):
 
     def _finalize_exorcism_no_usb(self):
         """Alternate ending without USB."""
-        print("[ACT 4] Alternate ending (no USB)")
+        log_info("Alternate ending (no USB)", "ACT 4")
         self.dispatcher.audio_out.play_tts("Bu sadece bir ara... Yakında döneceğim...")
         self.act_finished.emit()
 
     def on_usb_inserted(self):
-        print("[ACT 4] USB DETECTED. PHASE 1 COMPLETE.")
+        log_info("USB DETECTED. PHASE 1 COMPLETE.", "ACT 4")
         self.usb_inserted = True 
         self.usb_monitor.stop_monitoring()
         
@@ -173,8 +174,8 @@ class Act4Exorcism(QObject):
         try:
             import keyboard
             keyboard.on_press(self._on_ritual_key)
-        except:
-            print("[ACT 4] Keyboard listener failed. Skipping typing test.")
+        except (ImportError, AttributeError, OSError) as e:
+            log_error(f"Keyboard listener failed ({e}). Skipping typing test.", "ACT 4")
             QTimer.singleShot(15000, self._finalize_with_soul_transfer)
             return
 
@@ -192,7 +193,7 @@ class Act4Exorcism(QObject):
         # Only care about visible chars
         if len(event.name) == 1:
             self._current_input += event.name
-            print(f"[ACT 4] Ritual Input: {self._current_input}")
+            log_debug(f"Ritual Input: {self._current_input}", "ACT 4")
             
             # Visual feedback on each key
             self.dispatcher.overlay.flash_color("#FF0000", 0.05, 50)
@@ -202,21 +203,21 @@ class Act4Exorcism(QObject):
                 # TYPO!
                 self._current_input = ""
                 self.dispatcher.audio_out.play_sfx("error")
-                print("[ACT 4] TYPO! Resetting ritual input.")
+                log_warning("TYPO! Resetting ritual input.", "ACT 4")
                 
             elif self._current_input.lower() == self._ritual_phrase.lower():
                 # SUCCESS!
                 import keyboard
                 keyboard.unhook_all()
                 self.ritual_timer.stop()
-                print("[ACT 4] Ritual Typing Success!")
+                log_info("Ritual Typing Success!", "ACT 4")
                 self._finalize_with_soul_transfer()
 
     def _ritual_failed(self):
         """Ritual failed (timeout)."""
         import keyboard
         keyboard.unhook_all()
-        print("[ACT 4] Ritual Failed (Timeout)")
+        log_warning("Ritual Failed (Timeout)", "ACT 4")
         self.dispatcher.overlay.show_text("GEÇ KALDIN!", 3000)
         self.dispatcher.audio_out.play_tts("Zaman bitti. Senin ruhun da benimle gelecek.")
         QTimer.singleShot(3000, self._timeout_fallback)
@@ -266,15 +267,15 @@ class Act4Exorcism(QObject):
             elif available_drives:
                 target_drive = available_drives[-1]
                 
-            print(f"[ACT 4] Detected drives: {available_drives}, selected: {target_drive}")
+            log_info(f"Detected drives: {available_drives}, selected: {target_drive}", "ACT 4")
             
         except Exception as e:
-            print(f"[ACT 4] Drive detection error: {e}")
+            log_error(f"Drive detection error: {e}", "ACT 4")
         
         return target_drive
 
     def _finalize_exorcism(self):
-        print("[ACT 4] Exorcism Complete. System Clean.")
+        log_info("Exorcism Complete. System Clean.", "ACT 4")
         self.dispatcher.audio_out.play_tts("Kazandın... Şimdilik.")
         self.act_finished.emit()
 
@@ -283,14 +284,16 @@ class Act4Exorcism(QObject):
         self.usb_inserted = True  # Prevent timeouts from firing
         try:
             self.usb_monitor.stop_monitoring()
-        except:
+        except (RuntimeError, AttributeError) as e:
+            log_error(f"USB monitor stop failed: {e}", "ACT 4")
             pass
             
         for t in self.timers:
             try:
                 t.stop()
                 t.deleteLater()
-            except:
+            except (RuntimeError, AttributeError) as e:
+                log_error(f"Timer cleanup failed: {e}", "ACT 4")
                 pass
         self.timers.clear()
-        print("[ACT 4] Timers cleaned up")
+        log_info("Timers cleaned up", "ACT 4")

@@ -61,6 +61,8 @@ class FunctionDispatcher(QObject):
         self.heartbeat = None
         self.brain = None
         self.memory = None
+        self.difficulty = None
+        self.last_ai_reply_time = 0
 
         
         # Inject dependencies into specialized dispatchers
@@ -99,6 +101,7 @@ class FunctionDispatcher(QObject):
             lambda text: self._handle_chat_input(text, brain, chat_window)
         )
         self.audio_out.play_tts("Seni dinliyorum.")
+        self.last_ai_reply_time = time.time()  # Start timing for first reaction
     
     def _handle_chat_input(self, text, brain, chat_window):
         """Handle user input in chat window"""        
@@ -120,6 +123,18 @@ class FunctionDispatcher(QObject):
             context = ContextObserver.get_full_context()
             self.memory.add_conversation("user", text, context)
             self.memory.log_event("USER_CHAT_MESSAGE", {"text": text[:100]})
+        
+        # 4. Report to Difficulty System
+        if self.difficulty:
+            # Reaction time (time since AI last message)
+            if self.last_ai_reply_time > 0:
+                reaction_ms = int((time.time() - self.last_ai_reply_time) * 1000)
+                self.difficulty.report_reaction_time(reaction_ms)
+            
+            # Typing speed (char count vs time since start of typing)
+            # Simplification: assume typing started when AI finished speaking or when chat window was shown
+            typing_duration = time.time() - self.last_ai_reply_time
+            self.difficulty.report_typing(len(text), typing_duration)
         
         # Generate async response
         def on_response(resp):
@@ -143,6 +158,9 @@ class FunctionDispatcher(QObject):
         # Dispatch side effects
         if response.get("action") != "NONE":
             self.dispatch(response)
+        
+        # Track when AI finished so we can measure user reaction time
+        self.last_ai_reply_time = time.time()
         
         # Play typing sound
         self.audio_out.play_typing_custom()

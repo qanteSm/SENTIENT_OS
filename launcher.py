@@ -7,11 +7,23 @@ import random
 from config import Config
 from hardware.voice_fixer import VoiceFixer
 
+def validate_environment():
+    """Validate required environment variables before launch."""
+    if not os.getenv("GEMINI_API_KEY"):
+        print("\n" + "!" * 60)
+        print(" ERROR: GEMINI_API_KEY environment variable not set!")
+        print(" Please set it before running:")
+        print('   set GEMINI_API_KEY=your_key_here  (Windows Command Prompt)')
+        print('   $env:GEMINI_API_KEY="your_key_here" (PowerShell)')
+        print("!" * 60 + "\n")
+        sys.exit(1)
+
 def is_admin():
     """Real Windows Admin check."""
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
-    except:
+    except (AttributeError, OSError) as e:
+        print(f"[LAUNCHER] Admin check failed: {e}")
         return False
 
 def run_as_admin():
@@ -86,6 +98,8 @@ def hacker_terminal_splash():
         time.sleep(0.4)
 
 def launch_game():
+    validate_environment()
+    
     # Check for DEV_MODE.txt file (simple and reliable)
     dev_mode_file = os.path.join(os.path.dirname(__file__), "DEV_MODE.txt")
     dev_mode = os.path.exists(dev_mode_file)

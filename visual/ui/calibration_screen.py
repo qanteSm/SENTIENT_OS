@@ -8,7 +8,9 @@ Saves selection to config.yaml.
 from PyQt6.QtWidgets import (QWidget, QLabel, QPushButton, QVBoxLayout, 
                             QHBoxLayout, QButtonGroup, QRadioButton)
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QColor, QPalette
+from core.localization_manager import tr
+from core.logger import log_info, log_error
 
 
 class CalibrationScreen(QWidget):
@@ -19,20 +21,17 @@ class CalibrationScreen(QWidget):
     
     calibration_complete = pyqtSignal(str)  # Emits selected intensity
     
-    INTENSITIES = {
-        "mild": {
-            "title": "🌙 Mild",
-            "desc": "Subtle psychological elements\nMinimal jump scares\nRecommended for first-time players"
-        },
-        "medium": {
-            "title": "👁️ Medium", 
-            "desc": "Balanced horror experience\nImmersive atmosphere\nModerate system manipulation"
-        },
-        "extreme": {
-            "title": "💀 Extreme",
-            "desc": "Full psychological manipulation\nMaximum immersion\nNot for the faint of heart"
+    def _get_intensities(self):
+        return {
+            "balanced": {
+                "title": f"👁️ {tr('onboarding.balanced')}", 
+                "desc": tr("onboarding.balanced_desc")
+            },
+            "extreme": {
+                "title": f"💀 {tr('onboarding.extreme')}",
+                "desc": tr("onboarding.extreme_desc")
+            }
         }
-    }
     
     def __init__(self):
         super().__init__()
@@ -57,13 +56,13 @@ class CalibrationScreen(QWidget):
         main_layout.setContentsMargins(100, 80, 100, 80)
         
         # Title
-        title = QLabel("⚙️ SYSTEM CALIBRATION")
+        title = QLabel(f"⚙️ {tr('onboarding.calibration_title')}")
         title.setFont(QFont("Courier New", 48, QFont.Weight.Bold))
-        title.setStyleSheet("color: #00FF00; text-shadow: 0 0 20px #00FF00;")
+        title.setStyleSheet("color: #00FF00; text-shadow: 0 0 10px #00FF00;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         # Instructions
-        instructions = QLabel("Select your preferred horror intensity level:")
+        instructions = QLabel(tr("onboarding.calibration_subtitle"))
         instructions.setFont(QFont("Courier New", 20))
         instructions.setStyleSheet("color: #00AA00;")
         instructions.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -77,10 +76,11 @@ class CalibrationScreen(QWidget):
         options_layout = QHBoxLayout()
         options_layout.setSpacing(40)
         
-        self.button_group = QButtonGroup()
+        self.button_group = QButtonGroup(self)
         self.selected_intensity = "extreme"  # Default
         
-        for intensity_key, intensity_data in self.INTENSITIES.items():
+        intensities = self._get_intensities()
+        for intensity_key, intensity_data in intensities.items():
             option_widget = self._create_intensity_option(
                 intensity_key,
                 intensity_data["title"],
@@ -98,19 +98,20 @@ class CalibrationScreen(QWidget):
         warning.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         # Confirm button
-        btn_confirm = QPushButton("CONFIRM SELECTION")
+        btn_confirm = QPushButton(tr("onboarding.continue"))
         btn_confirm.setFont(QFont("Courier New", 18, QFont.Weight.Bold))
         btn_confirm.setStyleSheet("""
             QPushButton {
-                background-color: #001100;
+                background-color: transparent;
                 color: #00FF00;
-                border: 3px solid #00FF00;
-                padding: 20px 60px;
-                text-shadow: 0 0 10px #00FF00;
+                border: 2px solid #00FF00;
+                padding: 20px 80px;
+                border-radius: 0px;
             }
             QPushButton:hover {
-                background-color: #003300;
-                box-shadow: 0 0 30px #00FF00;
+                background-color: rgba(0, 255, 0, 0.1);
+                border: 2px solid #00FF00;
+                text-shadow: 0 0 10px #00FF00;
             }
         """)
         btn_confirm.clicked.connect(self._on_confirm)

@@ -76,7 +76,8 @@ class BrightnessOps:
         try:
             from core.state_manager import StateManager
             StateManager().remove_state("brightness")
-        except:
+        except (ImportError, AttributeError) as e:
+            print(f"[BRIGHTNESS] State removal failed: {e}")
             pass
 
     @staticmethod

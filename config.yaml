@@ -4,7 +4,7 @@ ambient:
   enabled: true
 api:
   cache_ttl: 300
-  gemini_key: AIzaSyD3kPXav8WTD41kHU0csxYE-rbIpDF5rBo
+  gemini_key: "${GEMINI_API_KEY}"
   max_failures: 3
   model: gemini-2.5-flash
 audio:

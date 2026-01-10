@@ -69,7 +69,8 @@ class ContextObserver:
         """CPU kullanımını al."""
         try:
             return f"{psutil.cpu_percent()}%"
-        except:
+        except (psutil.Error, OSError) as e:
+            print(f"[CONTEXT] CPU load error: {e}")
             return "Unknown"
 
     @staticmethod
@@ -176,7 +177,8 @@ class ContextObserver:
                             if lines:
                                 sample = lines[0][:40].strip()
                                 return {"filename": target, "snippet": sample}
-        except:
+        except (OSError, UnicodeDecodeError, PermissionError) as e:
+            print(f"[CONTEXT] File snippet error: {e}")
             pass
         return None
 

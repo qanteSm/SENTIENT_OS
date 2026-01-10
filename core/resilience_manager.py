@@ -57,7 +57,8 @@ class ResilienceManager:
             try:
                 os.remove(lock_file)
                 log_info("Session lock removed (Safe Exit).", "RESILIENCE")
-            except:
+            except (OSError, PermissionError) as e:
+                log_error(f"Failed to remove session lock: {e}", "RESILIENCE")
                 pass
 
     def handle_recovery(self, reason: str):

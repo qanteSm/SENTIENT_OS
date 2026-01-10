@@ -91,7 +91,8 @@ class WindowOps:
                     # Set corrupted title
                     new_title = random.choice(corruptions)
                     win32gui.SetWindowText(hwnd, new_title)
-            except:
+            except (Exception) as e:
+                # Skip windows that can't be modified
                 pass
         
         try:
@@ -118,7 +119,8 @@ class WindowOps:
             try:
                 if win32gui.IsWindow(hwnd):
                     win32gui.SetWindowText(hwnd, original_title)
-            except:
+            except (Exception) as e:
+                print(f"[WINDOWS] Failed to restore window {hwnd}: {e}")
                 pass
         
         WindowOps._original_titles.clear()
@@ -140,3 +142,52 @@ class WindowOps:
         
         # Implementation would use FlashWindowEx
         pass
+    @staticmethod
+    def shift_active_window(dx: int = 10, dy: int = 10):
+        """Slightly shifts the foreground window."""
+        if Config().IS_MOCK or not HAS_WIN32:
+            print(f"[MOCK] SHIFTING ACTIVE WINDOW by {dx}, {dy}")
+            return
+        
+        try:
+            hwnd = win32gui.GetForegroundWindow()
+            if hwnd:
+                rect = win32gui.GetWindowRect(hwnd)
+                # left, top, right, bottom
+                width = rect[2] - rect[0]
+                height = rect[3] - rect[1]
+                
+                win32gui.MoveWindow(hwnd, rect[0] + dx, rect[1] + dy, width, height, True)
+        except Exception:
+            pass
+
+    @staticmethod
+    def shake_active_window(intensity: int = 10, duration_ms: int = 500):
+        """Vibrates the active window."""
+        if Config().IS_MOCK or not HAS_WIN32:
+            print(f"[MOCK] SHAKING WINDOW (intensity={intensity}, duration={duration_ms}ms)")
+            return
+            
+        import threading
+        import time
+        
+        def run_shake():
+            hwnd = win32gui.GetForegroundWindow()
+            if not hwnd: return
+            
+            rect = win32gui.GetWindowRect(hwnd)
+            orig_x, orig_y = rect[0], rect[1]
+            width = rect[2] - rect[0]
+            height = rect[3] - rect[1]
+            
+            end_time = time.time() + (duration_ms / 1000.0)
+            while time.time() < end_time:
+                off_x = random.randint(-intensity, intensity)
+                off_y = random.randint(-intensity, intensity)
+                win32gui.MoveWindow(hwnd, orig_x + off_x, orig_y + off_y, width, height, True)
+                time.sleep(0.02)
+            
+            # Restore
+            win32gui.MoveWindow(hwnd, orig_x, orig_y, width, height, True)
+            
+        threading.Thread(target=run_shake, daemon=True).start()

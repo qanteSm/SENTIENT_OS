@@ -8,10 +8,12 @@ class PrivacyFilter:
     Focuses on: Usernames, Home Directories, IP Addresses, and sensitive system paths.
     """
     def __init__(self):
+        from core.streamer_mode import StreamerMode
+        self.streamer_mode = StreamerMode.singleton()
         self.username = getpass.getuser()
         self.patterns = [
             # 1. Scrub actual username
-            (re.compile(re.escape(self.username), re.IGNORECASE), "<USER>"),
+            (re.compile(re.escape(self.username), re.IGNORECASE), lambda m: self.streamer_mode.get_alias(m.group(0)) if self.streamer_mode.enabled else "<USER>"),
             
             # 2. Scrub Windows Path artifacts
             (re.compile(r'[a-zA-Z]:\\Users\\[^\s\\]+', re.IGNORECASE), "<USER_DIR>"),
@@ -20,7 +22,10 @@ class PrivacyFilter:
             (re.compile(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b'), "<IP_ADDR>"),
             
             # 4. Scrub common sensitive paths
-            (re.compile(r'C:\\(Windows|Program Files|System32)', re.IGNORECASE), "<SYS_PATH>")
+            (re.compile(r'C:\\(Windows|Program Files|System32)', re.IGNORECASE), "<SYS_PATH>"),
+            
+            # 5. Scrub Environment variables
+            (re.compile(r'%[a-zA-Z_0-9]+%', re.IGNORECASE), "<ENV_VAR>")
         ]
 
     def scrub(self, text: str) -> str:

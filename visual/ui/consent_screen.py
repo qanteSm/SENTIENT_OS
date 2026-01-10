@@ -4,6 +4,8 @@ from PyQt6.QtWidgets import (QWidget, QLabel, QVBoxLayout, QHBoxLayout,
 from PyQt6.QtCore import Qt, pyqtSignal, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QFont, QColor, QPalette, QBrush
 from config import Config
+from core.localization_manager import tr
+from core.logger import log_info, log_error, log_warning
 
 class ConsentScreen(QWidget):
     """
@@ -33,9 +35,9 @@ class ConsentScreen(QWidget):
         layout.setSpacing(30)
         
         # Header (Creepy but professional)
-        header = QLabel("SİSTEM ERİŞİM SÖZLEŞMESİ / SYSTEM ACCESS CONTRACT")
+        header = QLabel(tr("onboarding.consent_title"))
         header.setFont(QFont("Consolas", 28, QFont.Weight.Bold))
-        header.setStyleSheet("color: #ff3333; letter-spacing: 2px;")
+        header.setStyleSheet("color: #ff3333; letter-spacing: 5px; text-shadow: 0 0 10px #ff3333;")
         header.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(header)
         
@@ -46,26 +48,14 @@ class ConsentScreen(QWidget):
         layout.addWidget(line)
         
         # Terms Text
-        terms_text = (
-            "Bu yazılım, bir 'Korku/Gerilim Simülasyonu' deneyimi olarak tasarlanmıştır.\n\n"
-            "DEVAM ETMEDEN ÖNCE ŞUNLARI KABUL ETMELİSİNİZ:\n"
-            "1. YAZILIM, EKRAN PARLAKLIĞINI VE DUVAR KAĞIDINI OYUN İÇİNDE DEĞİŞTİREBİLİR.\n"
-            "2. GÖRSEL MANİPÜLASYONLAR (EKRAN ERİMESİ, TİTREME) GERÇEKLEŞTİREBİLİR.\n"
-            "3. OYUN SÜRESİNCE MOUSE VE PENCERE AKTİVİTENİZİ İZLEYEBİLİR.\n"
-            "4. BU ETKİLER SADECE OYUN AÇIKKEN AKTİFTİR VE ÇIKTIĞINIZDA GERİ YÜKLENİR.\n\n"
-            "HİÇBİR DOSYANIZ SİLİNMEYECEK VEYA SİSTEMİNİZE KALICI HASAR VERİLMEYECEKTİR.\n\n"
-            "----------------------------------------------------------------------------------\n\n"
-            "THIS IS A HORROR SIMULATION EXPERIENCE.\n"
-            "THE SYSTEM WILL MANIPULATE BRIGHTNESS, WALLPAPER, AND VISUALS FOR IMMERSION.\n"
-            "NONE OF YOUR FILES WILL BE DELETED. NO PERMANENT CHANGES WILL BE MADE."
-        )
+        terms_text = tr("onboarding.consent_warning")
         
         terms = QLabel(terms_text)
-        terms.setFont(QFont("Consolas", 14))
-        # Dark green/grey (Old terminal feel)
-        terms.setStyleSheet("color: #aaddaa; line-height: 1.5;") 
+        terms.setFont(QFont("Consolas", 16))
+        # Red/Grey for warning
+        terms.setStyleSheet("color: #ffaaaa; line-height: 1.8;") 
         terms.setWordWrap(True)
-        terms.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        terms.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(terms)
         
         layout.addStretch()
@@ -74,19 +64,21 @@ class ConsentScreen(QWidget):
         btn_layout = QHBoxLayout()
         btn_layout.setSpacing(50)
         
-        self.accept_btn = QPushButton("KABUL EDİYORUM / I ACCEPT")
+        self.accept_btn = QPushButton(tr("onboarding.consent_grant"))
         self.accept_btn.setFont(QFont("Consolas", 18, QFont.Weight.Bold))
         self.accept_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.accept_btn.setStyleSheet("""
             QPushButton {
-                background-color: #1a1a1a;
+                background-color: transparent;
                 color: #ff3333;
                 border: 2px solid #ff3333;
-                padding: 15px 30px;
+                padding: 15px 40px;
+                border-radius: 0px;
             }
             QPushButton:hover {
-                background-color: #330000;
+                background-color: rgba(255, 51, 51, 0.1);
                 color: #ffffff;
+                text-shadow: 0 0 10px #ff3333;
             }
         """)
         self.accept_btn.clicked.connect(self._grant_consent)
@@ -140,21 +132,21 @@ class ConsentScreen(QWidget):
             self.anim.setEasingCurve(QEasingCurve.Type.InOutQuad)
             self.anim.start()
             
-            print("[CONSENT] Screen shown successfully")
+            log_info("Consent screen shown successfully", "UI")
         except Exception as e:
-            print(f"[CONSENT] Error showing screen: {e}")
+            log_error(f"Error showing screen: {e}", "UI")
             # Even if animation fails, show the window
             self.showFullScreen()
             self.raise_()
 
     def _grant_consent(self):
-        print("[CONSENT] User accepted the terms.")
+        log_info("User accepted the terms.", "UI")
         # Save to config/state maybe?
         self.consent_granted.emit()
         self.close()
 
     def _deny_consent(self):
-        print("[CONSENT] User denied the terms.")
+        log_info("User denied the terms.", "UI")
         self.consent_denied.emit()
         self.close()
         sys.exit(0)

@@ -12,6 +12,8 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QPixmap
 from config import Config
 import sys
+from core.logger import log_info, log_error, log_warning
+import threading
 
 try:
     if Config().IS_MOCK:
@@ -39,8 +41,10 @@ class DesktopMask(QWidget):
         self.label = QLabel(self)
         self.label.setScaledContents(True)
         self._timeout_timer = None
-        self._escape_count = 0  # Panik modu için ESC sayacı
+        self._escape_count = 0  # Panic mode for ESC counter
         self._escape_reset_timer = None
+        self.max_duration = 5000  # 5 seconds max safety
+        self.esc_threshold = 3    # 3 ESC = close
 
     def capture_and_mask(self, duration_ms: int = 15000):
         """
@@ -50,12 +54,12 @@ class DesktopMask(QWidget):
             duration_ms: Maskenin ne kadar kalacağı (default 15 saniye)
         """
         if Config().IS_MOCK and (sys.platform == 'linux' or not QApplication.instance()):
-            print(f"[MOCK] DESKTOP CAPTURED AND MASKED (Linux Mock) - {duration_ms}ms")
+            log_info(f"DESKTOP CAPTURED AND MASKED (Mock) - {duration_ms}ms", "MASK")
             return
 
         screen = QApplication.primaryScreen()
         if not screen:
-            print("[MASK] Error: No screen found.")
+            log_error("No screen found.", "MASK")
             return
 
         # 1. Capture Screenshot
@@ -68,8 +72,15 @@ class DesktopMask(QWidget):
         if target_idx < len(screens):
             self.setGeometry(screens[target_idx].geometry())
             self.label.setGeometry(self.rect())
+            
+            # Duration limit for safety
+            safe_duration = min(duration_ms, self.max_duration)
+            
             self.showFullScreen()
-            print(f"[MASK] Desktop Mask Active for {duration_ms}ms")
+            log_info(f"Desktop Mask Active for {safe_duration}ms", "MASK")
+            
+            # Emergency safety timeout (Qt level)
+            QTimer.singleShot(safe_duration + 1000, self._emergency_close)
         
         # Reset escape counter
         self._escape_count = 0
@@ -87,7 +98,8 @@ class DesktopMask(QWidget):
         if HAS_KEYBOARD:
             try:
                 keyboard.add_hotkey('ctrl+shift+q', self.remove_mask_emergency, suppress=True)
-            except:
+            except (AttributeError, OSError, Exception) as e:
+                log_error(f"Kill switch registration failed: {e}", "MASK")
                 pass
 
     def keyPressEvent(self, event):
@@ -100,11 +112,11 @@ class DesktopMask(QWidget):
         # ESC tuşu - panik modu
         if key == Qt.Key.Key_Escape:
             self._escape_count += 1
-            print(f"[MASK] ESC pressed ({self._escape_count}/10)")
+            log_info(f"ESC pressed ({self._escape_count}/{self.esc_threshold})", "MASK")
             
-            # 10 ESC = panik modu
-            if self._escape_count >= 10:
-                print("[MASK] PANIC MODE - Force closing mask!")
+            # 3 ESC = panik modu
+            if self._escape_count >= self.esc_threshold:
+                log_warning("PANIC MODE - Force closing mask!", "MASK")
                 self.remove_mask()
                 return
             
@@ -127,12 +139,18 @@ class DesktopMask(QWidget):
         event.ignore()
     
     def _reset_escape_count(self):
-        """Escape sayacını sıfırla."""
+        """Reset escape counter."""
         self._escape_count = 0
+        
+    def _emergency_close(self):
+        """Emergency safety closure if mask hangs."""
+        if self.isVisible():
+            log_warning("Emergency safety timeout reached, forcing mask close", "MASK")
+            self.remove_mask()
     
     def remove_mask_emergency(self):
         """Acil durum - kill switch ile kapama ve tam sistem kapatma."""
-        print("[MASK] EMERGENCY REMOVAL via kill switch")
+        log_warning("EMERGENCY REMOVAL via kill switch", "MASK")
         self.remove_mask()
         
         # Trigger full system shutdown
@@ -154,4 +172,4 @@ class DesktopMask(QWidget):
             self._escape_reset_timer = None
         
         self.close()
-        print("[MASK] Desktop Mask Removed")
+        log_info("Desktop Mask Removed", "MASK")

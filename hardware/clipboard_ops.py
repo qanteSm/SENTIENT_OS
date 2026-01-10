@@ -44,5 +44,6 @@ class ClipboardOps:
         
         try:
             return pyperclip.paste()
-        except:
+        except (Exception) as e:
+            print(f"[CLIPBOARD] Read failed: {e}")
             return ""

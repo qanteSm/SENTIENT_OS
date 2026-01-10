@@ -1,7 +1,9 @@
 import random
 from PyQt6.QtWidgets import QWidget, QLineEdit, QVBoxLayout, QLabel, QScrollArea, QApplication
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QPropertyAnimation, QPoint, QEasingCurve
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QColor
+from core.localization_manager import tr
+from core.logger import log_info, log_error, log_debug
 
 class FakeChat(QWidget):
     """
@@ -55,13 +57,13 @@ class FakeChat(QWidget):
         
         # Input Field
         self.input_field = QLineEdit()
-        self.input_field.setPlaceholderText("BURADA KURTARICIYI BEKLEME...")
+        self.input_field.setPlaceholderText(tr("chat.placeholder", default="BURADA KURTARICIYI BEKLEME..."))
         self.input_field.setStyleSheet("""
             QLineEdit {
-                background-color: black;
+                background-color: rgba(0, 0, 0, 180);
                 color: #00FF00;
                 border: 2px solid #00FF00;
-                border-radius: 5px;
+                border-radius: 4px;
                 font-family: 'Consolas', 'Courier New';
                 font-size: 16px;
                 padding: 12px;
@@ -124,6 +126,7 @@ class FakeChat(QWidget):
     def on_submit(self):
         text = self.input_field.text().strip()
         if text:
+            log_info(f"User sent: {text}", "CHAT")
             self.message_sent.emit(text)
             self._append_message(f"> {text}", is_user=True)
             self.input_field.clear()
@@ -131,6 +134,7 @@ class FakeChat(QWidget):
 
     def show_reply(self, text: str):
         """Starts typewriter effect for the reply."""
+        log_info(f"AI Replying: {text[:50]}...", "CHAT")
         # Check if it's an error message
         is_glitch = any(word in text.lower() for word in ["hata", "error", "ölüm", "kork"])
         
@@ -186,7 +190,9 @@ class FakeChat(QWidget):
             else:
                 try:
                     label.setText(full_text) # Ensure final text is clean
-                except:
+                except (RuntimeError, AttributeError) as e:
+                    from core.logger import log_warning
+                    log_warning(f"Chat typewriter final update failed: {e}", "VISUAL")
                     pass
 
         next_char()

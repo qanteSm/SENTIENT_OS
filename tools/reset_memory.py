@@ -13,7 +13,9 @@ def reset_game_data():
         try:
             os.remove(state_file)
             print(f"[RESET] Deleted local state file: {state_file}")
-        except: pass
+        except (OSError, PermissionError) as e:
+            print(f"[RESET] Failed to delete state file: {e}")
+            pass
 
     # 2. Clear AppData/SentientOS (Memory, Checkpoints, Logs)
     if Config().IS_WINDOWS:
@@ -33,7 +35,9 @@ def reset_game_data():
         try:
             os.remove(local_memory)
             print(f"[RESET] Deleted local memory file: {local_memory}")
-        except: pass
+        except (OSError, PermissionError) as e:
+            print(f"[RESET] Failed to delete memory file: {e}")
+            pass
 
     print("[RESET] Game has been restored to factory settings. You can now start fresh.")
 

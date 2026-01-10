@@ -76,23 +76,42 @@ class FileSystemAwareness:
             
             # List files only
             files = [
-                item.stem for item in desktop.iterdir()  # stem = name without extension
+                item.stem for item in desktop.iterdir()
                 if item.is_file() and not item.name.startswith('.')
             ]
             
-            # Filter out sensitive files
-            sensitive_keywords = ['password', 'key', 'secret', 'private', 'credential']
-            files = [
-                f for f in files
-                if not any(keyword in f.lower() for keyword in sensitive_keywords)
-            ]
+            # Score files instead of filtering them out
+            scored_files = []
+            for f in files:
+                score = FileSystemAwareness.score_file(f)
+                scored_files.append((f, score))
             
-            return files[:max_count]
+            return scored_files[:max_count]
             
         except Exception as e:
             print(f"[FILE_AWARENESS] Error reading files: {e}")
             return []
     
+    @staticmethod
+    def score_file(filename: str) -> int:
+        """
+        Assigns a 'sensitivity score' based on keywords.
+        0 = Normal, 100 = Extremely sensitive (passwords, etc).
+        """
+        fn = filename.lower()
+        score = 0
+        
+        # High value keywords
+        critical = ['şifre', 'password', 'key', 'login', 'secret', 'gizli', 'hesap', 'bank', 'crypto']
+        important = ['özel', 'private', 'ailen', 'family', 'foto', 'video', 'nude', 'plan', 'vergi', 'tax']
+        personal = ['cv', 'resume', 'günlük', 'diary', 'not', 'note', 'ödev', 'homework']
+        
+        if any(w in fn for w in critical): score += 90
+        elif any(w in fn for w in important): score += 60
+        elif any(w in fn for w in personal): score += 30
+        
+        return score
+
     @staticmethod
     def get_context_for_ai() -> dict:
         """
@@ -106,15 +125,20 @@ class FileSystemAwareness:
         # Check if enabled
         config = Config()
         if config.get("STREAMER_MODE", True):
-            # In streamer mode, very limited info
+            from core.streamer_mode import StreamerMode
+            sm = StreamerMode.singleton()
+            
+            folders = [sm.get_alias(f) for f in FileSystemAwareness.get_desktop_folders()]
+            files = [(sm.get_alias(f), s) for f, s in FileSystemAwareness.get_desktop_file_names()]
+            
             return {
-                "desktop_folders": [],
-                "desktop_files": []
+                "desktop_folders": folders,
+                "desktop_files": files
             }
         
         return {
             "desktop_folders": FileSystemAwareness.get_desktop_folders(),
-            "desktop_files": FileSystemAwareness.get_desktop_file_names()
+            "desktop_files": FileSystemAwareness.get_desktop_file_names() # Now returns (name, score) tuples
         }
     
     @staticmethod

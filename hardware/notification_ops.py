@@ -5,6 +5,7 @@ Shows fake Windows toast notifications.
 from config import Config
 import random
 import time
+from core.logger import log_info, log_error, log_debug
 
 try:
     if Config().IS_MOCK:
@@ -54,17 +55,17 @@ class NotificationOps:
                     if app:
                         QTimer.singleShot(0, _show)
                     else:
-                        print(f"[NOTIFICATION] No QApplication: {title}")
+                        log_error(f"No QApplication: {title}", "NOTIFICATION")
                         
                 except Exception as e:
-                    print(f"[NOTIFICATION] Worker Error: {e}")
+                    log_error(f"Worker Error: {e}", "NOTIFICATION")
                 
                 # Small cool-down between notifications
                 time.sleep(1.0)
                 NotificationOps._queue.task_done()
                 
             except Exception as e:
-                print(f"[NOTIFICATION] Global Worker Error: {e}")
+                log_error(f"Global Worker Error: {e}", "NOTIFICATION")
                 time.sleep(1.0)
 
     def show_fake_system_alert(self, title: str = None, message: str = None, duration: int = 5):
@@ -83,4 +84,4 @@ class NotificationOps:
         
         # Put into queue for sequential processing
         NotificationOps._queue.put((title, message, duration * 1000))
-        print(f"[NOTIFICATION] Queued: {title}")
+        log_info(f"Queued: {title}", "NOTIFICATION")

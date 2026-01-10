@@ -56,6 +56,9 @@ class HorrorDispatcher(BaseDispatcher):
             "CREEPY_MUSIC",
             "WHISPER",
             "DIGITAL_GLITCH_SURGE",
+            "ICON_SCRAMBLE",
+            "FAKE_ERROR_SPAM",
+            "WINDOW_HIJACK",
         ]
     
     def dispatch(self, action: str, params: Dict[str, Any], speech: str = ""):
@@ -129,3 +132,20 @@ class HorrorDispatcher(BaseDispatcher):
         elif action == "DIGITAL_GLITCH_SURGE":
             horror = self.get_horror(self)
             horror.digital_glitch_surge()
+
+        elif action == "ICON_SCRAMBLE":
+            from visual.icon_ops import IconOps
+            IconOps.scramble_into_pattern(params.get("pattern", "spiral"))
+            
+        elif action == "FAKE_ERROR_SPAM":
+            count = params.get("count", 10)
+            if hasattr(self, 'overlay') and self.overlay:
+                self.overlay.spawn_error_cascade(count)
+                
+        elif action == "WINDOW_HIJACK":
+            from hardware.window_ops import WindowOps
+            dx = params.get("dx", random.randint(-50, 50))
+            dy = params.get("dy", random.randint(-50, 50))
+            WindowOps.shift_active_window(dx, dy)
+            if params.get("shake", False):
+                WindowOps.shake_active_window(10, 500)
