@@ -276,7 +276,11 @@ def mock_memory():
     
     # Override memory file path
     memory = Memory()
-    memory.memory_file = f"{temp_dir}/test_memory.json"
+    memory.filepath = f"{temp_dir}/test_memory.json"
+    memory.memory_file = memory.filepath  # Alias for compatibility
+    
+    # Initial save to create file
+    memory.save_immediate()
     
     yield memory
     
