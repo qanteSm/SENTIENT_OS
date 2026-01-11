@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 from PyQt6.QtWidgets import QApplication
 from visual.fake_ui import FakeUI
 
+
 @pytest.fixture
 def app():
     # Ensure a QApplication exists

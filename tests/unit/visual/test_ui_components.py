@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 from visual.fake_chat import FakeChat
 from visual.overlay_manager import OverlayManager
 
+
 class TestUIComponents:
     @pytest.fixture
     def app(self):

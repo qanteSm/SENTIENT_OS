@@ -26,8 +26,9 @@ class TestSafetyNet:
         assert safety_net.escape_attempts == 1
         mock_memory.record_behavior.assert_called_with("escape_attempt", "Alt+F4")
 
+    @patch('core.safety_net.QTimer.singleShot')
     @patch('core.safety_net.QApplication.instance')
-    def test_cleanup_main_thread(self, mock_app_instance, safety_net):
+    def test_cleanup_main_thread(self, mock_app_instance, mock_timer, safety_net):
         """Verifies hardware and UI cleanup on main thread."""
         mock_app = MagicMock()
         mock_app_instance.return_value = mock_app
@@ -40,3 +41,4 @@ class TestSafetyNet:
                     mock_kb.assert_called_once()
                     mock_mouse.assert_called_once()
                     mock_app.quit.assert_called_once()
+                    assert mock_timer.called

@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 from visual.glitch_logic import GlitchLogic
 
+
 class TestGlitchHorror:
     @pytest.fixture
     def glitch_logic(self):

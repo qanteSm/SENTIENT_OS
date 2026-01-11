@@ -88,6 +88,31 @@ def reset_singletons():
         pass
     
     yield
+    
+    # CRITICAL: Clean up Qt event queue after each test
+    # This prevents state pollution from previous tests causing
+    # pytest to crash during teardown of Qt widget tests
+    try:
+        from PyQt6.QtWidgets import QApplication
+        app = QApplication.instance()
+        if app:
+            # Process all pending events
+            app.processEvents()
+            app.processEvents()  # Call twice for safety
+            
+            # Close and delete all top-level widgets
+            for widget in app.topLevelWidgets():
+                try:
+                    widget.close()
+                    widget.deleteLater()
+                except:
+                    pass
+            
+            # Final event processing to handle deleteLater
+            app.processEvents()
+    except (ImportError, AttributeError):
+        # Qt not available in this test
+        pass
 
 @pytest.fixture
 def mock_config():

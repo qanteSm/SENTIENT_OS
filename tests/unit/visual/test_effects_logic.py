@@ -34,23 +34,29 @@ class TestVisualEffectsLogic:
                 # Verify Timer Started
                 assert mock_timer.return_value.start.called
                 
-                # Check attributes without invoking real Qt logic
-                melter.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+                # CRITICAL FIX: Do NOT use WA_DeleteOnClose in tests!
+                # It causes Qt event loop conflicts with mocked QApplication
+                # causing pytest to terminate before teardown hooks execute
+                # melter.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)  # ❌ REMOVED
                 
+                # Stop timer before closing to prevent any pending events
+                melter.timer.stop()
+                melter.life_timer.stop()
+                
+                # Close the widget
                 melter.close()
-                
-                # CRITICAL: Force Qt to process deletion events
-                # Without this, WA_DeleteOnClose may cause pytest to terminate
-                # before teardown hooks can execute
-                from PyQt6.QtWidgets import QApplication as QApp
-                QApp.processEvents()
-                
-                # Give Qt time to cleanup scheduled deletions
-                import time
-                time.sleep(0.1)
                 
                 # Verify refresh was requested safely
                 mock_gdi.force_refresh_screen.assert_called_once()
+                
+                # Explicit cleanup - delete the widget manually
+                del melter
+                
+                # Force Qt event processing to clear any queued events
+                from PyQt6.QtWidgets import QApplication as QApp
+                if QApp.instance():
+                    QApp.processEvents()
+                    QApp.processEvents()  # Call twice for safety
 
     @patch('visual.effects.pixel_melt.QTimer.singleShot')
     @patch('visual.effects.pixel_melt.windll.user32.GetDC')
