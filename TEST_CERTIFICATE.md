@@ -308,6 +308,10 @@ Verdict: ✅ PASSED - BEHAVIOR TRACKING STABLE
 ╚════════════════════════════════════════════════════════════╝
 ```
 
+### 💹 Stress Test Performance Graph
+![Performance Profile](tests/performance_profile.png)
+*Figure 1: CPU, Memory, and Thread stability across the full test sweep.*
+
 ### 🎖️ Performance Certificate
 
 ```

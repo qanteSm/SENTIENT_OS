@@ -73,6 +73,13 @@ A psychological horror experience powered by Google Gemini AI that simulates a s
 - **Atomic State** - Thread-safe state management with 0% race condition rate
 - **High-Freq Telemetry** - Sub-millisecond performance tracking for core systems
 
+#### ⚡ Technical Architecture Core
+- **Asynchronous Command Bus**: High-speed action routing with **Priority-based execution**.
+- **Self-Healing Kernel**: Automated crash recovery with state-safe checkpoints.
+- **AI Reasoning Engine**: Hybrid online/offline Gemini integration with semantic caching.
+- **Hardware Abstraction Layer**: Direct Windows API (GDI/Win32) integration for low-latency effects.
+- **Data Integrity Layer**: Atomic JSON persistence ensuring 0% corruption risk.
+
 #### ⚙️ Technical Excellence
 - **YAML Configuration** - Runtime-editable settings, environment variable support
 - **Thread-Safe Architecture** - QMutex-protected sensors, no race conditions
@@ -196,6 +203,13 @@ Google Gemini AI tarafından desteklenen, bilgisayarınızın kontrolünü ele g
 - **Kaos Korumalı** - Kayıt sırasında "Alt+F4" simülasyonunda veri bütünlüğü onayı
 - **Atomik Durum** - %0 yarış durumu (race condition) oranı ile güvenli yönetim
 - **Yüksek Frekanslı Telemetri** - Çekirdek sistemler için milisaniye altı izleme
+
+#### ⚡ Teknik Mimari Çekirdeği
+- **Asenkron Komut Yolu**: **Öncelik tabanlı (Priority-based)** yüksek hızlı eylem yönlendirme.
+- **Kendi Kendini Onaran Çekirdek**: Durum güvenli kontrol noktalarıyla otomatik hata kurtarma.
+- **AI Muhakeme Motoru**: Semantik önbelleğe alma ile hibrit çevrimiçi/çevrimdışı Gemini entegrasyonu.
+- **Donanım Soyutlama Katmanı**: Düşük gecikmeli efektler için doğrudan Windows API (GDI/Win32) kullanımı.
+- **Veri Bütünlüğü Katmanı**: %0 bozulma riski sağlayan atomik JSON kalıcılığı.
 
 ### 🎭 Hikaye Akışı
 

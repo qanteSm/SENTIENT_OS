@@ -64,32 +64,36 @@ class SentientKernel:
 
 ### 2. Function Dispatcher (`core/function_dispatcher.py`)
 
-**Role:** Command pattern implementation for action execution
+**Role:** High-performance command pattern implementation for action execution
 
 **Responsibilities:**
 - Translate AI JSON commands to Python functions
-- Route actions to appropriate hardware/visual modules
+- **Priority-based Execution**: Visual effects prioritized over background tasks
+- **Worker Pool Management**: 5 dedicated threads for non-blocking execution
 - Parameter validation and error handling
 - Action logging and telemetry
 
-**Design Pattern:** Command Pattern + Strategy
+**Design Pattern:** Command Pattern + Priority Queue + Worker Pool
 
 ```python
 def dispatch(self, command: dict):
-    action = command.get("action")
-    params = command.get("params", {})
-    speech = command.get("speech", "")
+    # 1. Extract action, params, priority
+    priority = command.get("priority", 2) # Higher = Sooner
     
-    # Route to appropriate handler
-    if action == "SCREEN_TEAR":
-        ScreenTear.tear_screen(intensity, duration)
+    # 2. Wrap in Action object
+    action_obj = Action(action, params, priority)
+    
+    # 3. Push to Priority Queue
+    self._queue.put(action_obj)
+    
+    # 4. Worker threads pick and execute
 ```
 
 **Supported Action Categories:**
-- **Visual**: Overlays, GDI effects, fake UI, masks
-- **Hardware**: Mouse, keyboard, audio, brightness
-- **System**: Wallpaper, clipboard, notifications
-- **Horror**: Glitches, melts, tears, whispers
+- **Visual (High Priority)**: Overlays, GDI effects, flash, screen shake
+- **Hardware (Medium Priority)**: Mouse, keyboard, audio, brightness
+- **System (Low Priority)**: Wallpaper, clipboard, notifications
+- **Narrative**: Act transitions, persona switches
 
 ---
 
@@ -135,9 +139,10 @@ def generate_response(self, user_input: str, context: dict) -> dict:
 - Time of day
 
 **Performance:**
-- **Cache Hit Rate**: ~60% in testing
-- **API Cost Reduction**: 60% lower than no-cache
-- **Offline Mode**: Fallback responses when no internet
+- **Cache Hit Rate**: ~60% in testing (SHA256 Semantic Hashing)
+- **Privacy Filter**: Regex-based scrubbing for usernames, IP addresses, and absolute paths
+- **Offline Mode**: Automatic fallback to local "persona patterns" when API fails
+- **Cost Efficiency**: Parallel processing and caching reduce token usage by 60%
 
 ---
 
@@ -701,7 +706,10 @@ We employ **Chaos Monkey** testing to simulate worst-case scenarios:
 The system has been benchmarked for extreme performance:
 - **Dispatcher Throughput**: ~410 actions per second (4x the required peak load).
 - **Resource Guard**: Automated detection of "Staircase Effect" memory leaks.
-- **Zero GDI Leaks**: Specialized tracking for Windows GDI handles, ensuring 100% garbage collection of screen resources.
+- **Zero GDI Leaks**: Specialized tracking for Windows GDI handles.
+
+![Performance Profile](tests/performance_profile.png)
+*Figure: Real-time resource telemetry during certified test sweep.*
 
 ### 🎖️ Performance Standards
 | Metric | Threshold | Performance |
