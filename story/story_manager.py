@@ -38,6 +38,7 @@ class StoryManager(QObject):
         self.ambient_horror = None  # NEW: Ambient horror system
         self.drone_audio = None  # NEW: Drone audio system
         self._is_transitioning = False  # NEW: Transition lock
+        self._transition_watchdog = None  # NEW: Watchdog timer for softlock prevention
         self.difficulty = None
         
         # Load saved act or start from 1
@@ -131,6 +132,9 @@ class StoryManager(QObject):
         self._is_transitioning = True
         log_info(f"Transitioning to Act {next_act_num}...", "STORY")
         
+        # Start watchdog timer (10 seconds)
+        self._start_transition_watchdog(next_act_num)
+        
         # Stop ambient systems during transition
         if self.ambient_horror:
             self.ambient_horror.stop()
@@ -184,8 +188,32 @@ class StoryManager(QObject):
             self.dispatcher.audio_out.play_sfx("whisper")
             self.dispatcher.audio_out.play_sfx("transition")
 
+    def _start_transition_watchdog(self, next_act_num: int):
+        """Starts watchdog timer to prevent softlock during transition."""
+        log_info(f"Starting transition watchdog (10s timeout) for Act {next_act_num}", "STORY")
+        
+        def watchdog_timeout():
+            if self._is_transitioning:
+                log_error(f"TRANSITION TIMEOUT! Watchdog forcing recovery for Act {next_act_num}", "STORY")
+                self._is_transitioning = False
+                self.current_act_num = next_act_num
+                self._load_act(next_act_num)
+        
+        self._transition_watchdog = QTimer()
+        self._transition_watchdog.setSingleShot(True)
+        self._transition_watchdog.timeout.connect(watchdog_timeout)
+        self._transition_watchdog.start(10000)  # 10 seconds
+    
+    def _cancel_transition_watchdog(self):
+        """Cancels the watchdog timer (transition succeeded)."""
+        if self._transition_watchdog and self._transition_watchdog.isActive():
+            log_info("Transition successful, canceling watchdog", "STORY")
+            self._transition_watchdog.stop()
+            self._transition_watchdog = None
+
     def _actually_load_next_act(self, act_num: int):
         """Actually loads the next act after transition."""
+        self._cancel_transition_watchdog()
         self._is_transitioning = False
         self.current_act_num = act_num
         self._load_act(act_num)

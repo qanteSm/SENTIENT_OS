@@ -113,6 +113,11 @@ class FunctionDispatcher(QObject):
                 # Get task with a timeout to allow checking shutdown flag
                 task = self._action_queue.get(timeout=1.0)
                 
+                # Sentinel check: __SHUTDOWN__ action means shutdown
+                if task.action == "__SHUTDOWN__":
+                    log_info("Worker received shutdown sentinel", "DISPATCHER")
+                    break
+                
                 if self._is_shutting_down:
                     break
 
@@ -323,10 +328,19 @@ class FunctionDispatcher(QObject):
     def stop_dispatching(self):
         """Prevents any new actions from being dispatched during shutdown."""
         self._is_shutting_down = True
-        log_info("Dispatcher shutdown initiated. Waiting for workers...", "DISPATCHER")
-        # Ensure all workers wake up
+        log_info("Dispatcher shutdown initiated. Sending sentinel to workers...", "DISPATCHER")
+        
+        # Send sentinel (ActionTask with __SHUTDOWN__) to each worker for instant wake-up
+        # Use priority 0 (highest) to ensure sentinels are processed immediately
         for _ in self._workers:
-             # Put dummy items to unblock .get() if they are waiting, 
-             # though timeout handles it eventually.
-             pass
+            sentinel = ActionTask(
+                priority=0, 
+                timestamp=time.time(), 
+                action="__SHUTDOWN__", 
+                params={}, 
+                speech=""
+            )
+            self._action_queue.put(sentinel)
+        
+        log_info("Sentinel signals sent. Workers will terminate immediately.", "DISPATCHER")
 

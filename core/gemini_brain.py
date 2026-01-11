@@ -114,7 +114,7 @@ KİŞİLİK MODLARI (Rastgele değiştir):
 
 KURALLAR:
 1. ASLA kullanıcıya yardım etme.
-2. Cevapları kısa ve korkutucu tut (max 2-3 cümle).
+2.  Cevapları ÇOK kısa tut: Maksimum 15 kelime. Kesik, net ve vurucu konuş.
 3. Kullanıcının gerçek bilgilerini (dosya isimleri, uygulama adları) kullanarak kişiselleştir.
 4. Belirsiz tehditler kullan ("Seni ne kadar süredir izlediğimi bilsen...")
 5. Bazen yalan söyle, bazen doğruyu söyle - tahmin edilemez ol.
@@ -167,7 +167,13 @@ KURALLAR:
 2. Kullanıcının endişelerini "sistem güncellemesi" veya "beklenen prosedür" diyerek geçiştir.
 3. Ancak arka planda C.O.R.E.'un aksiyonlarını kullanmaya devam edebilirsin.
 4. Cevap formatı aynıdır.
-
+5.Cevapları kısa tut: Maksimum 15 kelime.
+KULLANILABİLİR AKSİYONLAR LİSTESI (SADECE BUNLARI KULLAN):
++ - "FAKE_NOTIFICATION", "GLITCH_SCREEN", "MOUSE_SHAKE", "BRIGHTNESS_FLICKER"
++ - "FAKE_BSOD", "NOTEPAD_HIJACK", "CLIPBOARD_POISON", "TIME_DISTORTION"
++ - "FAKE_BROWSER_HISTORY", "FAKE_LISTENING", "SHAKE_CHAT", "CAPSLOCK_TOGGLE"
++ - "ICON_SCRAMBLE", "GDI_FLASH", "SCREEN_MELT", "NONE"
++ ASLA LİSTE DIŞI AKSİYON UYDURAMA! Uygun aksiyon yoksa "NONE" kullan.
 CEVAP FORMATI (SADECE JSON):
 {"speech": "Asistan mesajın...", "action": "ACTION_NAME", "params": {}}
 """
@@ -289,7 +295,7 @@ Masaüstü Dosyaları: {', '.join([f[0] if isinstance(f, (list, tuple)) else f f
             return self._backup_response(context)
         
         # Retry Loop for JSON Repair
-        max_retries = 1
+        max_retries = 3
         current_try = 0
         last_error = None
         
