@@ -44,7 +44,7 @@ class TestDispatcherStress:
         # Send actions (don't try to rate-limit, just blast them)
         for i in range(total_actions):
             # Alternate between actions
-            action = "GDI_FLASH" if i % 2 == 0 else "FAKE_FILE_DELETE"
+            action = "GDI_FLASH" if i % 2 == 0 else "CLIPBOARD_POISON"
             
             mock_dispatcher._do_dispatch({
                 "action": action,
@@ -97,10 +97,11 @@ class TestDispatcherStress:
         # Patch dispatchers
         mock_dispatcher.visual_dispatcher.dispatch = MagicMock(side_effect=track_high)
         mock_dispatcher.system_dispatcher.dispatch = MagicMock(side_effect=track_low)
+        mock_dispatcher.horror_dispatcher.dispatch = MagicMock(side_effect=track_low)
         
         print("\n🎲 Sending 100 actions with chaotic priorities...")
         
-        # Send actions
+        # Send 100 actions
         for i in range(100):
             if random.random() > 0.5:
                 # HIGH priority (visual)
@@ -112,8 +113,8 @@ class TestDispatcherStress:
             else:
                 # LOW priority (system)
                 mock_dispatcher._do_dispatch({
-                    "action": "FAKE_FILE_DELETE",
-                    "params": {},
+                    "action": "CLIPBOARD_POISON",
+                    "params": {"text": "Chaos!"},
                     "speech": ""
                 })
             
@@ -153,8 +154,8 @@ class TestDispatcherStress:
         # Send 5 blocking tasks (one per worker)
         for _ in range(5):
             mock_dispatcher._do_dispatch({
-                "action": "FAKE_FILE_DELETE",
-                "params": {},
+                "action": "CLIPBOARD_POISON",
+                "params": {"text": "Blocking..."},
                 "speech": ""
             })
         

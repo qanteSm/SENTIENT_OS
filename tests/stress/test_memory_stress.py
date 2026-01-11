@@ -192,11 +192,11 @@ class TestMemoryStress:
             if i % 100 == 0:
                 resource_tracker.snapshot()
         
-        # Verify counts
-        behavior_data = mock_memory.data.get("behavior_tracking", {})
+        # Verify counts (Adjusted for actual schema: user_profile -> behavior_stats)
+        behavior_data = mock_memory.data["user_profile"].get("behavior_stats", {})
         
-        print(f"   Swear count: {behavior_data.get('swear', {}).get('count', 0)}")
-        print(f"   Beg count: {behavior_data.get('beg', {}).get('count', 0)}")
+        print(f"   Swear count: {behavior_data.get('swear_count', 0)}")
+        print(f"   Beg count: {behavior_data.get('begged_count', 0)}")
         
         # Check leak
         leaks = resource_tracker.detect_leaks()
@@ -213,12 +213,12 @@ class TestMemoryStress:
         for i in range(200):
             mock_memory.add_memorable_moment(f"Moment {i}")
         
-        moments = mock_memory.data.get("memorable_moments", [])
+        moments = mock_memory.data["user_profile"].get("memorable_moments", [])
         
         print(f"   Stored moments: {len(moments)}")
         
-        # Should be limited to ~50
-        assert len(moments) <= 60, f"Too many moments stored: {len(moments)}"
+        # Should be limited (Memory.py has limit of 20 for moments)
+        assert len(moments) <= 25, f"Too many moments stored: {len(moments)}"
 
 
 @pytest.mark.stress

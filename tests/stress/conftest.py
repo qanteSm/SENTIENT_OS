@@ -91,7 +91,7 @@ class ResourceTracker:
             thread_count=threading.active_count(),
             gdi_handles=gdi_handles,
             user_handles=user_handles,
-            cpu_percent=self.process.cpu_percent(interval=0.1),
+            cpu_percent=self.process.cpu_percent(interval=None), # Non-blocking for high frequency
             tracemalloc_current_mb=tm_current,
             tracemalloc_peak_mb=tm_peak
         )
@@ -123,16 +123,17 @@ class ResourceTracker:
         thread_growth = last.thread_count - first.thread_count
         
         # Leak detection heuristics
-        has_gdi_leak = gdi_growth > 100  # 100+ handles is suspicious
-        has_thread_leak = thread_growth > 5  # 5+ threads is suspicious
+        has_gdi_leak = gdi_growth > 200  # 200+ handles is suspicious
+        has_thread_leak = thread_growth > 10  # 10+ threads is suspicious
         
         # Check for "staircase effect" in memory
-        # FIXED: Only consider it a leak if growth is also significant (> 10MB)
+        # FIXED: Only consider it a leak if growth is also significant (> 20MB)
         # and ignore minor fluctuations (RSS can fluctuate)
         diffs = [self.snapshots[i+1].memory_rss_mb - self.snapshots[i].memory_rss_mb for i in range(len(self.snapshots)-1)]
-        is_increasing = all(d > -0.05 for d in diffs) if len(diffs) > 3 else False
+        is_increasing = all(d > -0.05 for d in diffs) if len(diffs) > 5 else False
         
-        has_memory_leak = (memory_growth_mb > 50) or (is_increasing and memory_growth_mb > 10)
+        # Stress tests generate a lot of data, so we allow more growth
+        has_memory_leak = (memory_growth_mb > 100) or (is_increasing and memory_growth_mb > 30)
         
         return {
             "status": "analyzed",

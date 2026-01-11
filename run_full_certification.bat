@@ -1,49 +1,27 @@
 @echo off
+setlocal
 echo ===================================================
-echo   SENTIENT_OS FINAL VERIFICATION & STRESS TEST
+echo   SENTIENT_OS ADVANCED CERTIFICATION SUITE
 echo ===================================================
 echo.
-echo Running Unit Tests...
-python -m pytest tests/unit -v
+echo [1/2] Running Certified Tests & Resource Profiling...
+echo (Pytest + HTML Report + Coverage + CPU/RAM Tracking)
+python run_certified_tests.py
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Unit Tests Failed!
+    echo [WARNING] Some tests failed or profiling was interrupted.
 ) else (
-    echo [SUCCESS] Unit Tests Passed!
+    echo [SUCCESS] Certification Suite completed successfully!
 )
 echo.
-echo Running Integration Tests...
-python -m pytest tests/integration -v
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Integration Tests Failed!
-) else (
-    echo [SUCCESS] Integration Tests Passed!
-)
-echo.
-echo Running Stress Tests (Full Suite)...
-python -m pytest tests/stress/test_memory_stress.py -v -m stress
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Memory Stress Failed!
-) else (
-    echo [SUCCESS] Memory Stress Passed!
-)
-echo.
-echo Running Dispatcher Stress...
-python -m pytest tests/stress/test_dispatcher_stress.py -v
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Dispatcher Stress Failed!
-) else (
-    echo [SUCCESS] Dispatcher Stress Passed!
-)
-echo.
-echo Running Chaos Monkey...
-python -m pytest tests/stress/test_chaos_monkey.py -v
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Chaos Monkey Failed!
-) else (
-    echo [SUCCESS] Chaos Monkey Passed!
-)
+echo [2/2] Opening Advanced Reports...
+start tests/report.html
+start tests/coverage_report/index.html
+if exist tests/performance_profile.png start tests/performance_profile.png
 echo.
 echo ===================================================
-echo   ALL TESTS COMPLETED - CHECK OUTPUT ABOVE
+echo   CERTIFICATION COMPLETE
+echo   - Interactive Report: tests/report.html
+echo   - Coverage: tests/coverage_report/index.html
+echo   - Profiling Summary: tests/performance_summary.md
 echo ===================================================
 pause

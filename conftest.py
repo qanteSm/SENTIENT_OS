@@ -10,6 +10,15 @@ import sys
 # Add project root to path
 sys.path.insert(0, os.path.dirname(__file__))
 
+import time
+import json
+import threading
+import psutil
+from pathlib import Path
+
+# Global storage for profiling
+_global_snapshots = []
+
 # Import BEFORE creating fixtures to avoid singleton issues
 from config import Config
 
@@ -28,6 +37,8 @@ def reset_singletons():
         if hasattr(Memory, '_instance'):
             Memory._instance = None
             Memory._initialized = False
+        # Pre-initialize in test mode to prevent loading from real file
+        Memory(test_mode=True)
     except (ImportError, AttributeError) as e:
         # Memory module not available in this test context
         pass
@@ -91,6 +102,14 @@ def sample_ai_response():
 @pytest.fixture
 def sample_context():
     """Sample context dictionary"""
+    return {
+        "act": 2,
+        "chaos_level": 30,
+        "user_name": "Test User",
+        "last_action": "MOUSE_SHAKE",
+        "conversation_history": []
+    }
+
     return {
         "act": 2,
         "chaos_level": 30,
