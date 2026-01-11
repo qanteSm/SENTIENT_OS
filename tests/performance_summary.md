@@ -2,10 +2,10 @@
 
 | Metric | Value |
 | :--- | :--- |
-| **Peak RAM** | 195.39 MB |
-| **Avg RAM** | 166.91 MB |
-| **Peak CPU** | 107.5 % |
+| **Peak RAM** | 196.33 MB |
+| **Avg RAM** | 169.93 MB |
+| **Peak CPU** | 107.6 % |
 | **Peak Threads** | 33 |
-| **Duration** | 70.0 s |
+| **Duration** | 49.7 s |
 
 ![Performance Profile](performance_profile.png)

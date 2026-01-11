@@ -9,9 +9,13 @@ try:
     import win32gui
     import win32api
     import win32con
+    from ctypes import windll
     HAS_WIN32 = True
+    HAS_WINDLL = True
 except ImportError:
     HAS_WIN32 = False
+    HAS_WINDLL = False
+    windll = None
 
 class GDIEngine:
     """
@@ -167,9 +171,9 @@ class GDIEngine:
     @staticmethod
     def force_refresh_screen():
         """Forces the entire screen to redraw, clearing any GDI leftovers."""
-        if not HAS_WIN32: return
+        if not HAS_WINDLL: 
+            return
         try:
-            from ctypes import windll
             # InvalidateRect(0, None, True) triggers a full screen redraw
             windll.user32.InvalidateRect(0, None, True)
             print("[GDI] Screen refresh forced.")

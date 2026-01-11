@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import MagicMock, patch
 from PyQt6.QtWidgets import QApplication
+from PyQt6.QtCore import Qt, QRect
 from PyQt6.QtGui import QPixmap, QColor
 
 class TestVisualEffectsLogic:
@@ -8,17 +9,48 @@ class TestVisualEffectsLogic:
 
     @pytest.fixture
     def app(self):
+        """Standardized QApplication fixture."""
         return QApplication.instance() or QApplication([])
 
     def test_screen_melter_lifecycle(self, app):
         """Verifies ScreenMelter setup and timer cleanup."""
         # Use deep mocking to avoid native crashes
-        with patch('PyQt6.QtWidgets.QWidget.showFullScreen'):
-            with patch('PyQt6.QtGui.QScreen.grabWindow', return_value=QPixmap(10, 10)):
+        with patch('visual.effects.screen_melter.QTimer') as mock_timer, \
+             patch('visual.effects.screen_melter.QApplication') as mock_qapp, \
+             patch('PyQt6.QtWidgets.QWidget.showFullScreen'):
+            
+            # Setup Safe Mock for Screen
+            mock_screen = MagicMock()
+            mock_screen.grabWindow.return_value = QPixmap(10, 10)
+            # CRITICAL: setGeometry requires a valid QRect, not a Mock object
+            mock_screen.geometry.return_value = QRect(0, 0, 1920, 1080)
+            mock_qapp.primaryScreen.return_value = mock_screen
+            
+            # Mock GDIEngine to prevent force_refresh_screen calls during close()
+            with patch('visual.gdi_engine.GDIEngine') as mock_gdi:
                 from visual.effects.screen_melter import ScreenMelter
                 melter = ScreenMelter()
-                assert melter.timer.isActive()
+                
+                # Verify Timer Started
+                assert mock_timer.return_value.start.called
+                
+                # Check attributes without invoking real Qt logic
+                melter.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+                
                 melter.close()
+                
+                # CRITICAL: Force Qt to process deletion events
+                # Without this, WA_DeleteOnClose may cause pytest to terminate
+                # before teardown hooks can execute
+                from PyQt6.QtWidgets import QApplication as QApp
+                QApp.processEvents()
+                
+                # Give Qt time to cleanup scheduled deletions
+                import time
+                time.sleep(0.1)
+                
+                # Verify refresh was requested safely
+                mock_gdi.force_refresh_screen.assert_called_once()
 
     @patch('visual.effects.pixel_melt.QTimer.singleShot')
     @patch('visual.effects.pixel_melt.windll.user32.GetDC')
