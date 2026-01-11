@@ -100,10 +100,10 @@ class SentientKernel:
         IconOps.save_icon_positions()
         
         # 3. Show Onboarding Flow (Welcome -> Calibration -> Consent)
-        # No horror effects or        # Check if DEV_MODE - skip onboarding for faster testing
-        dev_mode_file = os.path.join(os.path.dirname(__file__), "..", "DEV_MODE.txt")
-        if os.path.exists(dev_mode_file):
-            log_info("Skipping onboarding - starting game directly...", "DEV")
+        # Check if DEV_MODE - skip onboarding for faster testing
+        # REFACTORED: Now uses Config() instead of file check
+        if Config().get("DEV_MODE", False):
+            log_info("DEV_MODE Check: Enabled via Config. Skipping onboarding...", "DEV")
             self.init_core_systems()
         else:
             # Onboarding (replaces simple consent)

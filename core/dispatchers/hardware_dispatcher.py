@@ -46,6 +46,8 @@ class HardwareDispatcher(BaseDispatcher):
             "BRIGHTNESS_FLICKER",
             "BRIGHTNESS_DIM",
             "CAPSLOCK_TOGGLE",
+            "PLAY_SOUND",
+            "TTS_SPEAK",
         ]
     
     def dispatch(self, action: str, params: Dict[str, Any], speech: str = ""):
@@ -85,3 +87,13 @@ class HardwareDispatcher(BaseDispatcher):
         
         elif action == "CAPSLOCK_TOGGLE":
             self.keyboard.toggle_caps_lock()
+            
+        elif action == "PLAY_SOUND":
+            # Map PLAY_SOUND to play_sfx
+            sound = params.get("sound") or params.get("sound_name") or "glitch"
+            self.audio.play_sfx(sound)
+            
+        elif action == "TTS_SPEAK":
+            speech = params.get("speech") or params.get("text")
+            if speech:
+                self.audio.play_tts(speech)

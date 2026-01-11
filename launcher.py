@@ -100,17 +100,15 @@ def hacker_terminal_splash():
 def launch_game():
     validate_environment()
     
-    # Check for DEV_MODE.txt file (simple and reliable)
-    dev_mode_file = os.path.join(os.path.dirname(__file__), "DEV_MODE.txt")
-    dev_mode = os.path.exists(dev_mode_file)
+    # Check for DEV_MODE in config
+    config = Config()
+    dev_mode = config.get("DEV_MODE", False)
     
     if dev_mode:
         print("\n" + "=" * 60)
         print(" ⚡ DEVELOPER MODE ACTIVE - Skipping admin/intro checks")
-        print(" Delete DEV_MODE.txt to disable")
+        print(" Edit config.yaml to disable")
         print("=" * 60 + "\n")
-    
-    config = Config()
     
     # Skip admin check in dev mode
     if not dev_mode and not is_admin() and not config.IS_MOCK:
