@@ -12,6 +12,8 @@ def main():
     """
     # CRITICAL: Install crash handler FIRST
     install_crash_handler()
+    import faulthandler
+    faulthandler.enable()
     
     kernel = SentientKernel()
     

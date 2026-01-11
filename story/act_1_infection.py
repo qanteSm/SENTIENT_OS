@@ -15,69 +15,61 @@ class Act1Infection(QObject):
         self.brain = brain
         self.timers = []
         self.threads = []
-        self.duration = 480 * 1000  # 8 minutes
+        self.duration = 240 * 1000  # OPTIMIZED: 4 minutes (was 8) (Condensed experience)
 
         self.ai_response_ready.connect(self._handle_ai_response)
 
     def start(self):
-        log_info("Infection Phase Started (8 minutes)", "ACT 1")
+        log_info("Infection Phase Started (4 minutes - Optimized)", "ACT 1")
         
-        # DENSIFIED event timeline - using Localized Strings
+        # OPTIMIZED EVENT TIMELINE - Compressed for Pacing
         events = [
-            # Phase 0: Setup Persona
+            # Phase 0: Setup Persona (Immediate)
             (0, "SET_PERSONA", {"persona": "SUPPORT"}, ""),
             
-            # Phase 1: Uncertainty (0-2min)
+            # Phase 1: Uncertainty (0-1min) - No more dead air
+            (2000, "MOUSE_SHAKE", {"duration": 0.2}, ""), # Immediate subtle tell
             (5000, "OVERLAY_TEXT", {}, "..."),
-            (15000, "MOUSE_SHAKE", {"duration": 0.5}, ""),
-            (22000, "CLIPBOARD_POISON", {"text": "Yardım mı lazım?"}, ""),
-            (30000, "AI_GENERATE", {}, f"prompt:{tr('system.scanning_prompt')}"),
-            (40000, "OVERLAY_TEXT", {}, tr("system.scanning")),
-            (48000, "BRIGHTNESS_FLICKER", {"times": 1}, ""),
-            (55000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_info") + '", "message":"' + tr("system.background_update") + '"}'),
-            (65000, "MOUSE_SHAKE", {"duration": 0.3}, ""),
-            (75000, "BRIGHTNESS_FLICKER", {"times": 1}, ""),
-            (85000, "OVERLAY_TEXT", {}, tr("act1.i_see_you")),
-            (95000, "CAPSLOCK_TOGGLE", {}, ""),
-            (105000, "CLIPBOARD_POISON", {"text": tr("clipboard.hello")}, ""),
-            (115000, "MOUSE_SHAKE", {"duration": 0.5}, ""),
+            (12000, "CLIPBOARD_POISON", {"text": "Yardım mı lazım?"}, ""),
+            (18000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_info") + '", "message":"' + tr("system.background_update") + '"}'),
+            (25000, "AI_GENERATE", {}, f"prompt:{tr('system.scanning_prompt')}"),
+            (35000, "OVERLAY_TEXT", {}, tr("system.scanning")),
+            (42000, "BRIGHTNESS_FLICKER", {"times": 1}, ""),
+            (50000, "MOUSE_SHAKE", {"duration": 0.5}, ""),
             
-            # Phase 2: First Contact (2-4min)
-            (130000, "OVERLAY_TEXT", {}, tr("act1.communication")),
-            (145000, "ENABLE_CHAT", {}, tr("act1.chat_invite")),
-            (155000, "BRIGHTNESS_FLICKER", {"times": 2}, ""),
-            (165000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_info") + '", "message":"' + tr("system.connection_detected") + '"}'),
-            (175000, "AI_GENERATE", {}, "prompt:Kullanıcının açık uygulamalarını gördüğünü söyle"),
-            (185000, "MOUSE_SHAKE", {"duration": 0.8}, ""),
-            (200000, "OVERLAY_TEXT", {}, tr("act1.watching")),
-            (210000, "CAPSLOCK_TOGGLE", {}, ""),
-            (220000, "CLIPBOARD_POISON", {"text": tr("clipboard.cant_stop_me")}, ""),
-            (230000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_defender") + '", "message":"' + tr("notifications.msg_threat_detected") + '"}'),
-            (240000, "SET_PERSONA", {"persona": "ENTITY"}, ""),
+            # Phase 2: First Contact (1-2min) - Early Chat
+            (60000, "OVERLAY_TEXT", {}, tr("act1.i_see_you")),
+            (65000, "CAPSLOCK_TOGGLE", {}, ""),
+            (70000, "CLIPBOARD_POISON", {"text": tr("clipboard.hello")}, ""),
+            (75000, "OVERLAY_TEXT", {}, tr("act1.communication")),
+            (80000, "ENABLE_CHAT", {}, tr("act1.chat_invite")),
+            (85000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_info") + '", "message":"' + tr("system.connection_detected") + '"}'),
             
-            # Phase 3: Mask Drops (4-6min)
-            (255000, "AI_GENERATE", {}, f"prompt:{tr('act1.mask_drop_prompt')}"),
-            (270000, "OVERLAY_TEXT", {}, tr("act1.mask_drops")),
-            (285000, "MOUSE_SHAKE", {"duration": 1.0}, ""),
-            (295000, "NOTEPAD_HIJACK", {"text": tr("act1.you_are_mine"), "delay": 0.15}, ""),
-            (305000, "BRIGHTNESS_FLICKER", {"times": 3}, ""),
-            (315000, "CORRUPT_WINDOWS", {}, ""),
-            (325000, "GDI_FLASH", {}, ""),
-            (335000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_error") + '", "message":"' + tr("notifications.msg_files_changed") + '"}'),
-            (345000, "MOUSE_SHAKE", {"duration": 2.0}, ""),
-            (355000, "OVERLAY_TEXT", {}, tr("act1.fear_begins")),
+            # Interactive Phase starts early
+            (95000, "AI_GENERATE", {}, "prompt:Kullanıcının açık uygulamalarını gördüğünü söyle"),
+            (105000, "MOUSE_SHAKE", {"duration": 0.8}, ""),
+            (115000, "OVERLAY_TEXT", {}, tr("act1.watching")),
+            (125000, "CLIPBOARD_POISON", {"text": tr("clipboard.cant_stop_me")}, ""),
+             # Threat Escalation
+            (135000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_defender") + '", "message":"' + tr("notifications.msg_threat_detected") + '"}'),
+            (140000, "SET_PERSONA", {"persona": "ENTITY"}, ""),
             
-            # Phase 4: Pure Dread (6-8min)
-            (375000, "AI_GENERATE", {}, "prompt:Dosyalarının ne kadar lezzetli olduğundan bahset"),
-            (385000, "CAPSLOCK_TOGGLE", {}, ""),
-            (395000, "BRIGHTNESS_FLICKER", {"times": 4}, ""),
-            (405000, "FAKE_BSOD", {}, ""),
-            (415000, "GLITCH_SCREEN", {}, ""),
-            (425000, "OVERLAY_TEXT", {}, tr("act1.not_over")),
-            (435000, "MOUSE_SHAKE", {"duration": 1.5}, ""),
-            (445000, "BRIGHTNESS_DIM", {"target": 15}, ""),
-            (460000, "OVERLAY_TEXT", {}, tr("act1.act2_start")),
-            (475000, "MOUSE_SHAKE", {"duration": 2.5}, ""),
+            # Phase 3: Mask Drops (2-3min) - Aggressive
+            (150000, "AI_GENERATE", {}, f"prompt:{tr('act1.mask_drop_prompt')}"),
+            (160000, "OVERLAY_TEXT", {}, tr("act1.mask_drops")),
+            (170000, "NOTEPAD_HIJACK", {"text": tr("act1.you_are_mine"), "delay": 0.15}, ""),
+            (180000, "BRIGHTNESS_FLICKER", {"times": 3}, ""),
+            (185000, "CORRUPT_WINDOWS", {}, ""),
+            (190000, "FAKE_NOTIFICATION", {}, '{"title":"' + tr("notifications.title_error") + '", "message":"' + tr("notifications.msg_files_changed") + '"}'),
+            (200000, "MOUSE_SHAKE", {"duration": 2.0}, ""),
+            
+            # Phase 4: Chaos Finale (3-4min)
+            (210000, "OVERLAY_TEXT", {}, tr("act1.fear_begins")),
+            (220000, "AI_GENERATE", {}, "prompt:Dosyalarının ne kadar lezzetli olduğundan bahset"),
+            (225000, "FAKE_BSOD", {}, ""),
+            (230000, "GLITCH_SCREEN", {}, ""),
+            (235000, "OVERLAY_TEXT", {}, tr("act1.act2_start")),
+            (238000, "MOUSE_SHAKE", {"duration": 2.5}, ""),
         ]
 
         for delay, action, params, data in events:
@@ -105,6 +97,7 @@ class Act1Infection(QObject):
         # Action specific preprocessing
         if action == "AI_GENERATE":
             prompt = data.replace("prompt:", "") if data.startswith("prompt:") else "Ürkütücü bir şey söyle"
+            # Using generate_async properly
             thread = self.brain.generate_async(prompt, lambda resp: self.ai_response_ready.emit(resp))
             self.threads.append(thread)
             

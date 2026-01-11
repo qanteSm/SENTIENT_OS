@@ -1,4 +1,4 @@
-# <img src="assets/images/sentient/Logo.png" width="45" align="center"> SENTIENT_OS v4.1
+# <img src="assets/images/sentient/Logo.png" width="45" align="center"> SENTIENT_OS v0.8.0-alpha-certified
 
 <p align="center">
   <img src="assets/images/sentient/sentient_horizontal_gif.gif" alt="SENTIENT_OS Banner" width="100%">

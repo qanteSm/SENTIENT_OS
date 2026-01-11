@@ -2,6 +2,39 @@
 
 > **Not:** Mevcut özellikler (CapsLock Morse, Notepad Yazma, Fake Toast) listeden çıkarılmıştır. Sadece yeni eklemeler ve geliştirmeler kalmıştır.
 
+## 🐛 Bug Fixes & Improvements (Raporlanan Hatalar)
+Kullanıcı geri bildirimlerine dayalı düzeltme ve iyileştirmeler.
+
+### Act 1 & Pacing
+- [ ] **Pacing Optimization (Hızlandırma)**
+    - [ ] `Act 1` başlangıcındaki "boşluk" hissi giderilmeli. 0-2 dakika arası çok durgun geçiyor.
+    - [ ] Efekt ve olay sıklığı artırılmalı, timeline sıkıştırılmalı (8 dk -> daha kısa veya daha yoğun).
+    - [ ] Kullanıcı etkileşim noktaları (iletişim, chat) daha erken gelmeli.
+
+### System & Hardware
+- [ ] **Notification System Overhaul**
+    - [ ] "Windows notification gelmiyor" şikayeti: `notification_ops.py` ve `fake_notification.py` yenilenmeli.
+    - [ ] Bildirim stili Windows 10/11 native görünümüne birebir benzetilmeli (Glass effect, animasyonlar).
+    - [ ] Bildirimlerin her zaman en üstte (Always On Top) ve görünür olduğundan emin olunmalı.
+- [ ] **TTS Stability (Ses Sorunu)**
+    - [ ] "Bir kere konuşup susuyor" hatası giderilmeli.
+    - [ ] `pyttsx3` motorunun thread yönetimi düzeltilmeli (COM initialization hataları).
+    - [ ] Sürekli ve stabil konuşma için tek bir motor instance'ı veya sağlam bir kuyruk yapısı.
+
+### Visual & Immersion
+- [ ] **Subtitle Duration Fix**
+    - [ ] "Nefes sesi (breath) alt yazısı çok kısa kalıyor" sorunu.
+    - [ ] Alt yazı süresi ses/efekt süresine eşitlenmeli veya minimum okunabilir süre (2-3sn) tanımlanmalı.
+
+### AI & Gemini Integration
+- [ ] **Unshackled AI (Gemini Safety)**
+    - [ ] "Dosyamı sil dediğimde yapmıyor, küfür edince tepki vermiyor" sorunu.
+    - [ ] Gemini API Safety Settings `BLOCK_NONE` olarak ayarlanmalı.
+    - [ ] Prompt mühendisliği ile AI'nın "Sanal Zarar Verme" (Roleplay) yeteneği açılmalı.
+    - [ ] "Mavi ekran ver", "Sil" gibi komutları reddetmek yerine ilgili `FAKE_` aksiyonlara (fake delete, fake bsod) yönlendirmeli.
+
+---
+
 ## 🔮 Phase 5: Physical Integration (Hardware)
 Donanım dünyasına sızarak oyuncuyu "gerçeklikte" etkileme.
 
