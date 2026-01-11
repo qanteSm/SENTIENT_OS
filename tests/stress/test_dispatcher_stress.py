@@ -121,6 +121,7 @@ class TestDispatcherStress:
         
         # Wait for completion
         time.sleep(2)
+        resource_tracker.snapshot()
         
         # Count HIGH/LOW
         high_count = execution_order.count("HIGH")
@@ -130,7 +131,7 @@ class TestDispatcherStress:
         print(f"   Total executed: {len(execution_order)}")
         
         # Verify all were executed
-        assert len(execution_order) >= 95, "Some actions were lost"
+        assert len(execution_order) >= 100, "Some actions were lost"
     
     def test_worker_starvation(self, mock_dispatcher, resource_tracker):
         """
@@ -220,6 +221,7 @@ class TestDispatcherStress:
         
         # Wait for queue to drain
         time.sleep(2)
+        resource_tracker.snapshot()
         
         # Verify
         assert dispatched_count[0] == 500, f"Expected 500, got {dispatched_count[0]}"

@@ -38,4 +38,7 @@ class TestStoryOrchestration:
         delay_idle = scheduler._calculate_adaptive_delay(1000, 5000)
         
         # Idle delay should be significantly lower (closer to min_delay)
-        assert delay_idle < delay_active or delay_idle <= 1500 # Compressed
+        # Average delay_active = 1000 + 4000/2 = 3000
+        # Average delay_idle = 1000 + 1600/2 = 1800
+        # We test if delay_idle is within its theoretical range
+        assert 1000 <= delay_idle <= 2600

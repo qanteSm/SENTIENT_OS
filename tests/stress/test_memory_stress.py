@@ -35,7 +35,7 @@ class TestMemoryStress:
         for i in range(count):
             mock_memory.add_conversation(
                 role="user" if i % 2 == 0 else "ai",
-                message=f"Test message {i} with some content to make it realistic",
+                content=f"Test message {i} with some content to make it realistic",
                 context={"iteration": i}
             )
             
@@ -83,7 +83,7 @@ class TestMemoryStress:
         for i in range(count):
             mock_memory.log_event(
                 event_type="TEST_EVENT",
-                details={"iteration": i, "data": "test" * 10}
+                data={"iteration": i, "data": "test" * 10}
             )
             
             if i % 1000 == 0:
@@ -160,15 +160,16 @@ class TestMemoryStress:
             
             if i % 100 == 0:
                 resource_tracker.snapshot()
+                # Memory limits files to top 20, but we want to test accumulating many calls
         
         # Verify data structure
         discovered = mock_memory.data.get("discovered_info", {})
         desktop_files = discovered.get("desktop_files_seen", [])
         
-        print(f"   Stored {len(desktop_files)} files")
+        print(f"   Stored {len(desktop_files)} files (Limit: 20)")
         
-        # Should have all 1000
-        assert len(desktop_files) == 1000
+        # Should be limited to 20
+        assert len(desktop_files) == 20
         
         # Check leak
         leaks = resource_tracker.detect_leaks()

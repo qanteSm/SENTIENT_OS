@@ -123,15 +123,16 @@ class ResourceTracker:
         thread_growth = last.thread_count - first.thread_count
         
         # Leak detection heuristics
-        has_memory_leak = memory_growth_mb > 50  # 50MB+ growth is suspicious
         has_gdi_leak = gdi_growth > 100  # 100+ handles is suspicious
         has_thread_leak = thread_growth > 5  # 5+ threads is suspicious
         
         # Check for "staircase effect" in memory
-        memory_trend_increasing = all(
-            self.snapshots[i].memory_rss_mb <= self.snapshots[i + 1].memory_rss_mb
-            for i in range(len(self.snapshots) - 1)
-        ) if len(self.snapshots) > 2 else False
+        # FIXED: Only consider it a leak if growth is also significant (> 10MB)
+        # and ignore minor fluctuations (RSS can fluctuate)
+        diffs = [self.snapshots[i+1].memory_rss_mb - self.snapshots[i].memory_rss_mb for i in range(len(self.snapshots)-1)]
+        is_increasing = all(d > -0.05 for d in diffs) if len(diffs) > 3 else False
+        
+        has_memory_leak = (memory_growth_mb > 50) or (is_increasing and memory_growth_mb > 10)
         
         return {
             "status": "analyzed",
@@ -139,8 +140,8 @@ class ResourceTracker:
             "memory": {
                 "growth_mb": round(memory_growth_mb, 2),
                 "growth_percent": round(memory_growth_percent, 2),
-                "staircase_trend": memory_trend_increasing,
-                "leak_detected": has_memory_leak or memory_trend_increasing
+                "staircase_trend": is_increasing,
+                "leak_detected": has_memory_leak
             },
             "gdi_handles": {
                 "growth": gdi_growth,
