@@ -40,18 +40,20 @@ Mevcut özellikleri daha zeki hale getirme.
     - [ ] *Mevcut:* Toast mesajı gösterilebiliyor.
     - [ ] *Hedef:* "Düşük Pil (%1)", "Kritik Sistem Hatası", "Virüs Tespit Edildi" gibi inandırıcı presetler.
 
-## 🎮 Phase 8: Gameplay & Mini-Games
-Deneyimi bir "simülasyon"dan "oyun"a dönüştürme.
+## 🎮 Phase 8: Gameplay & Interactive Story (Oynanış Devrimi)
+Hikaye akışını "boş"luktan kurtarıp, aktif oynanışa ve sonuçlara bağlama.
 
-- [ ] **Mini-Games (Glitched)**
-    - [ ] Masaüstünde ikonlarla oynanan "Pong" veya "Snake".
-    - [ ] Kaybedince sistemden (sahte) dosya silinen riskli oyunlar.
-- [ ] **Jumpscare Sistemi 2.0**
-    - [ ] "Screamer" pencereleri: Aniden açılan, çığlık sesi içeren pencereler.
-    - [ ] Sahte Mavi Ekran (BSOD) sonrası siyah ekranda beliren yüzler.
-- [ ] **"Kaçan" Fare İmleci**
-    - [ ] *Mevcut:* Fare dondurulabiliyor veya titretiliyor.
-    - [ ] *Hedef:* Oyuncu belirli bir butona (örn: "Kapat") basmaya çalıştığında imlecin o butondan kaçması.
+- [ ] **Mouse Cursor Parkour (Cursor Avatar)**
+    - [ ] **Konsept:** Oyuncunun karakteri doğrudan **Fare İmleci**'dir.
+    - [ ] **Amaç:** Ekranda açılan pencereler, hata mesajları ve "glitch" alanları birer platform/engeldir. İmleci bu engellere çarptırmadan hedefe (örn: "Kurtar" butonu veya yeşil bir klasör) ulaştırmak.
+    - [ ] **Zorluk:** Pencereler hareket eder, küçülür/büyür. İmleç "ağırlaşabilir" (input lag simülasyonu) veya titreyebilir.
+    - [ ] **Meta-Korku:** Kaybedince imleç "ölür" (yok olur) ve sistem kilitlenmiş gibi davranır.
+- [ ] **Virus Avcısı (Mini-Game)**
+    - [ ] Masaüstünde rastgele hızla beliren "zararlı" pencereleri veya bozuk ikonları süre bitmeden tıklayıp kapatma.
+    - [ ] *Sonuç:* Başarısız olunursa sistem daha fazla bozulur (Glitch artar).
+- [ ] **Cezalandırıcı Döngü (Roguelike Elements)**
+    - [ ] Mini oyunlarda kaybedince "Game Over" yerine **Act Başına Dönüş**.
+    - [ ] "Seni uyardım..." diyerek AI'nın zorluk seviyesini artırması.
 
 ## 🧠 Phase 9: Psychological Warfare (Sinsi Özellikler)
 
