@@ -19,39 +19,48 @@ class FakeNotification(QWidget):
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
         # UI Setup
-        self.setFixedSize(360, 100)
+        self.setFixedSize(360, 110)
         
         self.main_frame = QWidget(self)
-        self.main_frame.setFixedSize(360, 100)
+        self.main_frame.setFixedSize(360, 110)
         self.main_frame.setObjectName("mainFrame")
+        
+        # Windows 11 Style: Rounded corners, Mica-like transparency, thin border
         self.main_frame.setStyleSheet("""
             QWidget#mainFrame {
-                background-color: rgba(30, 30, 30, 240);
-                border: 1px solid #444;
-                border-radius: 4px;
+                background-color: rgba(32, 32, 32, 220);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
             }
         """)
         
         layout = QVBoxLayout(self.main_frame)
+        layout.setContentsMargins(15, 12, 15, 12)
+        layout.setSpacing(4)
         
-        # Header (Title)
-        header_layout = QHBoxLayout()
-        self.title_label = QLabel(title)
-        self.title_label.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
-        self.title_label.setStyleSheet("color: #fff; border: none;")
-        header_layout.addWidget(self.title_label)
+        # App Name Line (New for realism)
+        app_line = QHBoxLayout()
+        self.app_label = QLabel("Windows Güvenliği")
+        self.app_label.setFont(QFont("Segoe UI Variable Small", 8) if "Segoe UI Variable Small" in QFont().families() else QFont("Segoe UI", 8))
+        self.app_label.setStyleSheet("color: rgba(255, 255, 255, 0.7); border: none;")
+        app_line.addWidget(self.app_label)
         
         self.close_btn = QLabel("✕")
-        self.close_btn.setStyleSheet("color: #888; border: none;")
-        header_layout.addStretch()
-        header_layout.addWidget(self.close_btn)
+        self.close_btn.setStyleSheet("color: rgba(255, 255, 255, 0.5); border: none; font-size: 10px;")
+        app_line.addStretch()
+        app_line.addWidget(self.close_btn)
+        layout.addLayout(app_line)
         
-        layout.addLayout(header_layout)
+        # Header (Title)
+        self.title_label = QLabel(title)
+        self.title_label.setFont(QFont("Segoe UI Variable Text", 10, QFont.Weight.Bold) if "Segoe UI Variable Text" in QFont().families() else QFont("Segoe UI", 10, QFont.Weight.Bold))
+        self.title_label.setStyleSheet("color: #ffffff; border: none;")
+        layout.addWidget(self.title_label)
         
         # Body (Message)
         self.message_label = QLabel(message)
-        self.message_label.setFont(QFont("Segoe UI", 9))
-        self.message_label.setStyleSheet("color: #ccc; border: none;")
+        self.message_label.setFont(QFont("Segoe UI Variable Text", 9) if "Segoe UI Variable Text" in QFont().families() else QFont("Segoe UI", 9))
+        self.message_label.setStyleSheet("color: rgba(255, 255, 255, 0.9); border: none;")
         self.message_label.setWordWrap(True)
         layout.addWidget(self.message_label)
         

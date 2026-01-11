@@ -155,7 +155,7 @@ class HorrorEffects:
         message = f"DUYDUM: '{detected}'"
         
         if self._dispatcher and self._dispatcher.overlay:
-            self._dispatcher.overlay.show_text(message, 3000)
+            self._dispatcher.overlay.show_text(message, 4500)
         
         print(f"[HORROR] Fake listening: {detected}")
     
