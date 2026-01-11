@@ -22,6 +22,47 @@ _global_snapshots = []
 # Import BEFORE creating fixtures to avoid singleton issues
 from config import Config
 
+# ==========================================
+# DEBUG LOGGING HOOKS
+# ==========================================
+DEBUG_LOG_PATH = Path("tests/debug_trace.log")
+
+def log_debug_trace(message):
+    try:
+        with open(DEBUG_LOG_PATH, "a", encoding="utf-8") as f:
+            timestamp = time.strftime("%H:%M:%S")
+            f.write(f"[{timestamp}] {message}\n")
+    except Exception:
+        pass
+
+def pytest_sessionstart(session):
+    # Create tests dir if not exists
+    Path("tests").mkdir(exist_ok=True)
+    # Clear previous log
+    with open(DEBUG_LOG_PATH, "w", encoding="utf-8") as f:
+        f.write("=== SESSION START ===\n")
+
+def pytest_runtest_setup(item):
+    log_debug_trace(f"SETUP: {item.nodeid}")
+
+def pytest_runtest_call(item):
+    log_debug_trace(f"CALL: {item.nodeid}")
+
+def pytest_runtest_teardown(item, nextitem=None):
+    log_debug_trace(f"TEARDOWN: {item.nodeid}")
+
+def pytest_sessionfinish(session, exitstatus):
+    log_debug_trace(f"=== SESSION FINISH === Exit Code: {exitstatus}")
+
+def pytest_internalerror(excrepr, excinfo):
+    log_debug_trace(f"!!! INTERNAL ERROR !!!\n{excrepr}")
+
+def pytest_keyboard_interrupt(excinfo):
+    log_debug_trace("!!! KEYBOARD INTERRUPT !!!")
+
+# ==========================================
+# FIXTURES
+# ==========================================
 
 @pytest.fixture(autouse=True)
 def reset_singletons():
@@ -30,6 +71,9 @@ def reset_singletons():
     if hasattr(Config, '_instance'):
         Config._instance = None
         Config._initialized = False
+    
+    # Set TEST_MODE globally for all tests to prevent safety sensors
+    Config().set("TEST_MODE", True, validate=False)
     
     # Reset Memory singleton
     try:
@@ -45,7 +89,6 @@ def reset_singletons():
     
     yield
 
-
 @pytest.fixture
 def mock_config():
     """Provide a test configuration with safe defaults"""
@@ -56,6 +99,7 @@ def mock_config():
         config.set("SAFE_HARDWARE", True, validate=False)
         config.set("CHAOS_LEVEL", 0, validate=False)
         config.set("LANGUAGE", "tr", validate=False)
+        config.set("TEST_MODE", True, validate=False)
     return config
 
 
@@ -102,14 +146,6 @@ def sample_ai_response():
 @pytest.fixture
 def sample_context():
     """Sample context dictionary"""
-    return {
-        "act": 2,
-        "chaos_level": 30,
-        "user_name": "Test User",
-        "last_action": "MOUSE_SHAKE",
-        "conversation_history": []
-    }
-
     return {
         "act": 2,
         "chaos_level": 30,

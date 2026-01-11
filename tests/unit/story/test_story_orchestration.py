@@ -14,17 +14,33 @@ class TestStoryOrchestration:
     def story_mgr(self, mock_memory):
         mock_dispatcher = MagicMock()
         mock_dispatcher.overlay = MagicMock()
+        mock_dispatcher.overlay.flash_color = MagicMock()
+        mock_dispatcher.overlay.show_text = MagicMock()
         mock_brain = MagicMock()
-        return StoryManager(mock_dispatcher, mock_memory, mock_brain)
+        
+        # Patch QTimer to prevent real Qt timer usage which causes silent exits
+        # We patch at module level for StoryManager
+        with patch('story.story_manager.QTimer'):
+            mgr = StoryManager(mock_dispatcher, mock_memory, mock_brain)
+            yield mgr
+            if hasattr(mgr, 'stop'):
+                 mgr.stop()
 
     def test_story_manager_init(self, story_mgr):
         assert story_mgr.current_act_num == 1
         
     @patch('story.story_manager.Act1Infection')
     def test_load_act(self, mock_act1, story_mgr):
+        # Setup mock act logic manually since _load_act is real
+        mock_instance = MagicMock()
+        mock_act1.return_value = mock_instance
+        
         story_mgr._load_act(1)
+        
         assert story_mgr.memory.set_act.called
         assert story_mgr.current_act_instance is not None
+        mock_act1.assert_called()
+
 
     def test_dynamic_scheduler_adaptive_delay(self):
         scheduler = DynamicEventScheduler()

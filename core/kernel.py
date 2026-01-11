@@ -172,11 +172,15 @@ class SentientKernel:
         self.heartbeat.start()
         
         # 6.1 Start Resource Guard & Panic Sensor (Safety)
-        self.resource_guard = ResourceGuard()
-        self.resource_guard.start()
-        
-        self.panic_sensor = PanicSensor()
-        self.panic_sensor.start()
+        # Skip in TEST_MODE to prevent process exit during high-CPU test execution
+        if not Config().get("TEST_MODE", False):
+            self.resource_guard = ResourceGuard()
+            self.resource_guard.start()
+            
+            self.panic_sensor = PanicSensor()
+            self.panic_sensor.start()
+        else:
+            log_info("Safety sensors disabled (TEST_MODE)", "KERNEL")
         
         # 7. Story Engine
         log_info("Initializing Story Engine...", "KERNEL")

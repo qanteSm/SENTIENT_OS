@@ -1,0 +1,11 @@
+
+    def stop(self):
+        """Stops all running timers and logic."""
+        log_info("Stopping StoryManager...", "STORY")
+        self._cancel_transition_watchdog()
+        if self.current_act_instance:
+            try:
+                if hasattr(self.current_act_instance, 'stop'):
+                    self.current_act_instance.stop()
+            except Exception as e:
+                log_error(f"Failed to stop current act: {e}", "STORY")

@@ -265,3 +265,19 @@ class StoryManager(QObject):
         app = QApplication.instance()
         if app:
             app.quit()
+    def stop(self):
+        """Stops all running timers and logic."""
+        log_info("Stopping StoryManager...", "STORY")
+        self._cancel_transition_watchdog()
+        if self.current_act_instance:
+            try:
+                if hasattr(self.current_act_instance, 'stop'):
+                    self.current_act_instance.stop()
+            except Exception as e:
+                log_error(f"Failed to stop current act: {e}", "STORY")
+        
+        # Stop drone/ambient if they exist
+        if self.ambient_horror and hasattr(self.ambient_horror, 'stop'):
+             self.ambient_horror.stop()
+        if self.drone_audio and hasattr(self.drone_audio, 'stop'):
+            self.drone_audio.stop()

@@ -23,20 +23,23 @@ class TestVisualEffectsLogic:
     @patch('visual.effects.pixel_melt.QTimer.singleShot')
     @patch('visual.effects.pixel_melt.windll.user32.GetDC')
     @patch('visual.effects.pixel_melt.windll.user32.ReleaseDC')
-    def test_pixel_melt_logic(self, mock_release_dc, mock_get_dc, mock_timer, app):
+    @patch('visual.effects.pixel_melt.win32ui.CreateDCFromHandle')
+    @patch('visual.effects.pixel_melt.win32ui.CreateBitmap')
+    def test_pixel_melt_logic(self, mock_create_bitmap, mock_create_dc, mock_release_dc, mock_get_dc, mock_timer, app):
         """Verifies PixelMelt trigger doesn't crash."""
         from visual.effects.pixel_melt import PixelMelt
-        with patch('visual.effects.pixel_melt.win32ui.CreateDCFromHandle'):
-             with patch('visual.effects.pixel_melt.windll.user32.GetSystemMetrics', return_value=1000):
-                PixelMelt.melt_region(x=0, y=0, width=10, height=10)
-                assert mock_timer.called
+        with patch('visual.effects.pixel_melt.windll.user32.GetSystemMetrics', return_value=1000):
+            PixelMelt.melt_region(x=0, y=0, width=10, height=10)
+            assert mock_timer.called
 
     @patch('visual.effects.screen_tear.QTimer.singleShot')
     @patch('visual.effects.screen_tear.windll.user32.GetDC')
-    def test_screen_tear_trigger(self, mock_get_dc, mock_timer, app):
+    @patch('visual.effects.screen_tear.windll.user32.ReleaseDC')
+    @patch('visual.effects.screen_tear.win32ui.CreateDCFromHandle')
+    @patch('visual.effects.screen_tear.win32ui.CreateBitmap')
+    def test_screen_tear_trigger(self, mock_create_bitmap, mock_create_dc, mock_release_dc, mock_get_dc, mock_timer, app):
         """Verifies ScreenTear trigger logic."""
         from visual.effects.screen_tear import ScreenTear
-        with patch('visual.effects.screen_tear.win32ui.CreateDCFromHandle'):
-             with patch('visual.effects.screen_tear.windll.user32.GetSystemMetrics', return_value=1000):
-                ScreenTear.tear_region(duration=0.1)
-                assert mock_timer.called
+        with patch('visual.effects.screen_tear.windll.user32.GetSystemMetrics', return_value=1000):
+            ScreenTear.tear_screen(intensity=1, duration=100)
+            assert mock_timer.called

@@ -466,6 +466,9 @@ class Memory:
 
     def _save_internal(self):
         """Atomic save with backup."""
+        if self.filepath == ":memory:":
+            return
+
         try:
             if os.path.exists(self.filepath):
                 backup_path = self.filepath + ".backup"
