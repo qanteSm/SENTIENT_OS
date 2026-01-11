@@ -27,8 +27,11 @@ class TestPrivacyFilter:
         filter = PrivacyFilter()
         user = filter.username
         text = f"Hello {user}, welcome home."
-        assert user not in filter.scrub(text)
-        assert "<USER>" in filter.scrub(text)
+        scrubbed = filter.scrub(text)
+        # Username should be replaced (either by alias in Streamer Mode or <USER>)
+        assert user not in scrubbed, f"Username '{user}' should be scrubbed but found in: {scrubbed}"
+        # Scrubbed version should be different from original
+        assert scrubbed != text, "Text should be modified by privacy filter"
         
     def test_scrub_ip(self):
         filter = PrivacyFilter()

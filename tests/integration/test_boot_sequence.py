@@ -63,9 +63,14 @@ class TestBootSequenceErrorHandling:
         """Should handle missing API key gracefully"""
         from core.gemini_brain import GeminiBrain
         
-        # Should fallback to mock mode
-        with patch.dict(os.environ, {}, clear=True):
-            brain = GeminiBrain()
+        # Mock Config to return no API key AND clear environment
+        mock_config = Mock()
+        mock_config.IS_MOCK = False
+        mock_config.get.return_value = None  # No GEMINI_KEY in config
+        
+        with patch.dict(os.environ, {}, clear=True), \
+             patch('core.gemini_brain.Config', return_value=mock_config):
+            brain = GeminiBrain(api_key=None)  # Explicitly pass None
             assert brain.mock_mode == True
     
     @pytest.mark.integration

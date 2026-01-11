@@ -301,7 +301,7 @@ Masaüstü Dosyaları: {', '.join([f[0] if isinstance(f, (list, tuple)) else f f
         
         full_prompt = self._build_dynamic_prompt(user_input)
         
-        while current_try <= max_retries:
+        while current_try < max_retries:
             try:
                 log_info(f"Sending request to Gemini API (Try {current_try + 1})...", "BRAIN")
                 
@@ -333,7 +333,7 @@ Masaüstü Dosyaları: {', '.join([f[0] if isinstance(f, (list, tuple)) else f f
                 except json.JSONDecodeError as e:
                     last_error = str(e)
                     # Raise only if we are out of retries
-                    if current_try >= max_retries:
+                    if current_try >= max_retries - 1:
                          raise AIResponseError(
                             "Failed to parse AI response as JSON",
                             details={"response": clean_text[:200], "error": str(e)}

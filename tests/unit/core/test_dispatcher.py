@@ -33,12 +33,14 @@ class TestFunctionDispatcher:
             disp.hardware_dispatcher = MagicMock()
             disp.horror_dispatcher = MagicMock()
             
-            # Rebuild map to point to mocks
-            disp._action_map = {
-                "GDI_FLASH": disp.visual_dispatcher,
-                "FILE_DELETE": disp.system_dispatcher,
-                "PROCESS_KILL": disp.system_dispatcher
-            }
+            # Mock get_supported_actions to return valid actions
+            disp.visual_dispatcher.get_supported_actions.return_value = ["GDI_FLASH", "GLITCH_SCREEN"]
+            disp.system_dispatcher.get_supported_actions.return_value = ["FAKE_FILE_DELETE", "OPEN_BROWSER"]
+            disp.hardware_dispatcher.get_supported_actions.return_value = ["MOUSE_SHAKE"]
+            disp.horror_dispatcher.get_supported_actions.return_value = []
+            
+            # Rebuild action map with mocked actions
+            disp._action_map = disp._build_action_map()
             
             yield disp
             
@@ -66,9 +68,8 @@ class TestFunctionDispatcher:
         with patch.object(dispatcher.system_dispatcher, 'dispatch', side_effect=slow_action) as mock_sys, \
              patch.object(dispatcher.visual_dispatcher, 'dispatch', side_effect=high_action) as mock_vis:
             
-            # 1. Blocking Task (Low)
-            # Use valid action CLIPBOARD_POISON
-            dispatcher._do_dispatch({"action": "CLIPBOARD_POISON", "params": {}, "speech": "s"})
+            # Use valid action FAKE_FILE_DELETE
+            dispatcher._do_dispatch({"action": "FAKE_FILE_DELETE", "params": {}, "speech": "s"})
             time.sleep(0.1)
             
             # Switch side effect for system dispatcher for second call
@@ -76,7 +77,6 @@ class TestFunctionDispatcher:
             
             mock_sys.side_effect = fast_action
             
-            # 2. Fast Task (Low)
             # Use valid action OPEN_BROWSER
             dispatcher._do_dispatch({"action": "OPEN_BROWSER", "params": {}, "speech": "f"})
             
@@ -87,6 +87,8 @@ class TestFunctionDispatcher:
             # Wait results
             time.sleep(1.5)
             
+            # With priority queue, HIGH should jump ahead of LOW priority tasks
+            # Expected order: SLOW_LOW (started first), HIGH_PRIORITY (queued 3rd but high priority), FAST_LOW (queued 2nd, low priority)
             assert execution_order == ["SLOW_LOW", "HIGH_PRIORITY", "FAST_LOW"]
 
     def test_concurrency_limit(self):

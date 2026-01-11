@@ -269,6 +269,7 @@ class Memory:
                     exists = True
                     break
             
+            if not exists:
                 # Legacy Sanitization: Convert strings to dicts
                 sanitized = []
                 for entry in discovered["desktop_files_seen"]:

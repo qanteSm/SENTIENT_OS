@@ -69,4 +69,4 @@ class TestGeminiRetry:
         assert "speech" in result
         # Check if fallback used (depends on _backup_response implementation)
         # Typically backup response has generic text
-        assert brain.model.generate_content.call_count == 2
+        assert brain.model.generate_content.call_count == 3

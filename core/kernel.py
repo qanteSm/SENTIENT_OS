@@ -329,3 +329,6 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 def boot_system():
     kernel = SentientKernel()
     kernel.boot()
+
+# Backward compatibility alias for tests
+Kernel = SentientKernel
