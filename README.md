@@ -128,7 +128,7 @@ A psychological horror experience powered by Google Gemini AI that simulates a s
 
 ```bash
 # 1. Clone/Download
-git clone https://github.com/yourusername/sentient_os.git
+git clone https://github.com/qanteSm/sentient_os.git
 cd sentient_os
 
 # 2. Install Dependencies
