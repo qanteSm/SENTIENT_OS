@@ -9,12 +9,34 @@ from hardware.voice_fixer import VoiceFixer
 
 def validate_environment():
     """Validate required environment variables before launch."""
-    if not os.getenv("GEMINI_API_KEY"):
+    # Use ConfigManager directly for YAML values
+    from core.config_manager import ConfigManager
+    yaml_config = ConfigManager()
+    
+    # Check server mode - highest priority
+    server_enabled = yaml_config.get("server.enabled", False)
+    print(f"[DEBUG] Server enabled: {server_enabled}")  # Debug
+    
+    if server_enabled:
+        print("\n" + "=" * 60)
+        print(" ✅ SERVER MODE ENABLED - Skipping Gemini API key check")
+        print(" Using Edge Node at:", yaml_config.get("server.edge_url", "N/A"))
+        print("=" * 60 + "\n")
+        return  # Skip all checks
+    
+    # Only check API key if NOT using server
+    api_key = yaml_config.get("api.gemini_key", "")
+    print(f"[DEBUG] API key found: {bool(api_key)}")  # Debug
+    
+    if not api_key:
         print("\n" + "!" * 60)
-        print(" ERROR: GEMINI_API_KEY environment variable not set!")
-        print(" Please set it before running:")
-        print('   set GEMINI_API_KEY=your_key_here  (Windows Command Prompt)')
-        print('   $env:GEMINI_API_KEY="your_key_here" (PowerShell)')
+        print(" ERROR: Gemini API key not found in config.yaml!")
+        print(" Please add your key to config.yaml:")
+        print("   api:")
+        print("     gemini_key: YOUR_KEY_HERE")
+        print(" OR enable server mode:")
+        print("   server:")
+        print("     enabled: true")
         print("!" * 60 + "\n")
         sys.exit(1)
 
@@ -101,8 +123,10 @@ def launch_game():
     validate_environment()
     
     # Check for DEV_MODE in config
-    config = Config()
-    dev_mode = config.get("DEV_MODE", False)
+    from core.config_manager import ConfigManager
+    config_manager = ConfigManager()
+    config = Config() 
+    dev_mode = True # FORCE FOR DEBUGGING
     
     if dev_mode:
         print("\n" + "=" * 60)

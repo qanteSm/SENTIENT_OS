@@ -10,12 +10,18 @@ import os
 import threading
 import time
 import hashlib
+import asyncio
+from typing import Optional
 from config import Config
+from core.config_manager import ConfigManager
+
 from PyQt6.QtCore import QObject, pyqtSignal
 from core.context_observer import ContextObserver
 from core.privacy_filter import PrivacyFilter
 from core.file_awareness import FileSystemAwareness
 from core.logger import log_info, log_error, log_warning, log_debug
+import traceback
+
 
 # Custom exceptions
 from core.exceptions import (
@@ -29,6 +35,18 @@ try:
     HAS_GEMINI = True
 except ImportError:
     HAS_GEMINI = False
+
+# Server SDK (NEW)
+try:
+    from sdk.sentientos.client import SentientClient
+    from sdk.sentientos.exceptions import (
+        AuthenticationError, RateLimitError,
+        SecurityBlockError, CommunicationError
+    )
+    HAS_SDK = True
+except ImportError:
+    HAS_SDK = False
+    log_warning("Server SDK not found, server integration disabled", "BRAIN")
 
 
 class GeminiBrain:
@@ -44,8 +62,10 @@ class GeminiBrain:
     """
     
     def __init__(self, api_key=None, memory=None):
+        config_manager = ConfigManager()
         self.mock_mode = Config().IS_MOCK or not HAS_GEMINI
-        self.api_key = api_key or Config().get('GEMINI_KEY') or os.getenv("GEMINI_API_KEY") or ""
+        # Only use config.yaml, not environment variables
+        self.api_key = api_key or config_manager.get('api.gemini_key', '')
         self.memory = memory  # Memory referansı - dışarıdan verilecek
         
         # OFFLINE MODE & CACHING (NEW)
@@ -55,7 +75,21 @@ class GeminiBrain:
         self._response_cache = {}  # {cache_key: (response, timestamp)}
         self._cache_ttl = 300  # 5 minutes
         
-        if not self.api_key and not self.mock_mode:
+        # SERVER INTEGRATION (NEW)
+        # Use ConfigManager to correctly access nested YAML fields
+        self.use_server = config_manager.get('server.enabled', False) and HAS_SDK
+        self.server_url = None
+        self.server_token = None
+        self.server_device_id = None
+        
+        if self.use_server:
+            self._initialize_server_config()
+            # If server is enabled, we don't want to accidentally fall into mock mode
+            # unless the server explicitly fails.
+            self.mock_mode = False 
+            log_info(f"Server Integration ACTIVE: {self.server_url}", "BRAIN")
+        
+        if not self.api_key and not self.mock_mode and not self.use_server:
             log_warning("No API Key found. Reverting to Mock Mode.", "BRAIN")
             self.mock_mode = True
 
@@ -93,6 +127,123 @@ class GeminiBrain:
     def set_memory(self, memory):
         """Memory referansını ayarla (main.py'den çağrılır)."""
         self.memory = memory
+    
+    def _initialize_server_config(self):
+        """Initialize server connection config"""
+        try:
+            config_manager = ConfigManager()
+            self.server_url = config_manager.get('server.edge_url', '')
+            self.server_token = config_manager.get('server.jwt_token', '')
+            self.server_device_id = config_manager.get('server.device_id', '')
+            
+            if not self.server_url or not self.server_token:
+                log_error("Server configuration incomplete (URL or Token missing)", "BRAIN")
+                self.use_server = False
+            else:
+                log_info(f"Server configured: {self.server_url}", "BRAIN")
+        except Exception as e:
+            log_error(f"Error loading server config: {e}", "BRAIN")
+            self.use_server = False
+
+    
+    def _build_server_context(self, local_context: dict) -> dict:
+        """Build context dict for server"""
+        context = ContextObserver.get_full_context()
+        
+        return {
+            "persona": self.current_persona,
+            "user_name": context.get("user_name"),
+            "time": context.get("exact_time"),
+            "is_late_night": context.get("is_late_night", False),
+            "desktop_files": [
+                f[0] if isinstance(f, (list, tuple)) else f 
+                for f in context.get("desktop_files", [])[:5]
+            ],
+            "running_apps": context.get("running_apps", [])[:10],
+            "anger_level": local_context.get("anger_level", 0) if local_context else 0,
+            "current_act": local_context.get("current_act", 1) if local_context else 1,
+        }
+    
+    def _map_server_response_to_client(self, server_response) -> dict:
+        """Map server response format to client format"""
+        # Extract response data
+        if hasattr(server_response, 'text'):
+            # SDK InferenceResponse object
+            text = server_response.text
+            actions_list = server_response.actions
+            cache = server_response.cache
+        else:
+            # Dict response
+            text = server_response.get("text", "")
+            actions_list = server_response.get("actions", [])
+            cache = server_response.get("cache", "miss")
+        
+        # Map first action
+        if actions_list:
+            first_action = actions_list[0]
+            action = first_action.get("type", "NONE")
+            params = first_action.get("payload", {})
+        else:
+            action = "NONE"
+            params = {}
+        
+        # Return client format
+        result = {
+            "speech": text,
+            "action": action,
+            "params": params,
+            "_server_cache": cache
+        }
+        
+        # Save to memory
+        if self.memory:
+            self.memory.add_conversation("ai", text)
+        
+        return result
+    
+    def _generate_via_server_sync(self, user_input: str, context: dict) -> Optional[dict]:
+        """Call server synchronously (runs async in thread)"""
+        result = [None]
+        error = [None]
+        
+        def async_worker():
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                
+                async def call_server():
+                    log_debug(f"SDK connecting to {self.server_url} with device {self.server_device_id}", "BRAIN")
+                    async with SentientClient(
+                        base_url=self.server_url,
+                        token=self.server_token,
+                        device_id=self.server_device_id
+                    ) as client:
+                        server_context = self._build_server_context(context)
+                        log_debug(f"Sending inference request: {user_input[:20]}...", "BRAIN")
+                        response = await client.infer(user_input, server_context)
+                        return self._map_server_response_to_client(response)
+                
+                result[0] = loop.run_until_complete(call_server())
+                loop.close()
+                
+            except Exception as e:
+                log_error(f"Server thread exception: {e}", "BRAIN")
+                log_error(traceback.format_exc(), "BRAIN")
+                error[0] = e
+        
+        thread = threading.Thread(target=async_worker, daemon=True)
+        thread.start()
+        thread.join(timeout=30)  # 30 second timeout
+        
+        if thread.is_alive():
+            log_error("Server request timed out after 30s", "BRAIN")
+            return None
+
+        if error[0]:
+            log_error(f"Server call error: {error[0]}", "BRAIN")
+            return None
+        
+        return result[0]
     
     def _get_entity_prompt(self) -> str:
         """The aggressive, 4th-wall breaking monster."""
@@ -266,6 +417,28 @@ Masaüstü Dosyaları: {', '.join([f[0] if isinstance(f, (list, tuple)) else f f
             log_debug("Using cached response", "BRAIN")
             return cached
         
+        # 1. TRY SERVER FIRST (NEW)
+        if self.use_server:
+            try:
+                log_info(f"Attempting server inference at {self.server_url}...", "BRAIN")
+                response = self._generate_via_server_sync(user_input, context)
+                if response:
+                    log_info("Server response received successfully", "BRAIN")
+                    # RESET FAILURE COUNTERS ON SUCCESS
+                    self._connection_failures = 0
+                    self._offline_mode = False
+                    
+                    self._cache_response(cache_key, response)
+                    if self.memory:
+                        self.memory.add_conversation("user", user_input, context)
+                    return response
+                else:
+                    log_warning("Server returned empty response or timed out", "BRAIN")
+            except Exception as e:
+                log_warning(f"Server request failed: {str(e)}", "BRAIN")
+                # Don't disable permanently, just fall through to direct Gemini
+        
+        # 2. FALLBACK TO DIRECT GEMINI (EXISTING LOGIC)
         # Offline mode check
         if self._offline_mode:
             log_warning("In offline mode, using backup brain", "BRAIN")
@@ -274,6 +447,7 @@ Masaüstü Dosyaları: {', '.join([f[0] if isinstance(f, (list, tuple)) else f f
         if self.mock_mode:
             log_info("Using mock mode (Backup Brain)", "BRAIN")
             return self._backup_response(context)
+
         
         # Retry Loop for JSON Repair
         max_retries = 3

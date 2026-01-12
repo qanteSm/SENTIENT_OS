@@ -19,6 +19,7 @@ psutil
 requests
 pillow
 cryptography
+httpx>=0.25.0  # Server communication
 
 # Testing dependencies
 pytest==7.4.3

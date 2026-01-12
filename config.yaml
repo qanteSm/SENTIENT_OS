@@ -37,6 +37,13 @@ safety:
   - firefox.exe
   streamer_mode: false
   target_monitor: 0
+server:
+  device_id: game_client_001
+  edge_url: http://localhost:8000
+  enabled: true
+  fallback_to_direct: true
+  jwt_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VfaWQiOiJnYW1lX2NsaWVudF8wMDEiLCJleHAiOjE3NzA4MTMwODEsImlhdCI6MTc2ODIyMTA4MX0.CNIFtFUTVsobaHHpBKrQMuT3Ob-KC-lC9nTeLKs3mPU
+  timeout: 30.0
 system:
   APP_NAME: SENTIENT_OS
   BASE_DIR: .
