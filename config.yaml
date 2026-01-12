@@ -4,9 +4,9 @@ ambient:
   enabled: true
 api:
   cache_ttl: 300
-  gemini_key: "${GEMINI_API_KEY}"
+  gemini_key: AIzaSyBtPd2Hd8exaX4WXIadKRtWDpKskW0oRIA
   max_failures: 3
-  model: gemini-2.5-flash
+  model: gemini-3-flash-preview
 audio:
   drone_volume: 0.3
   enable_drone: true
@@ -27,7 +27,7 @@ paths:
   locales: ./locales
   logs: ./logs
 safety:
-  ai_safety_check: true
+  ai_safety_check: false
   protected_processes:
   - obs64.exe
   - obs32.exe
@@ -35,12 +35,12 @@ safety:
   - discord.exe
   - chrome.exe
   - firefox.exe
-  streamer_mode: true
+  streamer_mode: false
   target_monitor: 0
 system:
   APP_NAME: SENTIENT_OS
   BASE_DIR: .
-  DEV_MODE: true
+  DEV_MODE: false
   IS_WINDOWS: true
-  VERSION: 0.8.0
+  VERSION: 0.8.0-alpha-certified
   debug_mode: false
