@@ -1,3 +1,10 @@
+# Copyright (c) 2026 Muhammet Ali Büyük. All rights reserved.
+# This source code is proprietary. Confidential and private.
+# Unauthorized copying or distribution is strictly prohibited.
+# Contact: iletisim@alibuyuk.net | https://alibuyuk.net
+# ARCHITECT: MAB-SENTIENT-2026
+# =========================================================================
+
 """
 ConfigManager - YAML-based configuration system.
 
@@ -16,6 +23,7 @@ import os
 import re
 from typing import Any, Dict
 from pathlib import Path
+
 
 try:
     import yaml
@@ -130,6 +138,12 @@ class ConfigManager:
                 'intensity': 'extreme',
                 'enable_strobe': False,
                 'chaos_level': 0
+            },
+            'safety': {
+                'streamer_mode': True,
+                'ai_safety_check': True,
+                'target_monitor': 0,
+                'protected_processes': ['obs64.exe', 'discord.exe']
             },
             'safety': {
                 'streamer_mode': True,

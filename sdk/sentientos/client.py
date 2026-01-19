@@ -1,3 +1,10 @@
+# Copyright (c) 2026 Muhammet Ali Büyük. All rights reserved.
+# This source code is proprietary. Confidential and private.
+# Unauthorized copying or distribution is strictly prohibited.
+# Contact: iletisim@alibuyuk.net | https://alibuyuk.net
+# ARCHITECT: MAB-SENTIENT-2026
+# =========================================================================
+
 import httpx
 import logging
 from typing import Any, Dict, Optional
@@ -45,18 +52,27 @@ class SentientClient:
         except httpx.HTTPError as e:
             raise CommunicationError(f"Failed to fetch config: {e}")
 
-    async def infer(self, message: str, context: Optional[Dict[str, Any]] = None) -> InferenceResponse:
-        req = InferenceRequest(
-            device_id=self.device_id,
-            message=message,
-            context=context or {}
-        )
+    async def infer(self, message: str, context: Optional[Dict[str, Any]] = None, request_id: str = None) -> InferenceResponse:
+        # Pydantic objesini oluştur ama göndermek için ham dict kullan
+        payload = {
+            "device_id": self.device_id,
+            "message": message,
+            "context": context or {}
+        }
+        
+        headers = self._headers.copy()
+        if request_id:
+            headers["X-Request-ID"] = request_id
         
         try:
-            resp = await self._client.post("/v1/inference", json=req.model_dump())
+            resp = await self._client.post("/v1/inference", json=payload, headers=headers)
             
             if resp.status_code == 401:
                 raise AuthenticationError("Invalid or expired token")
+            elif resp.status_code == 422:
+                # Eğer hala 422 veriyorsa, server'ın ne hata verdiğini loglayalım
+                logger.error(f"Validation Error Detail: {resp.text}")
+                raise CommunicationError(f"Validation failed (422): {resp.text}")
             elif resp.status_code == 403:
                 detail = resp.json().get("detail", "")
                 if "security protocol" in detail:

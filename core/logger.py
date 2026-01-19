@@ -1,3 +1,10 @@
+# Copyright (c) 2026 Muhammet Ali Büyük. All rights reserved.
+# This source code is proprietary. Confidential and private.
+# Unauthorized copying or distribution is strictly prohibited.
+# Contact: iletisim@alibuyuk.net | https://alibuyuk.net
+# ARCHITECT: MAB-SENTIENT-2026
+# =========================================================================
+
 """
 SENTIENT_OS Logging Framework
 Proper logging instead of print() statements.
@@ -82,6 +89,18 @@ class SentientLogger:
     def critical(self, message: str, module: str = "CORE"):
         self.logger.critical(f"[{module}] {message}")
 
+    def log_event(self, level: int, message: str, module: str = "CORE", context_id: str = None):
+        """Log an event with an optional context ID (e.g., Request ID)."""
+        prefix = f"[{context_id}] " if context_id else ""
+        self.logger.log(level, f"[{module}] {prefix}{message}")
+
+    def log_time(self, message: str, duration_ms: float, module: str = "CORE", context_id: str = None):
+        """Log the duration of an operation."""
+        level = logging.INFO
+        if duration_ms > 5000:
+            level = logging.WARNING
+        self.log_event(level, f"{message} | Duration: {duration_ms:.2f}ms", module, context_id)
+
 
 # Global logger instance
 _logger = None
@@ -94,17 +113,20 @@ def get_logger() -> SentientLogger:
     return _logger
 
 # Convenience functions
-def log_debug(message: str, module: str = "CORE"):
-    get_logger().debug(message, module)
+def log_debug(message: str, module: str = "CORE", context_id: str = None):
+    get_logger().log_event(logging.DEBUG, message, module, context_id)
 
-def log_info(message: str, module: str = "CORE"):
-    get_logger().info(message, module)
+def log_info(message: str, module: str = "CORE", context_id: str = None):
+    get_logger().log_event(logging.INFO, message, module, context_id)
 
-def log_warning(message: str, module: str = "CORE"):
-    get_logger().warning(message, module)
+def log_warning(message: str, module: str = "CORE", context_id: str = None):
+    get_logger().log_event(logging.WARNING, message, module, context_id)
 
-def log_error(message: str, module: str = "CORE"):
-    get_logger().error(message, module)
+def log_error(message: str, module: str = "CORE", context_id: str = None):
+    get_logger().log_event(logging.ERROR, message, module, context_id)
 
-def log_critical(message: str, module: str = "CORE"):
-    get_logger().critical(message, module)
+def log_critical(message: str, module: str = "CORE", context_id: str = None):
+    get_logger().log_event(logging.CRITICAL, message, module, context_id)
+
+def log_time(message: str, duration_ms: float, module: str = "CORE", context_id: str = None):
+    get_logger().log_time(message, duration_ms, module, context_id)

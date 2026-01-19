@@ -1,3 +1,10 @@
+# Copyright (c) 2026 Muhammet Ali Büyük. All rights reserved.
+# This source code is proprietary. Confidential and private.
+# Unauthorized copying or distribution is strictly prohibited.
+# Contact: iletisim@alibuyuk.net | https://alibuyuk.net
+# ARCHITECT: MAB-SENTIENT-2026
+# =========================================================================
+
 """
 Gemini Brain - AI Beyni
 
@@ -11,6 +18,7 @@ import threading
 import time
 import hashlib
 import asyncio
+import uuid
 from typing import Optional
 from config import Config
 from core.config_manager import ConfigManager
@@ -201,49 +209,63 @@ class GeminiBrain:
         
         return result
     
-    def _generate_via_server_sync(self, user_input: str, context: dict) -> Optional[dict]:
-        """Call server synchronously (runs async in thread)"""
-        result = [None]
-        error = [None]
+    def _generate_via_server_sync(self, user_input: str, context: dict, request_id: str = None) -> Optional[dict]:
+        """Call server synchronously with retry logic/exponential backoff"""
+        max_retries = 3
+        backoff_factor = 2
+        initial_delay = 1.0  # seconds
         
-        def async_worker():
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                
-                async def call_server():
-                    log_debug(f"SDK connecting to {self.server_url} with device {self.server_device_id}", "BRAIN")
-                    async with SentientClient(
-                        base_url=self.server_url,
-                        token=self.server_token,
-                        device_id=self.server_device_id
-                    ) as client:
-                        server_context = self._build_server_context(context)
-                        log_debug(f"Sending inference request: {user_input[:20]}...", "BRAIN")
-                        response = await client.infer(user_input, server_context)
-                        return self._map_server_response_to_client(response)
-                
-                result[0] = loop.run_until_complete(call_server())
-                loop.close()
-                
-            except Exception as e:
-                log_error(f"Server thread exception: {e}", "BRAIN")
-                log_error(traceback.format_exc(), "BRAIN")
-                error[0] = e
+        for attempt in range(max_retries):
+            result = [None]
+            error = [None]
+            start_time = time.time()
+            
+            log_info(f"Server attempt {attempt + 1}/{max_retries} [ID: {request_id}]", "BRAIN", request_id)
+            
+            def async_worker():
+                try:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    
+                    async def call_server():
+                        log_debug(f"SDK connecting to {self.server_url}", "BRAIN", request_id)
+                        async with SentientClient(
+                            base_url=self.server_url,
+                            token=self.server_token,
+                            device_id=self.server_device_id
+                        ) as client:
+                            server_context = self._build_server_context(context)
+                            response = await client.infer(user_input, server_context, request_id=request_id)
+                            return self._map_server_response_to_client(response)
+                    
+                    result[0] = loop.run_until_complete(call_server())
+                    loop.close()
+                    
+                except Exception as e:
+                    error[0] = e
+            
+            thread = threading.Thread(target=async_worker, daemon=True)
+            thread.start()
+            thread.join(timeout=30)  # 30 second timeout per attempt
+            
+            duration_ms = (time.time() - start_time) * 1000
+            
+            if thread.is_alive():
+                log_error(f"Server attempt {attempt + 1} timed out (30s)", "BRAIN", request_id)
+                # Thread will continue running in background as daemon, but we skip it
+            elif error[0]:
+                log_error(f"Server attempt {attempt + 1} failed: {error[0]}", "BRAIN", request_id)
+            elif result[0]:
+                log_time("Server request successful", duration_ms, "BRAIN", request_id)
+                return result[0]
+            
+            if attempt < max_retries - 1:
+                delay = initial_delay * (backoff_factor ** attempt)
+                log_warning(f"Retrying in {delay}s...", "BRAIN", request_id)
+                time.sleep(delay)
         
-        thread = threading.Thread(target=async_worker, daemon=True)
-        thread.start()
-        thread.join(timeout=30)  # 30 second timeout
-        
-        if thread.is_alive():
-            log_error("Server request timed out after 30s", "BRAIN")
-            return None
-
-        if error[0]:
-            log_error(f"Server call error: {error[0]}", "BRAIN")
-            return None
-        
-        return result[0]
+        log_error(f"All {max_retries} server attempts failed.", "BRAIN", request_id)
+        return None
     
     def _get_entity_prompt(self) -> str:
         """The aggressive, 4th-wall breaking monster."""
@@ -406,22 +428,23 @@ Masaüstü Dosyaları: {', '.join([f[0] if isinstance(f, (list, tuple)) else f f
             final_prompt = PrivacyFilter.singleton().scrub(final_prompt)
             
         return final_prompt
-
     def generate_response(self, user_input: str, context: dict = None) -> dict:
-        log_debug(f"generate_response called for: {user_input[:50]}...", "BRAIN")
+        # Generate UUID for this request chain
+        request_id = str(uuid.uuid4())[:8]  # Short ID for readability
+        log_info(f"Generating response [ID: {request_id}]", "BRAIN", request_id)
         
         # Check cache first
         cache_key = self._get_cache_key(user_input, context or {})
         cached = self._get_cached_response(cache_key)
         if cached:
-            log_debug("Using cached response", "BRAIN")
+            log_debug("Using cached response", "BRAIN", request_id)
             return cached
         
         # 1. TRY SERVER FIRST (NEW)
         if self.use_server:
             try:
-                log_info(f"Attempting server inference at {self.server_url}...", "BRAIN")
-                response = self._generate_via_server_sync(user_input, context)
+                log_info(f"Attempting server inference...", "BRAIN", request_id)
+                response = self._generate_via_server_sync(user_input, context, request_id)
                 if response:
                     log_info("Server response received successfully", "BRAIN")
                     # RESET FAILURE COUNTERS ON SUCCESS

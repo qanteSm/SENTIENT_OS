@@ -38,11 +38,11 @@ safety:
   streamer_mode: false
   target_monitor: 0
 server:
-  device_id: game_client_001
+  device_id: test-device-1
   edge_url: http://localhost:8000
   enabled: true
   fallback_to_direct: true
-  jwt_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VfaWQiOiJnYW1lX2NsaWVudF8wMDEiLCJleHAiOjE3NzA4MTMwODEsImlhdCI6MTc2ODIyMTA4MX0.CNIFtFUTVsobaHHpBKrQMuT3Ob-KC-lC9nTeLKs3mPU
+  jwt_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VfaWQiOiJ0ZXN0LWRldmljZS0xIn0.41kmXR9fLmLjM9rtAdvpl81FJPo_xDQAVPB8RiwIqMk
   timeout: 30.0
 system:
   APP_NAME: SENTIENT_OS

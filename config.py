@@ -1,3 +1,10 @@
+# Copyright (c) 2026 Muhammet Ali Büyük. All rights reserved.
+# This source code is proprietary. Confidential and private.
+# Unauthorized copying or distribution is strictly prohibited.
+# Contact: iletisim@alibuyuk.net | https://alibuyuk.net
+# ARCHITECT: MAB-SENTIENT-2026
+# =========================================================================
+
 import sys
 import platform
 import os
@@ -141,4 +148,19 @@ class Config:
             "os": platform.system(),
             "release": platform.release(),
             "is_mock": self.IS_MOCK
+        }
+    
+    def get_system_version(self) -> Dict[str, Any]:
+        """
+        Returns system version information including architect signature.
+        This is the digital fingerprint of the project.
+        """
+        return {
+            "name": self.APP_NAME,
+            "version": self.VERSION,
+            "architect": "MAB-SENTIENT-2026",
+            "author": "Muhammet Ali Büyük",
+            "contact": "iletisim@alibuyuk.net",
+            "website": "https://alibuyuk.net",
+            "signature": "SENTIENT_OS_ENGINEERED_BY_MAB"
         }
