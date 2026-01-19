@@ -288,6 +288,11 @@ See [LICENSE](LICENSE) for full text.
 ---
 
 <p align="center">
-  <a href="https://alibuyuk.net"><img src="https://img.shields.io/badge/Website-alibuyuk.net-blue?style=flat-square" alt="Website"/></a>
-  <a href="mailto:iletisim@alibuyuk.net"><img src="https://img.shields.io/badge/Email-iletisim%40alibuyuk.net-red?style=flat-square" alt="Email"/></a>
+  <a href="https://alibuyuk.net/#contact">🌐 Website</a> •
+  <a href="mailto:iletisim@alibuyuk.net">📧 E-mail</a>
 </p>
+
+<p align="center">
+  <sub>Developed with ❤️ by <a href="https://alibuyuk.net">Muhammet Ali Büyük</a></sub>
+</p>
+>
